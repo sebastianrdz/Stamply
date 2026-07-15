@@ -1,26 +1,123 @@
 @import "tailwindcss";
 
+/*
+ * Stamply design tokens.
+ * Semantic HSL variables in :root / .dark, exposed to Tailwind via @theme inline
+ * so utilities like `bg-primary`, `text-muted-foreground`, `border-border` work.
+ * A business's own brand color can override `--brand` at runtime to theme cards
+ * without touching the rest of the system.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 100%;
+  --foreground: 224 24% 12%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 224 24% 12%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 224 24% 12%;
+
+  /* Primary = friendly violet/indigo */
+  --primary: 256 82% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  /* Accent = warm amber (rewards, highlights) */
+  --accent: 32 96% 56%;
+  --accent-foreground: 28 60% 14%;
+
+  --secondary: 256 30% 96%;
+  --secondary-foreground: 256 30% 24%;
+
+  --muted: 220 16% 96%;
+  --muted-foreground: 220 12% 46%;
+
+  --destructive: 0 80% 58%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 152 62% 42%;
+  --success-foreground: 0 0% 100%;
+
+  --border: 220 16% 90%;
+  --input: 220 16% 90%;
+  --ring: 256 82% 60%;
+
+  /* Per-business brand color; defaults to primary. */
+  --brand: var(--primary);
+
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 224 32% 8%;
+  --foreground: 220 20% 96%;
+
+  --card: 224 28% 11%;
+  --card-foreground: 220 20% 96%;
+
+  --popover: 224 28% 11%;
+  --popover-foreground: 220 20% 96%;
+
+  --primary: 256 88% 70%;
+  --primary-foreground: 256 40% 12%;
+
+  --accent: 32 96% 60%;
+  --accent-foreground: 28 60% 12%;
+
+  --secondary: 256 20% 20%;
+  --secondary-foreground: 256 30% 92%;
+
+  --muted: 224 20% 18%;
+  --muted-foreground: 220 12% 64%;
+
+  --destructive: 0 72% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 152 56% 48%;
+  --success-foreground: 0 0% 100%;
+
+  --border: 224 18% 22%;
+  --input: 224 18% 24%;
+  --ring: 256 88% 70%;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-brand: hsl(var(--brand));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: hsl(var(--border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
