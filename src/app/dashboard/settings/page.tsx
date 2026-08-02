@@ -3,26 +3,47 @@ import { requireBusiness } from "@/lib/auth/session";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SettingsForm } from "./settings-form";
+import { UserProfileForm } from "./user-profile-form";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default async function SettingsPage() {
-  const { membership } = await requireBusiness();
+  const { user, membership } = await requireBusiness();
+  const canEditBusiness =
+    membership.role === "owner" || membership.role === "admin";
+  const fullName =
+    typeof user.user_metadata?.full_name === "string"
+      ? user.user_metadata.full_name
+      : "";
 
   return (
     <>
       <PageHeader
         title="Settings"
-        description="Your business profile and card branding."
+        description={
+          canEditBusiness
+            ? "Your account, business profile, and card branding."
+            : "Manage your account."
+        }
       />
-      <Card>
+      <Card className={canEditBusiness ? "mb-6" : undefined}>
         <CardHeader>
-          <CardTitle>Business profile</CardTitle>
+          <CardTitle>User profile</CardTitle>
         </CardHeader>
         <CardContent>
-          <SettingsForm business={membership.business} />
+          <UserProfileForm email={user.email ?? ""} fullName={fullName} />
         </CardContent>
       </Card>
+      {canEditBusiness && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Business profile</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SettingsForm business={membership.business} />
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }

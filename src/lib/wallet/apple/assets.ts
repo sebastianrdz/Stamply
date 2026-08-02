@@ -10,14 +10,19 @@ export function placeholderIcon(): Buffer {
   return Buffer.from(PLACEHOLDER_PNG_BASE64, "base64");
 }
 
-/** Fetch a business logo PNG, falling back to the placeholder on any failure. */
-export async function logoBuffer(logoUrl: string | null): Promise<Buffer> {
-  if (!logoUrl) return placeholderIcon();
+/** Fetch an image URL into a Buffer, or null if absent/unreachable. */
+export async function imageBuffer(url: string | null): Promise<Buffer | null> {
+  if (!url) return null;
   try {
-    const res = await fetch(logoUrl);
-    if (!res.ok) return placeholderIcon();
+    const res = await fetch(url);
+    if (!res.ok) return null;
     return Buffer.from(await res.arrayBuffer());
   } catch {
-    return placeholderIcon();
+    return null;
   }
+}
+
+/** Fetch a business logo PNG, falling back to the placeholder on any failure. */
+export async function logoBuffer(logoUrl: string | null): Promise<Buffer> {
+  return (await imageBuffer(logoUrl)) ?? placeholderIcon();
 }

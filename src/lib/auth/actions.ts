@@ -49,7 +49,10 @@ export async function signUp(
   const { error } = await supabase.auth.signUp(parsed.data);
   if (error) return { error: error.message };
 
-  redirect("/onboarding");
+  // Honor an explicit post-signup destination (e.g. an invite accept link);
+  // otherwise send new owners to onboarding to create their business.
+  const next = (formData.get("next") as string) || "";
+  redirect(next && next !== "/dashboard" ? next : "/onboarding");
 }
 
 export async function signOut() {

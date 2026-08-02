@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CreditCard, Plus, Gift } from "lucide-react";
 import type { Metadata } from "next";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/dashboard/empty-state";
@@ -14,7 +14,7 @@ import type { Program } from "@/types/database";
 export const metadata: Metadata = { title: "Programs" };
 
 export default async function ProgramsPage() {
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner", "admin"]);
   const supabase = await createClient();
   const { data } = await supabase
     .from("programs")

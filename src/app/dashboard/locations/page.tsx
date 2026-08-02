@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { MapPin, Trash2 } from "lucide-react";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { deleteLocation } from "@/lib/locations/actions";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -12,7 +12,7 @@ import type { Location } from "@/types/database";
 export const metadata: Metadata = { title: "Locations" };
 
 export default async function LocationsPage() {
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner", "admin"]);
   const supabase = await createClient();
   const { data } = await supabase
     .from("locations")

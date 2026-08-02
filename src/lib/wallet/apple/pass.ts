@@ -4,7 +4,7 @@ import { PKPass } from "passkit-generator";
 import { appUrlBase } from "@/lib/wallet/shared";
 import { hexToRgbString, readableForeground } from "@/lib/colors";
 import { appleCertificates, applePassConfig } from "./certificates";
-import { logoBuffer, placeholderIcon } from "./assets";
+import { imageBuffer, logoBuffer, placeholderIcon } from "./assets";
 import type { CardWithRelations } from "@/lib/cards/queries";
 import { cardProgress } from "@/lib/cards/queries";
 
@@ -29,6 +29,12 @@ export async function buildApplePass(
   const goal = card.program.goal;
   const unit = card.program.type === "points" ? "points" : "stamps";
 
+  // Apple Wallet silently refuses to add a pass whose webServiceURL is not
+  // HTTPS. Locally (http://localhost) we omit it and the auth token: the pass
+  // is still valid, it just won't auto-update over APNs until deployed.
+  const base = appUrlBase();
+  const updatable = base.startsWith("https://");
+
   const passJson = {
     formatVersion: 1,
     passTypeIdentifier,
@@ -36,12 +42,16 @@ export async function buildApplePass(
     organizationName: card.business.name,
     description: `${card.business.name} loyalty card`,
     serialNumber: card.apple_serial ?? card.id,
-    logoText: card.business.name,
+    // logoText is the business name shown beside the logo on the pass face;
+    // omit it when the business opts to show the logo alone.
+    ...(card.business.show_business_name && { logoText: card.business.name }),
     backgroundColor: hexToRgbString(bg),
     foregroundColor: readableForeground(bg),
     labelColor: readableForeground(bg),
-    webServiceURL: `${appUrlBase()}/api/apple/v1`,
-    authenticationToken: card.pass_auth_token,
+    ...(updatable && {
+      webServiceURL: `${base}/api/apple/v1`,
+      authenticationToken: card.pass_auth_token,
+    }),
     barcodes: [
       {
         message: card.barcode_value,
@@ -85,6 +95,9 @@ export async function buildApplePass(
 
   const logo = await logoBuffer(card.business.logo_url);
   const icon = placeholderIcon();
+  // On a storeCard the strip image spans the top of the pass, sitting behind
+  // the header/primary fields — this is the "background behind the stamps".
+  const strip = await imageBuffer(card.business.background_image_url);
 
   const pass = new PKPass(
     {
@@ -93,6 +106,7 @@ export async function buildApplePass(
       "icon@2x.png": icon,
       "logo.png": logo,
       "logo@2x.png": logo,
+      ...(strip && { "strip.png": strip, "strip@2x.png": strip }),
     },
     appleCertificates(),
   );

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Gift, Users } from "lucide-react";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { qrDataUrl } from "@/lib/qr";
 import { enrollUrl } from "@/lib/urls";
@@ -15,7 +15,7 @@ export default async function ProgramDetailPage({
   params,
 }: PageProps<"/dashboard/programs/[programId]">) {
   const { programId } = await params;
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner", "admin"]);
   const supabase = await createClient();
 
   const { data } = await supabase

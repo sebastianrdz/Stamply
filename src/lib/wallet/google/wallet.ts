@@ -60,6 +60,9 @@ export async function ensureLoyaltyClass(
     programLogo: card.business.logo_url
       ? { sourceUri: { uri: card.business.logo_url } }
       : undefined,
+    heroImage: card.business.background_image_url
+      ? { sourceUri: { uri: card.business.background_image_url } }
+      : undefined,
   };
 
   try {

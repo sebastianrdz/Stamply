@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Stamp, Gift, CreditCard, TrendingUp } from "lucide-react";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { getAnalytics } from "@/lib/analytics";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export const metadata: Metadata = { title: "Analytics" };
 
 export default async function AnalyticsPage() {
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner", "admin"]);
   const a = await getAnalytics(membership.business.id);
   const max = Math.max(1, ...a.daily.map((d) => d.stamps));
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { appUrlBase } from "@/lib/wallet/shared";
 import { stripe, priceIdForPlan } from "./stripe";
@@ -9,7 +9,7 @@ import type { PlanTier } from "@/types/database";
 
 /** Start a Stripe Checkout session to subscribe/upgrade to a paid plan. */
 export async function startCheckout(tier: PlanTier) {
-  const { user, membership } = await requireBusiness();
+  const { user, membership } = await requireRole(["owner"]);
   const business = membership.business;
 
   const client = stripe();
@@ -45,7 +45,7 @@ export async function startCheckout(tier: PlanTier) {
 
 /** Open the Stripe Customer Portal to manage/cancel the subscription. */
 export async function openBillingPortal() {
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner"]);
   const business = membership.business;
   if (!business.stripe_customer_id) redirect("/dashboard/billing");
 

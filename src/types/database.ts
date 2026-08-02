@@ -28,6 +28,8 @@ export type Business = Timestamped & {
   brand_primary_color: string;
   brand_secondary_color: string;
   logo_url: string | null;
+  background_image_url: string | null;
+  show_business_name: boolean;
   timezone: string;
 };
 
@@ -36,6 +38,18 @@ export type Membership = Timestamped & {
   business_id: string;
   user_id: string;
   role: MembershipRole;
+  email: string | null;
+};
+
+export type Invitation = Timestamped & {
+  id: string;
+  business_id: string;
+  email: string;
+  role: MembershipRole;
+  token: string;
+  invited_by: string | null;
+  expires_at: string;
+  accepted_at: string | null;
 };
 
 export type Location = Timestamped & {
@@ -147,9 +161,15 @@ export interface Database {
         | "brand_primary_color"
         | "brand_secondary_color"
         | "logo_url"
+        | "background_image_url"
+        | "show_business_name"
         | "timezone"
       >;
-      memberships: TableDef<Membership, "id" | "created_at" | "role">;
+      memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
+      invitations: TableDef<
+        Invitation,
+        "id" | "created_at" | "role" | "invited_by" | "accepted_at"
+      >;
       locations: TableDef<
         Location,
         "id" | "created_at" | "address" | "lat" | "lng"

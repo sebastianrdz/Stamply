@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Check } from "lucide-react";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { currentCount } from "@/lib/billing/entitlements";
 import { PLANS, PAID_PLANS, type LimitedResource } from "@/lib/billing/plans";
@@ -21,7 +21,7 @@ const RESOURCES: { key: LimitedResource; label: string }[] = [
 ];
 
 export default async function BillingPage() {
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner"]);
   const business = membership.business;
   const plan = PLANS[business.plan];
   const supabase = await createClient();

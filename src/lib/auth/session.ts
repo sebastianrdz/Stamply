@@ -24,10 +24,17 @@ export async function getUser(): Promise<User | null> {
 
 /** All businesses the current user belongs to, with their role. */
 export async function getMemberships(): Promise<BusinessMembership[]> {
+  const user = await getUser();
+  if (!user) return [];
+
   const supabase = await createClient();
+  // Scope to THIS user's rows. RLS lets a member read every membership of their
+  // businesses (co-workers included), so without this filter a user who belongs
+  // to a business alongside others would pick up the others' roles too.
   const { data, error } = await supabase
     .from("memberships")
     .select("role, business:businesses(*)")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: true });
 
   if (error || !data) return [];
@@ -62,4 +69,19 @@ export async function requireBusiness(): Promise<{
   const membership = await getActiveBusiness();
   if (!membership) redirect("/onboarding");
   return { user, membership };
+}
+
+/**
+ * Like `requireBusiness`, but also requires the active membership's role to be
+ * one of `roles`. Redirects to /dashboard if the user lacks the role. Use as the
+ * server-side gate for admin/owner-only pages and mutating actions — hiding a
+ * nav item is not sufficient since a user could still hit the route/action.
+ */
+export async function requireRole(roles: MembershipRole[]): Promise<{
+  user: User;
+  membership: BusinessMembership;
+}> {
+  const ctx = await requireBusiness();
+  if (!roles.includes(ctx.membership.role)) redirect("/dashboard");
+  return ctx;
 }

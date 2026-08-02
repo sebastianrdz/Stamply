@@ -28,6 +28,9 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           program={card.program}
           progress={progress}
           completed={completed}
+          logoUrl={card.business.logo_url}
+          backgroundImageUrl={card.business.background_image_url}
+          showBusinessName={card.business.show_business_name}
         />
 
         <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-6">

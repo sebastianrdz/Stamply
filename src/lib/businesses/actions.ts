@@ -50,9 +50,12 @@ export async function createBusiness(
     return { error: error?.message ?? "Could not create business." };
   }
 
-  const { error: membershipError } = await admin
-    .from("memberships")
-    .insert({ business_id: business.id, user_id: user.id, role: "owner" });
+  const { error: membershipError } = await admin.from("memberships").insert({
+    business_id: business.id,
+    user_id: user.id,
+    role: "owner",
+    email: user.email ?? null,
+  });
 
   if (membershipError) {
     return { error: membershipError.message };

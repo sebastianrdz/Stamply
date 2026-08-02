@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireBusiness } from "@/lib/auth/session";
+import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import {
   assertWithinLimit,
@@ -24,7 +24,7 @@ export async function createLocation(
   _prev: LocationFormState,
   formData: FormData,
 ): Promise<LocationFormState> {
-  const { membership } = await requireBusiness();
+  const { membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
 
   const parsed = schema.safeParse({
@@ -60,6 +60,7 @@ export async function createLocation(
 }
 
 export async function deleteLocation(locationId: string) {
+  await requireRole(["owner", "admin"]);
   const supabase = await createClient();
   await supabase.from("locations").delete().eq("id", locationId);
   revalidatePath("/dashboard/locations");
