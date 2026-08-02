@@ -1,8 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { passTokenFromAuth } from "@/lib/wallet/apple/webservice";
 
 export const runtime = "nodejs";
+
+const schema = z.object({ pushToken: z.string().min(1).max(4096) });
 
 type Ctx =
   RouteContext<"/api/apple/v1/devices/[deviceLibraryId]/registrations/[passTypeId]/[serial]">;
@@ -24,8 +27,9 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     return new NextResponse(null, { status: 401 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as { pushToken?: string };
-  if (!body.pushToken) return new NextResponse(null, { status: 400 });
+  const parsed = schema.safeParse(await req.json().catch(() => ({})));
+  if (!parsed.success) return new NextResponse(null, { status: 400 });
+  const { pushToken } = parsed.data;
 
   const { data: existing } = await admin
     .from("apple_registrations")
@@ -37,7 +41,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   if (existing) {
     await admin
       .from("apple_registrations")
-      .update({ push_token: body.pushToken })
+      .update({ push_token: pushToken })
       .eq("id", existing.id);
     return new NextResponse(null, { status: 200 });
   }
@@ -47,7 +51,7 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     card_id: card.id,
     device_library_id: deviceLibraryId,
     pass_serial: serial,
-    push_token: body.pushToken,
+    push_token: pushToken,
   });
   return new NextResponse(null, { status: 201 });
 }
