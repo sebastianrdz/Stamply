@@ -1,0 +1,105 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  NODE_VERSION: "20"
+  # Pinned to match the pnpm version used locally (pnpm-lock.yaml lockfileVersion 9.0).
+  PNPM_VERSION: "10.15.1"
+
+# Cancel superseded runs on the same ref so main doesn't queue stale CI.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Lint -> typecheck -> test -> build, in one job so each blocking check runs
+  # sequentially against the same cached install and fails fast on the first
+  # broken step. All four steps are required (no continue-on-error).
+  ci:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+
+  # End-to-end tests via Playwright. Kept as a separate job so it runs in its
+  # own clean runner with browser binaries, after the fast checks above pass.
+  #
+  # NON-BLOCKING (continue-on-error: true) for now: there is no existing
+  # playwright.config.ts in this repo yet (it's landing from a parallel QA
+  # workstream alongside the `test:e2e` script), so the app-boot strategy for
+  # e2e (dev server vs. build+start, ports, baseURL) hasn't been exercised in
+  # CI at all. Rather than block every PR on an untested e2e path, this job
+  # is allowed to fail without failing the run. Flip `continue-on-error` to
+  # `false` once a green run has been observed on `main` a few times.
+  e2e:
+    name: E2E (Playwright)
+    runs-on: ubuntu-latest
+    needs: ci
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers (+ OS deps)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps
+
+      - name: Install Playwright OS dependencies only
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e
