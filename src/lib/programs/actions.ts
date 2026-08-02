@@ -59,8 +59,12 @@ export async function createProgram(
 }
 
 export async function toggleProgramActive(programId: string, active: boolean) {
-  await requireRole(["owner", "admin"]);
+  const { membership } = await requireRole(["owner", "admin"]);
   const supabase = await createClient();
-  await supabase.from("programs").update({ active }).eq("id", programId);
+  await supabase
+    .from("programs")
+    .update({ active })
+    .eq("id", programId)
+    .eq("business_id", membership.business.id);
   revalidatePath("/dashboard/programs");
 }

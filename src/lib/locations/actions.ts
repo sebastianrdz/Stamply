@@ -60,8 +60,12 @@ export async function createLocation(
 }
 
 export async function deleteLocation(locationId: string) {
-  await requireRole(["owner", "admin"]);
+  const { membership } = await requireRole(["owner", "admin"]);
   const supabase = await createClient();
-  await supabase.from("locations").delete().eq("id", locationId);
+  await supabase
+    .from("locations")
+    .delete()
+    .eq("id", locationId)
+    .eq("business_id", membership.business.id);
   revalidatePath("/dashboard/locations");
 }

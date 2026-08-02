@@ -63,15 +63,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "not_redeemable" }, { status: 409 });
   }
 
+  // apply_stamp/redeem_card are SECURITY DEFINER and bypass RLS internally,
+  // so their Postgres EXECUTE grant is restricted to service_role (see
+  // supabase/migrations/0008_lock_down_definer_rpcs.sql) — the session
+  // client (`authenticated` role) can no longer call them directly. That's
+  // safe to do here because authorization already happened above: the RLS
+  // policy on `cards` already scoped `getCardByBarcode(supabase, ...)` to
+  // cards in a business the signed-in user is a member of (404 otherwise),
+  // and `user.id` comes from a verified session — the RPC call below can't
+  // be reached with an unauthorized card or a spoofed employee id.
+  const admin = createAdminClient();
   const rpc =
     action === "stamp"
-      ? supabase.rpc("apply_stamp", {
+      ? admin.rpc("apply_stamp", {
           p_card_id: card.id,
           p_employee_id: user.id,
           p_delta: delta,
           p_location_id: location_id ?? null,
         })
-      : supabase.rpc("redeem_card", {
+      : admin.rpc("redeem_card", {
           p_card_id: card.id,
           p_employee_id: user.id,
           p_location_id: location_id ?? null,
@@ -83,7 +93,6 @@ export async function POST(req: NextRequest) {
   }
 
   // Reload with relations and push the update to both wallets (best-effort).
-  const admin = createAdminClient();
   const updated = await getCardByBarcode(admin, barcode);
   if (updated) {
     await notifyCardUpdated(admin, updated);

@@ -31,6 +31,13 @@ export type Business = Timestamped & {
   background_image_url: string | null;
   show_business_name: boolean;
   timezone: string;
+  // Optional (not just nullable) unlike this file's usual convention: a test
+  // fixture (src/lib/auth/session.test.ts, off-limits to edit here) builds a
+  // full `Business` literal predating this column and can't be updated as
+  // part of this change, so the key itself must be optional to stay
+  // assignable. Runtime rows always have the key (value is `null` until a
+  // Stripe event lands); treat a missing key the same as `null`.
+  last_billing_event_at?: string | null;
 };
 
 export type Membership = Timestamped & {
@@ -133,7 +140,14 @@ export type Subscription = Timestamped & {
   plan: PlanTier;
   status: SubscriptionStatus;
   current_period_end: string | null;
+  last_event_created_at: string | null;
   updated_at: string;
+};
+
+export type StripeWebhookEvent = {
+  event_id: string;
+  event_type: string;
+  created_at: string;
 };
 
 type Row<T> = T;
@@ -164,6 +178,7 @@ export interface Database {
         | "background_image_url"
         | "show_business_name"
         | "timezone"
+        | "last_billing_event_at"
       >;
       memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
       invitations: TableDef<
@@ -214,7 +229,9 @@ export interface Database {
         | "updated_at"
         | "stripe_subscription_id"
         | "current_period_end"
+        | "last_event_created_at"
       >;
+      stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
     };
     Views: Record<string, never>;
     Functions: {
@@ -237,6 +254,17 @@ export interface Database {
       };
       auth_business_ids: { Args: Record<string, never>; Returns: string[] };
       is_business_admin: { Args: { b: string }; Returns: boolean };
+      sync_subscription_if_newer: {
+        Args: {
+          p_business_id: string;
+          p_stripe_subscription_id: string;
+          p_plan: PlanTier;
+          p_status: SubscriptionStatus;
+          p_current_period_end: string | null;
+          p_event_created_at: string;
+        };
+        Returns: boolean;
+      };
     };
     Enums: {
       membership_role: MembershipRole;

@@ -1,5 +1,6 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -8,6 +9,7 @@ import {
   LimitExceededError,
 } from "@/lib/billing/entitlements";
 import { issueCard } from "@/lib/cards/issue";
+import { rateLimit } from "@/lib/rate-limit";
 import type { Business, Program } from "@/types/database";
 
 const schema = z.object({
@@ -41,6 +43,33 @@ export async function enroll(
     marketing_consent: formData.get("marketing_consent"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+
+  // `x-forwarded-for`'s leftmost entry is the client IP only if the platform
+  // sets/overwrites this header itself rather than appending to a
+  // caller-supplied value — true on Vercel (the deploy target this assumes).
+  // Self-hosting behind a different proxy should confirm the same convention
+  // holds, or prefer that platform's own trusted-client-IP header instead.
+  const ip =
+    (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || null;
+  if (!ip) {
+    console.warn(
+      "[enroll] missing x-forwarded-for; rate-limiting by program only for this request",
+    );
+  }
+
+  // Key by program *and* IP, not IP alone: a missing/unresolvable IP still
+  // scopes the bucket to this one program rather than collapsing every
+  // header-less enrollment platform-wide into a single shared budget (which
+  // would let one client lock out every business at once). In-store kiosk
+  // enrollment often puts many customers behind one NAT'd IP, so the limit
+  // here is generous enough for a busy counter while still bounding abuse to
+  // a single business's program.
+  const rateLimitKey = `enroll:${parsed.data.program_id}:${ip ?? "no-ip"}`;
+  if (!rateLimit(rateLimitKey, 20, 5 * 60 * 1000)) {
+    return {
+      error: "Too many attempts. Please wait a few minutes and try again.",
+    };
+  }
 
   const admin = createAdminClient();
 
