@@ -12,6 +12,13 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# graphify (local knowledge-graph artifacts)
+/graphify-out/
 
 # next.js
 /.next/
