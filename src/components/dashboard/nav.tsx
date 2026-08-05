@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -61,6 +61,24 @@ const items: {
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
+/** Tiny inline dot that fades in only if navigation is still pending after
+ * ~100ms, so fast (prefetched) transitions don't flash it. Must render as a
+ * descendant of the `<Link>` it reports on — see next/link's useLinkStatus. */
+function NavLinkPendingHint() {
+  const { pending } = useLinkStatus();
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "ml-auto size-1.5 shrink-0 rounded-full bg-current transition-opacity delay-100 duration-200 motion-reduce:transition-none",
+        pending
+          ? "animate-pulse opacity-60 motion-reduce:animate-none"
+          : "opacity-0",
+      )}
+    />
+  );
+}
+
 export function DashboardNav({
   role,
   className,
@@ -88,6 +106,7 @@ export function DashboardNav({
           >
             <Icon className="size-4" />
             {label}
+            <NavLinkPendingHint />
           </Link>
         );
       })}
