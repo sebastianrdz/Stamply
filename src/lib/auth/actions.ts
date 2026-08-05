@@ -61,8 +61,14 @@ export async function signUp(
   redirect(next && next !== "/dashboard" ? next : "/onboarding");
 }
 
-export async function signOut() {
+export async function signOut(next?: string) {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+
+  // Only forward internal, single-slash paths (guards against open redirects
+  // via protocol-relative "//evil.com" or absolute "https://evil.com" URLs).
+  const safeNext =
+    next && next.startsWith("/") && !next.startsWith("//") ? next : undefined;
+
+  redirect(safeNext ? `/login?next=${encodeURIComponent(safeNext)}` : "/login");
 }

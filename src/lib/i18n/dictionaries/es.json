@@ -208,8 +208,47 @@
         "enrollmentQr": "QR de inscripción",
         "qrAlt": "Código QR de inscripción",
         "printHint": "Imprime esto y colócalo en tu mostrador. Los clientes lo escanean para unirse y agregar su tarjeta a su wallet.",
+        "downloadQr": "Descargar QR (PNG)",
         "cardsIssued": "Tarjetas emitidas",
-        "reward": "Recompensa"
+        "reward": "Recompensa",
+        "editCta": "Editar programa",
+        "disableCta": "Desactivar programa",
+        "enableCta": "Activar programa",
+        "disableHint": "Mientras esté desactivado, los clientes no podrán inscribirse ni sellar o canjear su tarjeta.",
+        "deleteSectionTitle": "Zona de peligro",
+        "deleteSectionDescription": "Eliminar un programa es permanente. Primero debes desactivarlo."
+      },
+      "edit": {
+        "metaTitle": "Editar programa",
+        "title": "Editar programa",
+        "description": "Actualiza la meta y la recompensa de este programa.",
+        "goalChangeHint": "Cambiar el tipo o la meta afecta cómo se lee el progreso de las tarjetas de clientes que ya existen — puedes hacerlo, pero avisa a tu equipo."
+      },
+      "delete": {
+        "cta": "Eliminar programa",
+        "disabledHint": "Desactiva el programa antes de poder eliminarlo.",
+        "title": "¿Eliminar «{name}» para siempre?",
+        "warning": "Esto eliminará permanentemente las {count} tarjetas de clientes de este programa, junto con todo su historial de sellos y canjes. No se puede deshacer.",
+        "confirmLabel": "Escribe «{name}» para confirmar",
+        "confirmPlaceholder": "Nombre del programa",
+        "confirmButton": "Eliminar para siempre",
+        "deleting": "Eliminando…",
+        "activeError": "No se puede eliminar un programa activo. Desactívalo primero.",
+        "notFoundError": "No se encontró el programa."
+      },
+      "templates": {
+        "sectionTitle": "Plantillas imprimibles",
+        "sectionDescription": "Diseños divertidos con tu marca para invitar a tus clientes a escanear y unirse. Descárgalos en alta resolución para imprimir.",
+        "playfulName": "Divertida",
+        "elegantName": "Elegante",
+        "retroName": "Retro",
+        "scanToJoin": "Escanea para unirte",
+        "rewardLabel": "Tu recompensa: {reward}",
+        "download": "Descargar PNG",
+        "downloading": "Generando…",
+        "downloadError": "No se pudo generar la imagen. Intenta de nuevo.",
+        "previewAlt": "Vista previa de la plantilla {name} para {program}",
+        "logoAlt": "Logo de {business}"
       },
       "errors": {
         "nameRequired": "Ponle un nombre al programa.",
@@ -302,6 +341,7 @@
         "cooldownFallback": "unos segundos",
         "cardNotFound": "Esta tarjeta no está reconocida para tu negocio.",
         "notRedeemable": "Esta tarjeta aún no tiene una recompensa lista.",
+        "programDisabled": "Este programa está desactivado y no acepta sellos ni canjes.",
         "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo.",
         "network": "Error de red. Intenta de nuevo.",
         "generic": "Algo salió mal. Intenta de nuevo."

@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { currentCount } from "@/lib/billing/entitlements";
 import { PLANS, PAID_PLANS, type LimitedResource } from "@/lib/billing/plans";
-import { startCheckout, openBillingPortal } from "@/lib/billing/actions";
+import { changePlan, openBillingPortal } from "@/lib/billing/actions";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -140,7 +140,7 @@ export default async function BillingPage() {
                   ))}
                 </ul>
                 <form
-                  action={startCheckout.bind(null, p.tier)}
+                  action={changePlan.bind(null, p.tier)}
                   className="mt-auto"
                 >
                   <Button

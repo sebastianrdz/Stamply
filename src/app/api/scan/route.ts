@@ -27,6 +27,12 @@ export async function POST(req: NextRequest) {
 
   const parsed = schema.safeParse(await req.json().catch(() => ({})));
   if (!parsed.success) {
+    // Instrumentation: the client shows a generic message for this code, so log
+    // which field(s) failed to tell a malformed/empty scan apart from an RPC
+    // failure (both otherwise look identical to the user).
+    console.warn("[scan] invalid request body", {
+      issues: parsed.error.issues,
+    });
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
   const { barcode, action, delta, location_id } = parsed.data;
@@ -35,6 +41,12 @@ export async function POST(req: NextRequest) {
   const card = await getCardByBarcode(supabase, barcode);
   if (!card) {
     return NextResponse.json({ error: "card_not_found" }, { status: 404 });
+  }
+
+  // A disabled program rejects both stamp and redeem — checked before the
+  // cooldown/RPC so a paused program never mutates card state.
+  if (!card.program.active) {
+    return NextResponse.json({ error: "program_disabled" }, { status: 409 });
   }
 
   if (action === "stamp") {
@@ -89,7 +101,25 @@ export async function POST(req: NextRequest) {
 
   const { error: rpcError } = await rpc;
   if (rpcError) {
-    return NextResponse.json({ error: rpcError.message }, { status: 400 });
+    // Instrumentation: surface the real Postgres/RPC failure instead of hiding
+    // it behind the client's generic fallback. PostgREST errors carry
+    // code/message/details/hint — e.g. "permission denied for function
+    // apply_stamp" (code 42501) when the service_role EXECUTE grant from
+    // 0008_lock_down_definer_rpcs.sql isn't in effect for this environment.
+    // IDs below are internal UUIDs, not customer PII.
+    console.error("[scan] RPC failed", {
+      action,
+      cardId: card.id,
+      employeeId: user.id,
+      code: rpcError.code,
+      message: rpcError.message,
+      details: rpcError.details,
+      hint: rpcError.hint,
+    });
+    return NextResponse.json(
+      { error: "rpc_failed", detail: rpcError.message, code: rpcError.code },
+      { status: 400 },
+    );
   }
 
   // Reload with relations and push the update to both wallets (best-effort).

@@ -1,22 +1,29 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { createProgram, type ProgramFormState } from "@/lib/programs/actions";
+import {
+  createProgram,
+  updateProgram,
+  type ProgramFormState,
+} from "@/lib/programs/actions";
 import { useTranslations } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import type { Program } from "@/types/database";
 
 const initialState: ProgramFormState = {};
 
-export function ProgramForm() {
+export function ProgramForm({ program }: { program?: Program }) {
   const dict = useTranslations();
   const [state, formAction, pending] = useActionState(
-    createProgram,
+    program ? updateProgram.bind(null, program.id) : createProgram,
     initialState,
   );
-  const [type, setType] = useState<"stamp" | "points">("stamp");
+  const [type, setType] = useState<"stamp" | "points">(
+    program?.type ?? "stamp",
+  );
 
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-5">
@@ -26,6 +33,7 @@ export function ProgramForm() {
           id="name"
           name="name"
           placeholder={dict.dashboard.programs.form.namePlaceholder}
+          defaultValue={program?.name}
           autoFocus
           required
         />
@@ -60,11 +68,17 @@ export function ProgramForm() {
             type="number"
             min={1}
             max={1000}
-            defaultValue={type === "points" ? 100 : 10}
+            defaultValue={program?.goal ?? (type === "points" ? 100 : 10)}
             required
           />
         </div>
       </div>
+
+      {program && (
+        <p className="text-muted-foreground text-xs">
+          {dict.dashboard.programs.edit.goalChangeHint}
+        </p>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="reward_description">
@@ -74,6 +88,7 @@ export function ProgramForm() {
           id="reward_description"
           name="reward_description"
           placeholder={dict.dashboard.programs.form.rewardPlaceholder}
+          defaultValue={program?.reward_description}
           required
         />
       </div>
@@ -86,9 +101,13 @@ export function ProgramForm() {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={pending}>
-          {pending
-            ? dict.dashboard.programs.form.creating
-            : dict.dashboard.programs.form.create}
+          {program
+            ? pending
+              ? dict.common.saving
+              : dict.common.save
+            : pending
+              ? dict.dashboard.programs.form.creating
+              : dict.dashboard.programs.form.create}
         </Button>
       </div>
     </form>

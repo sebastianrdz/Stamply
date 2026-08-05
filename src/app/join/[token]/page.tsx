@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { signOut } from "@/lib/auth/actions";
 import { AcceptInvite } from "./accept-invite";
 import { isInviteExpired } from "@/lib/team/shared";
 
@@ -130,15 +131,17 @@ export default async function JoinPage({ params }: PageProps<"/join/[token]">) {
               inviteEmail: invite.email,
             })}
           </p>
-          <Link
-            href={`/login?next=${nextParam}`}
-            className={cn(
-              buttonVariants({ variant: "outline", size: "lg" }),
-              "w-full",
-            )}
-          >
-            {dict.join.signInDifferent}
-          </Link>
+          <form action={signOut.bind(null, `/join/${token}`)}>
+            <button
+              type="submit"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "w-full",
+              )}
+            >
+              {dict.join.signInDifferent}
+            </button>
+          </form>
         </div>
       ) : (
         <AcceptInvite token={token} businessName={businessName} />

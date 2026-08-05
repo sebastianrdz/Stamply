@@ -23,6 +23,8 @@ interface ScanResult {
   status?: string;
   type?: string;
   error?: string;
+  detail?: string;
+  code?: string;
   retryInSeconds?: number;
 }
 
@@ -246,11 +248,18 @@ function errorMessage(result: ScanResult, dict: Dictionary): string {
       return dict.dashboard.scan.errors.cardNotFound;
     case "not_redeemable":
       return dict.dashboard.scan.errors.notRedeemable;
+    case "program_disabled":
+      return dict.dashboard.scan.errors.programDisabled;
     case "unauthorized":
       return dict.dashboard.scan.errors.unauthorized;
     case "network":
       return dict.dashboard.scan.errors.network;
     default:
-      return dict.dashboard.scan.errors.generic;
+      // Instrumentation: `rpc_failed` (and any other unmapped code) carries the
+      // raw DB/RPC reason in `detail` — append it (untranslated) so a failing
+      // scan is diagnosable on-device instead of hidden behind the generic text.
+      return result.detail
+        ? `${dict.dashboard.scan.errors.generic} (${result.detail})`
+        : dict.dashboard.scan.errors.generic;
   }
 }

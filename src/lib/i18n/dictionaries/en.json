@@ -208,8 +208,47 @@
         "enrollmentQr": "Enrollment QR",
         "qrAlt": "Enrollment QR code",
         "printHint": "Print this and place it at your counter. Customers scan it to join and add their card to their wallet.",
+        "downloadQr": "Download QR (PNG)",
         "cardsIssued": "Cards issued",
-        "reward": "Reward"
+        "reward": "Reward",
+        "editCta": "Edit program",
+        "disableCta": "Disable program",
+        "enableCta": "Enable program",
+        "disableHint": "While disabled, customers can't enroll or stamp/redeem their card.",
+        "deleteSectionTitle": "Danger zone",
+        "deleteSectionDescription": "Deleting a program is permanent. You must disable it first."
+      },
+      "edit": {
+        "metaTitle": "Edit program",
+        "title": "Edit program",
+        "description": "Update the goal and reward for this program.",
+        "goalChangeHint": "Changing the type or goal affects how existing customers' card progress reads — you can still do it, just give your team a heads up."
+      },
+      "delete": {
+        "cta": "Delete program",
+        "disabledHint": "Disable the program before you can delete it.",
+        "title": "Delete \"{name}\" forever?",
+        "warning": "This will permanently delete {count} customer card(s) for this program, along with all of their stamp and redemption history. This can't be undone.",
+        "confirmLabel": "Type \"{name}\" to confirm",
+        "confirmPlaceholder": "Program name",
+        "confirmButton": "Delete forever",
+        "deleting": "Deleting…",
+        "activeError": "Can't delete an active program. Disable it first.",
+        "notFoundError": "Program not found."
+      },
+      "templates": {
+        "sectionTitle": "Printable templates",
+        "sectionDescription": "Fun, on-brand designs to invite your customers to scan and join. Download them in high resolution for printing.",
+        "playfulName": "Playful",
+        "elegantName": "Elegant",
+        "retroName": "Retro",
+        "scanToJoin": "Scan to join",
+        "rewardLabel": "Your reward: {reward}",
+        "download": "Download PNG",
+        "downloading": "Generating…",
+        "downloadError": "Couldn't generate the image. Try again.",
+        "previewAlt": "Preview of the {name} template for {program}",
+        "logoAlt": "{business} logo"
       },
       "errors": {
         "nameRequired": "Give the program a name.",
@@ -302,6 +341,7 @@
         "cooldownFallback": "a few",
         "cardNotFound": "This card isn't recognized for your business.",
         "notRedeemable": "This card doesn't have a reward ready yet.",
+        "programDisabled": "This program is disabled and isn't accepting stamps or redemptions.",
         "unauthorized": "Your session expired. Please sign in again.",
         "network": "Network error. Try again.",
         "generic": "Something went wrong. Try again."
