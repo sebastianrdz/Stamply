@@ -16,7 +16,7 @@ for (const path of ["/login", "/register"] as const) {
   test.describe(`Client-side validation on ${path}`, () => {
     test("blocks submission when fields are empty", async ({ page }) => {
       await page.goto(path);
-      const email = page.getByPlaceholder("you@business.com");
+      const email = page.getByPlaceholder("tu@negocio.com");
       const password = page.getByPlaceholder("••••••••");
 
       await expect(email).toHaveAttribute("required", "");
@@ -36,7 +36,7 @@ for (const path of ["/login", "/register"] as const) {
 
     test("blocks submission when email is malformed", async ({ page }) => {
       await page.goto(path);
-      const email = page.getByPlaceholder("you@business.com");
+      const email = page.getByPlaceholder("tu@negocio.com");
       const password = page.getByPlaceholder("••••••••");
 
       await email.fill("notanemail");
@@ -57,9 +57,9 @@ test.describe("Real submission against an unreachable Supabase backend", () => {
     page,
   }) => {
     await page.goto("/login");
-    await page.getByPlaceholder("you@business.com").fill("test@example.com");
+    await page.getByPlaceholder("tu@negocio.com").fill("test@example.com");
     await page.getByPlaceholder("••••••••").fill("password123");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByRole("button", { name: "Iniciar sesión" }).click();
 
     // The Next.js dev overlay also renders an empty role="alert" landmark, so
     // scope to one that actually has text (the AuthForm error paragraph).
@@ -74,9 +74,9 @@ test.describe("Real submission against an unreachable Supabase backend", () => {
     page,
   }) => {
     await page.goto("/register");
-    await page.getByPlaceholder("you@business.com").fill("newuser@example.com");
+    await page.getByPlaceholder("tu@negocio.com").fill("newuser@example.com");
     await page.getByPlaceholder("••••••••").fill("password123");
-    await page.getByRole("button", { name: "Create account" }).click();
+    await page.getByRole("button", { name: "Crear cuenta" }).click();
 
     const alert = page.getByRole("alert").filter({ hasText: /\S/ });
     await expect(alert).toBeVisible();

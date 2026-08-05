@@ -16,15 +16,12 @@ import {
   assertWithinLimit,
   LimitExceededError,
 } from "@/lib/billing/entitlements";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import { isInviteExpired } from "./shared";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
-
-const inviteSchema = z.object({
-  email: z.string().email("Enter a valid email."),
-  // Owners are created only at business creation; invites are employee/admin.
-  role: z.enum(["employee", "admin"]),
-});
 
 export interface InviteState {
   error?: string;
@@ -37,8 +34,15 @@ export async function createInvitation(
   _prev: InviteState,
   formData: FormData,
 ): Promise<InviteState> {
+  const dict = await getDictionary(await getLocale());
   const { user, membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
+
+  const inviteSchema = z.object({
+    email: z.string().email(dict.dashboard.team.errors.emailInvalid),
+    // Owners are created only at business creation; invites are employee/admin.
+    role: z.enum(["employee", "admin"]),
+  });
 
   const parsed = inviteSchema.safeParse({
     email: formData.get("email"),
@@ -50,7 +54,14 @@ export async function createInvitation(
   try {
     await assertWithinLimit(supabase, business, "employees");
   } catch (e) {
-    if (e instanceof LimitExceededError) return { error: e.message };
+    if (e instanceof LimitExceededError) {
+      return {
+        error: interpolate(dict.dashboard.billing.limitExceeded, {
+          limit: e.limit,
+          resource: dict.dashboard.billing.resources[e.resource],
+        }),
+      };
+    }
     throw e;
   }
 
@@ -99,6 +110,7 @@ export async function acceptInvitation(
   _prev: AcceptState,
   formData: FormData,
 ): Promise<AcceptState> {
+  const dict = await getDictionary(await getLocale());
   const token = String(formData.get("token") ?? "");
   const user = await getUser();
   if (!user) redirect(`/login?next=/join/${token}`);
@@ -110,14 +122,15 @@ export async function acceptInvitation(
     .eq("token", token)
     .maybeSingle();
 
-  if (!invite) return { error: "This invite link is invalid." };
-  if (invite.accepted_at)
-    return { error: "This invite has already been used." };
+  if (!invite) return { error: dict.join.errors.invalid };
+  if (invite.accepted_at) return { error: dict.join.errors.alreadyUsed };
   if (isInviteExpired(invite.expires_at))
-    return { error: "This invite has expired. Ask for a new one." };
+    return { error: dict.join.errors.expired };
   if ((user.email ?? "").toLowerCase() !== invite.email.toLowerCase())
     return {
-      error: `This invite is for ${invite.email}. Sign in with that email to accept.`,
+      error: interpolate(dict.join.errors.wrongEmail, {
+        email: invite.email,
+      }),
     };
 
   const { data: existing } = await admin
@@ -133,13 +146,13 @@ export async function acceptInvitation(
       .select("id, plan")
       .eq("id", invite.business_id)
       .single();
-    if (!business) return { error: "That business no longer exists." };
+    if (!business) return { error: dict.join.errors.businessGone };
 
     try {
       await assertWithinLimit(admin, business, "employees");
     } catch (e) {
       if (e instanceof LimitExceededError)
-        return { error: "This team is full. Ask the owner to upgrade." };
+        return { error: dict.join.errors.teamFull };
       throw e;
     }
 

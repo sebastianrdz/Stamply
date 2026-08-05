@@ -6,13 +6,20 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import type { Customer } from "@/types/database";
 
-export const metadata: Metadata = { title: "Customers" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.dashboard.customers.metaTitle };
+}
 
 export default async function CustomersPage() {
   const { membership } = await requireBusiness();
   const supabase = await createClient();
+  const dict = await getDictionary(await getLocale());
   const { data } = await supabase
     .from("customers")
     .select("*")
@@ -26,18 +33,22 @@ export default async function CustomersPage() {
   return (
     <>
       <PageHeader
-        title="Customers"
-        description="Everyone who joined your loyalty program."
+        title={dict.dashboard.customers.title}
+        description={dict.dashboard.customers.description}
         action={
-          <Badge variant="secondary">{consented} opted in to marketing</Badge>
+          <Badge variant="secondary">
+            {interpolate(dict.dashboard.customers.optedIn, {
+              count: consented,
+            })}
+          </Badge>
         }
       />
 
       {customers.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No customers yet"
-          description="Share a program's enrollment QR to start collecting members."
+          title={dict.dashboard.customers.empty.title}
+          description={dict.dashboard.customers.empty.description}
         />
       ) : (
         <Card>
@@ -49,7 +60,7 @@ export default async function CustomersPage() {
               >
                 <div className="min-w-0">
                   <p className="truncate font-medium">
-                    {c.full_name ?? "Anonymous"}
+                    {c.full_name ?? dict.common.anonymous}
                   </p>
                   <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-0.5 text-sm">
                     {c.email && (
@@ -67,9 +78,13 @@ export default async function CustomersPage() {
                   </div>
                 </div>
                 {c.marketing_consent ? (
-                  <Badge variant="success">Opted in</Badge>
+                  <Badge variant="success">
+                    {dict.dashboard.customers.optedInBadge}
+                  </Badge>
                 ) : (
-                  <Badge variant="muted">No consent</Badge>
+                  <Badge variant="muted">
+                    {dict.dashboard.customers.noConsentBadge}
+                  </Badge>
                 )}
               </div>
             ))}

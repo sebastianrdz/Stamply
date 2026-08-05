@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { MapPin, Trash2 } from "lucide-react";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { deleteLocation } from "@/lib/locations/actions";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,10 +11,14 @@ import { Badge } from "@/components/ui/badge";
 import { LocationForm } from "./location-form";
 import type { Location } from "@/types/database";
 
-export const metadata: Metadata = { title: "Locations" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.dashboard.locations.metaTitle };
+}
 
 export default async function LocationsPage() {
   const { membership } = await requireRole(["owner", "admin"]);
+  const dict = await getDictionary(await getLocale());
   const supabase = await createClient();
   const { data } = await supabase
     .from("locations")
@@ -24,19 +30,18 @@ export default async function LocationsPage() {
   return (
     <>
       <PageHeader
-        title="Locations"
-        description="Add store locations so cards surface on the lock screen when customers are nearby."
+        title={dict.dashboard.locations.title}
+        description={dict.dashboard.locations.description}
       />
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Add a location</CardTitle>
+          <CardTitle>{dict.dashboard.locations.addCardTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           <LocationForm />
           <p className="text-muted-foreground mt-3 text-xs">
-            Latitude &amp; longitude power proximity relevance in Apple &amp;
-            Google Wallet. Leave blank if you only want it for your records.
+            {dict.dashboard.locations.latLngHint}
           </p>
         </CardContent>
       </Card>
@@ -52,19 +57,23 @@ export default async function LocationsPage() {
                 <div>
                   <p className="font-medium">{l.name}</p>
                   <p className="text-muted-foreground text-sm">
-                    {l.address ?? "No address"}
+                    {l.address ?? dict.common.noAddress}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 {l.lat != null && l.lng != null ? (
-                  <Badge variant="success">Geo enabled</Badge>
+                  <Badge variant="success">
+                    {dict.dashboard.locations.geoEnabled}
+                  </Badge>
                 ) : (
-                  <Badge variant="muted">No coordinates</Badge>
+                  <Badge variant="muted">
+                    {dict.dashboard.locations.noCoordinates}
+                  </Badge>
                 )}
                 <form action={deleteLocation.bind(null, l.id)}>
                   <button
-                    aria-label="Delete location"
+                    aria-label={dict.dashboard.locations.deleteAria}
                     className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive grid size-9 place-items-center rounded-lg"
                   >
                     <Trash2 className="size-4" />

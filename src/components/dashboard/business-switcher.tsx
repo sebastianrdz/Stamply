@@ -5,6 +5,7 @@ import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { setActiveBusiness } from "@/lib/businesses/actions";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n/provider";
 import type { PlanTier } from "@/types/database";
 
 interface Option {
@@ -20,6 +21,7 @@ export function BusinessSwitcher({
   businesses: Option[];
   activeId: string;
 }) {
+  const dict = useTranslations();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const active = businesses.find((b) => b.id === activeId) ?? businesses[0];
@@ -40,7 +42,9 @@ export function BusinessSwitcher({
         onClick={() => setOpen((o) => !o)}
         className="border-border bg-background hover:bg-muted flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors"
       >
-        <span className="truncate">{active?.name ?? "Select business"}</span>
+        <span className="truncate">
+          {active?.name ?? dict.nav.selectBusiness}
+        </span>
         <ChevronsUpDown className="text-muted-foreground size-4 shrink-0" />
       </button>
 
@@ -61,11 +65,11 @@ export function BusinessSwitcher({
             </form>
           ))}
           <Link
-            href="/onboarding"
+            href="/onboarding?add=1"
             className="border-border text-muted-foreground hover:bg-muted mt-1 flex items-center gap-2 rounded-md border-t px-2 py-1.5 text-sm"
           >
             <Plus className="size-4" />
-            Add business
+            {dict.nav.addBusiness}
           </Link>
         </div>
       )}

@@ -5,10 +5,12 @@ import { enroll, type EnrollState } from "@/lib/enroll/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "@/lib/i18n/provider";
 
 const initialState: EnrollState = {};
 
 export function EnrollForm({ programId }: { programId: string }) {
+  const dict = useTranslations();
   const [state, formAction, pending] = useActionState(enroll, initialState);
 
   return (
@@ -16,17 +18,17 @@ export function EnrollForm({ programId }: { programId: string }) {
       <input type="hidden" name="program_id" value={programId} />
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="full_name">Your name</Label>
+        <Label htmlFor="full_name">{dict.customerJoin.form.nameLabel}</Label>
         <Input id="full_name" name="full_name" autoFocus required />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{dict.customerJoin.form.emailLabel}</Label>
         <Input id="email" name="email" type="email" inputMode="email" />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="phone">Phone (optional)</Label>
+        <Label htmlFor="phone">{dict.customerJoin.form.phoneLabel}</Label>
         <Input id="phone" name="phone" type="tel" inputMode="tel" />
       </div>
 
@@ -36,7 +38,7 @@ export function EnrollForm({ programId }: { programId: string }) {
           name="marketing_consent"
           className="border-input mt-0.5 size-4 rounded accent-[hsl(var(--brand))]"
         />
-        <span>Send me offers and updates. You can opt out anytime.</span>
+        <span>{dict.customerJoin.form.marketingConsent}</span>
       </label>
 
       {state.error && (
@@ -51,7 +53,9 @@ export function EnrollForm({ programId }: { programId: string }) {
         disabled={pending}
         className="mt-1 bg-[hsl(var(--brand))] hover:bg-[hsl(var(--brand))]/90"
       >
-        {pending ? "Creating your card…" : "Join & get my card"}
+        {pending
+          ? dict.customerJoin.form.creating
+          : dict.customerJoin.form.submit}
       </Button>
     </form>
   );

@@ -5,31 +5,44 @@ import { getAnalytics } from "@/lib/analytics";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 
-export const metadata: Metadata = { title: "Analytics" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.dashboard.analytics.metaTitle };
+}
 
 export default async function AnalyticsPage() {
   const { membership } = await requireRole(["owner", "admin"]);
   const a = await getAnalytics(membership.business.id);
+  const dict = await getDictionary(await getLocale());
+  const analytics = dict.dashboard.analytics;
   const max = Math.max(1, ...a.daily.map((d) => d.stamps));
 
   return (
     <>
-      <PageHeader
-        title="Analytics"
-        description="How customers are engaging with your loyalty program."
-      />
+      <PageHeader title={analytics.title} description={analytics.description} />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatCard label="Stamps (14d)" value={a.totalStamps} icon={Stamp} />
         <StatCard
-          label="Cards issued"
+          label={analytics.stats.stamps14d}
+          value={a.totalStamps}
+          icon={Stamp}
+        />
+        <StatCard
+          label={analytics.stats.cardsIssued}
           value={a.activeCards}
           icon={CreditCard}
         />
-        <StatCard label="Redemptions" value={a.totalRedemptions} icon={Gift} />
         <StatCard
-          label="Redemption rate"
+          label={analytics.stats.redemptions}
+          value={a.totalRedemptions}
+          icon={Gift}
+        />
+        <StatCard
+          label={analytics.stats.redemptionRate}
           value={`${Math.round(a.redemptionRate * 100)}%`}
           icon={TrendingUp}
         />
@@ -37,7 +50,7 @@ export default async function AnalyticsPage() {
 
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Stamps per day</CardTitle>
+          <CardTitle>{analytics.stampsPerDay}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex h-48 items-end gap-1.5">
@@ -53,7 +66,9 @@ export default async function AnalyticsPage() {
                       height: `${(d.stamps / max) * 100}%`,
                       minHeight: d.stamps > 0 ? "4px" : "0",
                     }}
-                    title={`${d.stamps} stamps`}
+                    title={interpolate(analytics.stampsTooltip, {
+                      count: d.stamps,
+                    })}
                   />
                 </div>
                 <span className="text-muted-foreground text-[10px]">

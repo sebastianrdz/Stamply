@@ -27,11 +27,11 @@ test.describe("Public join/invite routes (no live DB)", () => {
     expect(response?.status()).toBe(200);
 
     await expect(
-      page.getByRole("heading", { name: "Invite not found" }),
+      page.getByRole("heading", { name: "Invitación no encontrada" }),
     ).toBeVisible();
     await expect(
       page.getByText(
-        "This invite link is invalid or has been revoked. Ask whoever invited you for a new one.",
+        "Este enlace de invitación no es válido o fue revocado. Pide a quien te invitó que te envíe uno nuevo.",
       ),
     ).toBeVisible();
   });
@@ -45,7 +45,7 @@ test.describe("Public join/invite routes (no live DB)", () => {
     expect(response?.status()).toBe(404);
 
     await expect(
-      page.getByRole("heading", { name: "Page not found" }),
+      page.getByRole("heading", { name: "Página no encontrada" }),
     ).toBeVisible();
   });
 });

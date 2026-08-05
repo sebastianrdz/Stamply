@@ -7,10 +7,12 @@ import { signIn, signUp, type AuthState } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useTranslations } from "@/lib/i18n/provider";
 
 const initialState: AuthState = {};
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
+  const dict = useTranslations();
   const action = mode === "login" ? signIn : signUp;
   const [state, formAction, pending] = useActionState(action, initialState);
   const next = useSearchParams().get("next") ?? "/dashboard";
@@ -20,19 +22,19 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <input type="hidden" name="next" value={next} />
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{dict.auth.form.emailLabel}</Label>
         <Input
           id="email"
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="you@business.com"
+          placeholder={dict.auth.form.emailPlaceholder}
           required
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{dict.auth.form.passwordLabel}</Label>
         <Input
           id="password"
           name="password"
@@ -51,31 +53,31 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
       <Button type="submit" size="lg" disabled={pending} className="mt-2">
         {pending
-          ? "Please wait…"
+          ? dict.auth.form.pleaseWait
           : mode === "login"
-            ? "Sign in"
-            : "Create account"}
+            ? dict.auth.form.signIn
+            : dict.auth.form.createAccount}
       </Button>
 
       <p className="text-muted-foreground text-center text-sm">
         {mode === "login" ? (
           <>
-            New to Stamply?{" "}
+            {dict.auth.form.newToStamply}{" "}
             <Link
               href="/register"
               className="text-primary font-medium hover:underline"
             >
-              Create an account
+              {dict.auth.form.createAnAccount}
             </Link>
           </>
         ) : (
           <>
-            Already have an account?{" "}
+            {dict.auth.form.alreadyHaveAccount}{" "}
             <Link
               href="/login"
               className="text-primary font-medium hover:underline"
             >
-              Sign in
+              {dict.auth.form.signIn}
             </Link>
           </>
         )}

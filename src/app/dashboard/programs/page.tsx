@@ -3,6 +3,9 @@ import { CreditCard, Plus, Gift } from "lucide-react";
 import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,10 +14,14 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { Program } from "@/types/database";
 
-export const metadata: Metadata = { title: "Programs" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.dashboard.programs.list.metaTitle };
+}
 
 export default async function ProgramsPage() {
   const { membership } = await requireRole(["owner", "admin"]);
+  const dict = await getDictionary(await getLocale());
   const supabase = await createClient();
   const { data } = await supabase
     .from("programs")
@@ -27,15 +34,15 @@ export default async function ProgramsPage() {
   return (
     <>
       <PageHeader
-        title="Loyalty programs"
-        description="Create the reward cards your customers collect."
+        title={dict.dashboard.programs.list.title}
+        description={dict.dashboard.programs.list.description}
         action={
           <Link
             href="/dashboard/programs/new"
             className={cn(buttonVariants(), "gap-2")}
           >
             <Plus className="size-4" />
-            New program
+            {dict.dashboard.programs.list.newProgram}
           </Link>
         }
       />
@@ -43,15 +50,15 @@ export default async function ProgramsPage() {
       {programs.length === 0 ? (
         <EmptyState
           icon={CreditCard}
-          title="No programs yet"
-          description="A program defines how customers earn a reward — like 'buy 9 coffees, get the 10th free'."
+          title={dict.dashboard.programs.list.empty.title}
+          description={dict.dashboard.programs.list.empty.description}
           action={
             <Link
               href="/dashboard/programs/new"
               className={cn(buttonVariants(), "gap-2")}
             >
               <Plus className="size-4" />
-              Create your first program
+              {dict.dashboard.programs.list.empty.cta}
             </Link>
           }
         />
@@ -63,13 +70,19 @@ export default async function ProgramsPage() {
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-semibold">{p.name}</h3>
                   <Badge variant={p.active ? "success" : "muted"}>
-                    {p.active ? "Active" : "Paused"}
+                    {p.active
+                      ? dict.dashboard.programs.list.active
+                      : dict.dashboard.programs.list.paused}
                   </Badge>
                 </div>
                 <p className="text-muted-foreground text-sm">
                   {p.type === "points"
-                    ? `Collect ${p.goal} points`
-                    : `Collect ${p.goal} stamps`}
+                    ? interpolate(dict.dashboard.programs.list.collectPoints, {
+                        goal: p.goal,
+                      })
+                    : interpolate(dict.dashboard.programs.list.collectStamps, {
+                        goal: p.goal,
+                      })}
                 </p>
                 <div className="bg-accent/10 text-accent-foreground flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
                   <Gift className="size-4 shrink-0" />
@@ -82,7 +95,7 @@ export default async function ProgramsPage() {
                     "mt-1 w-full",
                   )}
                 >
-                  Manage &amp; get enrollment QR
+                  {dict.dashboard.programs.list.manageCta}
                 </Link>
               </CardContent>
             </Card>

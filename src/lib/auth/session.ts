@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
@@ -14,16 +15,16 @@ export interface BusinessMembership {
 }
 
 /** Current auth user, or null. */
-export async function getUser(): Promise<User | null> {
+export const getUser = cache(async (): Promise<User | null> => {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
 /** All businesses the current user belongs to, with their role. */
-export async function getMemberships(): Promise<BusinessMembership[]> {
+export const getMemberships = cache(async (): Promise<BusinessMembership[]> => {
   const user = await getUser();
   if (!user) return [];
 
@@ -44,20 +45,24 @@ export async function getMemberships(): Promise<BusinessMembership[]> {
       role: m.role,
       business: m.business as unknown as Business,
     }));
-}
+});
 
 /**
  * Resolve the active business for the current user from the cookie, falling
  * back to the first membership. Returns null if the user belongs to none.
  */
-export async function getActiveBusiness(): Promise<BusinessMembership | null> {
-  const memberships = await getMemberships();
-  if (memberships.length === 0) return null;
+export const getActiveBusiness = cache(
+  async (): Promise<BusinessMembership | null> => {
+    const memberships = await getMemberships();
+    if (memberships.length === 0) return null;
 
-  const cookieStore = await cookies();
-  const activeId = cookieStore.get(ACTIVE_BUSINESS_COOKIE)?.value;
-  return memberships.find((m) => m.business.id === activeId) ?? memberships[0];
-}
+    const cookieStore = await cookies();
+    const activeId = cookieStore.get(ACTIVE_BUSINESS_COOKIE)?.value;
+    return (
+      memberships.find((m) => m.business.id === activeId) ?? memberships[0]
+    );
+  },
+);
 
 /** For dashboard pages: require an authed user with a business, else redirect. */
 export async function requireBusiness(): Promise<{

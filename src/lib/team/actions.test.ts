@@ -3,8 +3,9 @@ import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
 import type { Business, MembershipRole } from "@/types/database";
 
 const cookieSetMock = vi.fn();
+const cookieGetMock = vi.fn(() => undefined);
 vi.mock("next/headers", () => ({
-  cookies: vi.fn(async () => ({ set: cookieSetMock })),
+  cookies: vi.fn(async () => ({ set: cookieSetMock, get: cookieGetMock })),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -120,7 +121,7 @@ describe("createInvitation", () => {
       {},
       form({ email: "not-an-email", role: "employee" }),
     );
-    expect(state.error).toBe("Enter a valid email.");
+    expect(state.error).toBe("Ingresa un correo válido.");
   });
 
   it("returns the LimitExceededError message when the team is full", async () => {
@@ -135,7 +136,7 @@ describe("createInvitation", () => {
       form({ email: "new@example.com", role: "employee" }),
     );
     expect(state.error).toBe(
-      "Your plan allows 1 employees. Upgrade to add more.",
+      "Tu plan permite 1 Empleados. Mejora tu plan para agregar más.",
     );
   });
 
@@ -229,7 +230,7 @@ describe("acceptInvitation", () => {
       makeSupabaseMock({ invitations: { data: null } }),
     );
     const state = await acceptInvitation({}, form({ token: "bad-token" }));
-    expect(state.error).toBe("This invite link is invalid.");
+    expect(state.error).toBe("Este enlace de invitación no es válido.");
   });
 
   it("returns an error when the invite was already accepted", async () => {
@@ -250,7 +251,7 @@ describe("acceptInvitation", () => {
       }),
     );
     const state = await acceptInvitation({}, form({ token: "tok-1" }));
-    expect(state.error).toBe("This invite has already been used.");
+    expect(state.error).toBe("Esta invitación ya fue utilizada.");
   });
 
   it("returns an error when the invite has expired", async () => {
@@ -271,11 +272,14 @@ describe("acceptInvitation", () => {
       }),
     );
     const state = await acceptInvitation({}, form({ token: "tok-1" }));
-    expect(state.error).toBe("This invite has expired. Ask for a new one.");
+    expect(state.error).toBe("Esta invitación venció. Pide una nueva.");
   });
 
   it("returns an error when the signed-in email doesn't match the invite", async () => {
-    getUserMock.mockResolvedValue({ id: "u1", email: "someone-else@example.com" });
+    getUserMock.mockResolvedValue({
+      id: "u1",
+      email: "someone-else@example.com",
+    });
     createAdminClientMock.mockReturnValue(
       makeSupabaseMock({
         invitations: {
@@ -293,7 +297,7 @@ describe("acceptInvitation", () => {
     );
     const state = await acceptInvitation({}, form({ token: "tok-1" }));
     expect(state.error).toBe(
-      "This invite is for invited@example.com. Sign in with that email to accept.",
+      "Esta invitación es para invited@example.com. Inicia sesión con ese correo para aceptarla.",
     );
   });
 
@@ -321,7 +325,9 @@ describe("acceptInvitation", () => {
     );
 
     const state = await acceptInvitation({}, form({ token: "tok-1" }));
-    expect(state.error).toBe("This team is full. Ask the owner to upgrade.");
+    expect(state.error).toBe(
+      "Este equipo está lleno. Pide al propietario que mejore su plan.",
+    );
   });
 
   it("returns an error when the invite's business no longer exists", async () => {
@@ -344,7 +350,7 @@ describe("acceptInvitation", () => {
       }),
     );
     const state = await acceptInvitation({}, form({ token: "tok-1" }));
-    expect(state.error).toBe("That business no longer exists.");
+    expect(state.error).toBe("Ese negocio ya no existe.");
   });
 
   it("on success: inserts the membership, marks the invite accepted, sets the active-business cookie, and redirects", async () => {

@@ -7,6 +7,8 @@ import { customAlphabet } from "nanoid";
 import { getUser } from "@/lib/auth/session";
 import { ACTIVE_BUSINESS_COOKIE } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 const slugSuffix = customAlphabet("abcdefghijklmnopqrstuvwxyz0123456789", 5);
 
@@ -18,10 +20,6 @@ function slugify(name: string): string {
     .slice(0, 40);
 }
 
-const schema = z.object({
-  name: z.string().min(2, "Business name is required.").max(80),
-});
-
 export interface CreateBusinessState {
   error?: string;
 }
@@ -30,9 +28,13 @@ export async function createBusiness(
   _prev: CreateBusinessState,
   formData: FormData,
 ): Promise<CreateBusinessState> {
+  const dict = await getDictionary(await getLocale());
   const user = await getUser();
   if (!user) redirect("/login");
 
+  const schema = z.object({
+    name: z.string().min(2, dict.onboarding.errors.nameRequired).max(80),
+  });
   const parsed = schema.safeParse({ name: formData.get("name") });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -47,7 +49,7 @@ export async function createBusiness(
     .single();
 
   if (error || !business) {
-    return { error: error?.message ?? "Could not create business." };
+    return { error: error?.message ?? dict.onboarding.errors.createFailed };
   }
 
   const { error: membershipError } = await admin.from("memberships").insert({

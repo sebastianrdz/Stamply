@@ -4,11 +4,14 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByToken, cardProgress } from "@/lib/cards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { brandStyle } from "@/lib/brand";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { LoyaltyCard } from "@/components/loyalty-card";
 import { WalletButtons } from "./wallet-buttons";
 
 export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   const { token } = await params;
+  const dict = await getDictionary(await getLocale());
   const admin = createAdminClient();
   const card = await getCardByToken(admin, token);
   if (!card) notFound();
@@ -31,14 +34,16 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           logoUrl={card.business.logo_url}
           backgroundImageUrl={card.business.background_image_url}
           showBusinessName={card.business.show_business_name}
+          rewardReadyLabel={dict.card.rewardReady}
+          yourRewardLabel={dict.card.yourReward}
         />
 
         <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-6">
-          <p className="text-sm font-medium">Show this at checkout</p>
+          <p className="text-sm font-medium">{dict.card.showAtCheckout}</p>
           <div className="border-border rounded-xl border bg-white p-3">
             <Image
               src={qr}
-              alt="Your loyalty QR code"
+              alt={dict.card.qrAlt}
               width={200}
               height={200}
               unoptimized
@@ -46,10 +51,14 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           </div>
         </div>
 
-        <WalletButtons token={token} />
+        <WalletButtons
+          token={token}
+          appleLabel={dict.card.addAppleWallet}
+          googleLabel={dict.card.addGoogleWallet}
+        />
 
         <p className="text-muted-foreground text-center text-xs">
-          Powered by Stamply
+          {dict.common.poweredBy}
         </p>
       </div>
     </div>

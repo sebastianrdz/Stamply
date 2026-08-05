@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import { Gift, Users } from "lucide-react";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import { qrDataUrl } from "@/lib/qr";
 import { enrollUrl } from "@/lib/urls";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -16,6 +19,7 @@ export default async function ProgramDetailPage({
 }: PageProps<"/dashboard/programs/[programId]">) {
   const { programId } = await params;
   const { membership } = await requireRole(["owner", "admin"]);
+  const dict = await getDictionary(await getLocale());
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -42,12 +46,18 @@ export default async function ProgramDetailPage({
         title={program.name}
         description={
           program.type === "points"
-            ? `Collect ${program.goal} points`
-            : `Collect ${program.goal} stamps`
+            ? interpolate(dict.dashboard.programs.detail.collectPoints, {
+                goal: program.goal,
+              })
+            : interpolate(dict.dashboard.programs.detail.collectStamps, {
+                goal: program.goal,
+              })
         }
         action={
           <Badge variant={program.active ? "success" : "muted"}>
-            {program.active ? "Active" : "Paused"}
+            {program.active
+              ? dict.dashboard.programs.list.active
+              : dict.dashboard.programs.list.paused}
           </Badge>
         }
       />
@@ -55,21 +65,20 @@ export default async function ProgramDetailPage({
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Enrollment QR</CardTitle>
+            <CardTitle>{dict.dashboard.programs.detail.enrollmentQr}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             <div className="border-border rounded-xl border bg-white p-3">
               <Image
                 src={qr}
-                alt="Enrollment QR code"
+                alt={dict.dashboard.programs.detail.qrAlt}
                 width={240}
                 height={240}
                 unoptimized
               />
             </div>
             <p className="text-muted-foreground text-center text-sm">
-              Print this and place it at your counter. Customers scan it to join
-              and add their card to their wallet.
+              {dict.dashboard.programs.detail.printHint}
             </p>
             <CopyButton value={url} />
           </CardContent>
@@ -82,7 +91,9 @@ export default async function ProgramDetailPage({
                 <Users className="size-5" />
               </div>
               <div>
-                <p className="text-muted-foreground text-sm">Cards issued</p>
+                <p className="text-muted-foreground text-sm">
+                  {dict.dashboard.programs.detail.cardsIssued}
+                </p>
                 <p className="text-2xl font-bold">{cardCount ?? 0}</p>
               </div>
             </CardContent>
@@ -93,7 +104,9 @@ export default async function ProgramDetailPage({
                 <Gift className="size-5" />
               </div>
               <div>
-                <p className="text-muted-foreground text-sm">Reward</p>
+                <p className="text-muted-foreground text-sm">
+                  {dict.dashboard.programs.detail.reward}
+                </p>
                 <p className="font-medium">{program.reward_description}</p>
               </div>
             </CardContent>

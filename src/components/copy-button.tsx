@@ -3,14 +3,16 @@
 import { useState } from "react";
 import { Check, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "@/lib/i18n/provider";
 
 export function CopyButton({
   value,
-  label = "Copy link",
+  label,
 }: {
   value: string;
   label?: string;
 }) {
+  const dict = useTranslations();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -30,7 +32,7 @@ export function CopyButton({
       ) : (
         <Copy className="size-4" />
       )}
-      {copied ? "Copied" : label}
+      {copied ? dict.common.copied : (label ?? dict.common.copyLink)}
     </Button>
   );
 }

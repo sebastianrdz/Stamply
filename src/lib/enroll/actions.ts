@@ -10,17 +10,9 @@ import {
 } from "@/lib/billing/entitlements";
 import { issueCard } from "@/lib/cards/issue";
 import { rateLimit } from "@/lib/rate-limit";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { Business, Program } from "@/types/database";
-
-const schema = z.object({
-  program_id: z.string().uuid(),
-  full_name: z.string().min(1, "Please enter your name.").max(120),
-  email: z.string().email("Enter a valid email.").optional().or(z.literal("")),
-  phone: z.string().max(40).optional().or(z.literal("")),
-  marketing_consent: z
-    .union([z.literal("on"), z.null()])
-    .transform((v) => v === "on"),
-});
 
 export interface EnrollState {
   error?: string;
@@ -35,6 +27,23 @@ export async function enroll(
   _prev: EnrollState,
   formData: FormData,
 ): Promise<EnrollState> {
+  const dict = await getDictionary(await getLocale());
+  const schema = z.object({
+    program_id: z.string().uuid(),
+    full_name: z
+      .string()
+      .min(1, dict.customerJoin.errors.nameRequired)
+      .max(120),
+    email: z
+      .string()
+      .email(dict.customerJoin.errors.emailInvalid)
+      .optional()
+      .or(z.literal("")),
+    phone: z.string().max(40).optional().or(z.literal("")),
+    marketing_consent: z
+      .union([z.literal("on"), z.null()])
+      .transform((v) => v === "on"),
+  });
   const parsed = schema.safeParse({
     program_id: formData.get("program_id"),
     full_name: formData.get("full_name"),
@@ -66,9 +75,7 @@ export async function enroll(
   // a single business's program.
   const rateLimitKey = `enroll:${parsed.data.program_id}:${ip ?? "no-ip"}`;
   if (!rateLimit(rateLimitKey, 20, 5 * 60 * 1000)) {
-    return {
-      error: "Too many attempts. Please wait a few minutes and try again.",
-    };
+    return { error: dict.customerJoin.errors.tooManyAttempts };
   }
 
   const admin = createAdminClient();
@@ -79,12 +86,14 @@ export async function enroll(
     .eq("id", parsed.data.program_id)
     .single();
 
-  if (!programData) return { error: "This loyalty program was not found." };
+  if (!programData) {
+    return { error: dict.customerJoin.errors.programNotFound };
+  }
   const program = programData as unknown as Program & { business: Business };
   const business = program.business;
 
   if (!program.active) {
-    return { error: "This program is not currently accepting new members." };
+    return { error: dict.customerJoin.errors.programInactive };
   }
 
   const email = parsed.data.email || null;
@@ -106,7 +115,7 @@ export async function enroll(
       await assertWithinLimit(admin, business, "customers");
     } catch (e) {
       if (e instanceof LimitExceededError) {
-        return { error: "This business has reached its customer limit." };
+        return { error: dict.customerJoin.errors.customerLimitReached };
       }
       throw e;
     }
@@ -126,7 +135,9 @@ export async function enroll(
       .select("id")
       .single();
     if (customerError || !customer) {
-      return { error: customerError?.message ?? "Could not enroll." };
+      return {
+        error: customerError?.message ?? dict.customerJoin.errors.enrollFailed,
+      };
     }
     customerId = customer.id;
   }

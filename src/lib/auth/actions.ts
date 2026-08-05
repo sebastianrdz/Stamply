@@ -3,11 +3,15 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
 
-const credentialsSchema = z.object({
-  email: z.string().email("Enter a valid email."),
-  password: z.string().min(8, "Password must be at least 8 characters."),
-});
+function buildSchema(dict: Dictionary) {
+  return z.object({
+    email: z.string().email(dict.common.validation.emailInvalid),
+    password: z.string().min(8, dict.common.validation.passwordTooShort),
+  });
+}
 
 export interface AuthState {
   error?: string;
@@ -17,7 +21,8 @@ export async function signIn(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  const parsed = credentialsSchema.safeParse({
+  const dict = await getDictionary(await getLocale());
+  const parsed = buildSchema(dict).safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });
@@ -37,7 +42,8 @@ export async function signUp(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
-  const parsed = credentialsSchema.safeParse({
+  const dict = await getDictionary(await getLocale());
+  const parsed = buildSchema(dict).safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
   });

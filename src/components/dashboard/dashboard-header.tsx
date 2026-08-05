@@ -7,15 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { useSidebar } from "./dashboard-shell";
 import { signOut } from "@/lib/auth/actions";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n/provider";
 import type { MembershipRole } from "@/types/database";
 
-const roleLabel: Record<MembershipRole, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  employee: "Employee",
-};
-
 function UserMenu({ role }: { role: MembershipRole }) {
+  const dict = useTranslations();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -43,7 +39,7 @@ function UserMenu({ role }: { role: MembershipRole }) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        aria-label="User menu"
+        aria-label={dict.nav.userMenu}
         aria-expanded={open}
         aria-haspopup="menu"
         className={cn(
@@ -61,8 +57,10 @@ function UserMenu({ role }: { role: MembershipRole }) {
         >
           {/* Role indicator */}
           <div className="flex items-center justify-between px-3 py-2">
-            <span className="text-muted-foreground text-xs">Role</span>
-            <Badge variant="muted">{roleLabel[role]}</Badge>
+            <span className="text-muted-foreground text-xs">
+              {dict.nav.roleLabel}
+            </span>
+            <Badge variant="muted">{dict.common.roles[role]}</Badge>
           </div>
 
           <div className="border-border my-1 border-t" />
@@ -79,7 +77,7 @@ function UserMenu({ role }: { role: MembershipRole }) {
               className="text-muted-foreground hover:bg-muted hover:text-foreground flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors"
             >
               <LogOut className="size-4" />
-              Sign out
+              {dict.common.signOut}
             </button>
           </form>
         </div>
@@ -90,13 +88,14 @@ function UserMenu({ role }: { role: MembershipRole }) {
 
 export function DashboardHeader({ role }: { role: MembershipRole }) {
   const { toggle } = useSidebar();
+  const dict = useTranslations();
 
   return (
     <header className="border-border bg-background/95 sticky top-0 z-40 flex h-[57px] shrink-0 items-center gap-3 border-b px-4 backdrop-blur">
       {/* Left: toggle + logo */}
       <button
         onClick={toggle}
-        aria-label="Toggle sidebar"
+        aria-label={dict.nav.toggleSidebar}
         className="text-muted-foreground hover:bg-muted hover:text-foreground grid size-9 place-items-center rounded-lg transition-colors"
       >
         <Menu className="size-5" />

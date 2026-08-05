@@ -4,17 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import {
   assertWithinLimit,
   LimitExceededError,
 } from "@/lib/billing/entitlements";
-
-const schema = z.object({
-  name: z.string().min(1, "Name is required.").max(120),
-  address: z.string().max(240).optional().or(z.literal("")),
-  lat: z.coerce.number().min(-90).max(90).optional().or(z.nan()),
-  lng: z.coerce.number().min(-180).max(180).optional().or(z.nan()),
-});
 
 export interface LocationFormState {
   error?: string;
@@ -26,6 +22,17 @@ export async function createLocation(
 ): Promise<LocationFormState> {
   const { membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
+  const dict = await getDictionary(await getLocale());
+
+  const schema = z.object({
+    name: z
+      .string()
+      .min(1, dict.dashboard.locations.errors.nameRequired)
+      .max(120),
+    address: z.string().max(240).optional().or(z.literal("")),
+    lat: z.coerce.number().min(-90).max(90).optional().or(z.nan()),
+    lng: z.coerce.number().min(-180).max(180).optional().or(z.nan()),
+  });
 
   const parsed = schema.safeParse({
     name: formData.get("name"),
@@ -39,7 +46,14 @@ export async function createLocation(
   try {
     await assertWithinLimit(supabase, business, "locations");
   } catch (e) {
-    if (e instanceof LimitExceededError) return { error: e.message };
+    if (e instanceof LimitExceededError) {
+      return {
+        error: interpolate(dict.dashboard.billing.limitExceeded, {
+          limit: e.limit,
+          resource: dict.dashboard.billing.resources[e.resource],
+        }),
+      };
+    }
     throw e;
   }
 

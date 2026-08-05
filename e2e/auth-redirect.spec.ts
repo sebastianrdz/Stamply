@@ -7,13 +7,13 @@ import { test, expect } from "@playwright/test";
  * via 307 status + Location header before writing these specs.
  */
 test.describe("Auth-gated redirects (unauthenticated)", () => {
-  test("/dashboard redirects to /login?next=%2Fdashboard", async ({
-    page,
-  }) => {
+  test("/dashboard redirects to /login?next=%2Fdashboard", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page).toHaveURL("http://localhost:3100/login?next=%2Fdashboard");
+    await expect(page).toHaveURL(
+      "http://localhost:3100/login?next=%2Fdashboard",
+    );
     await expect(
-      page.getByRole("heading", { name: "Welcome back" }),
+      page.getByRole("heading", { name: "Bienvenido de nuevo" }),
     ).toBeVisible();
   });
 

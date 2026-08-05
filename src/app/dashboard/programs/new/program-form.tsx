@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { createProgram, type ProgramFormState } from "@/lib/programs/actions";
+import { useTranslations } from "@/lib/i18n/provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { Select } from "@/components/ui/select";
 const initialState: ProgramFormState = {};
 
 export function ProgramForm() {
+  const dict = useTranslations();
   const [state, formAction, pending] = useActionState(
     createProgram,
     initialState,
@@ -19,11 +21,11 @@ export function ProgramForm() {
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Program name</Label>
+        <Label htmlFor="name">{dict.dashboard.programs.form.nameLabel}</Label>
         <Input
           id="name"
           name="name"
-          placeholder="Coffee lovers card"
+          placeholder={dict.dashboard.programs.form.namePlaceholder}
           autoFocus
           required
         />
@@ -31,20 +33,26 @@ export function ProgramForm() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="type">Type</Label>
+          <Label htmlFor="type">{dict.dashboard.programs.form.typeLabel}</Label>
           <Select
             id="type"
             name="type"
             value={type}
             onChange={(e) => setType(e.target.value as "stamp" | "points")}
           >
-            <option value="stamp">Stamp card</option>
-            <option value="points">Points</option>
+            <option value="stamp">
+              {dict.dashboard.programs.form.typeStamp}
+            </option>
+            <option value="points">
+              {dict.dashboard.programs.form.typePoints}
+            </option>
           </Select>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="goal">
-            {type === "points" ? "Points to reward" : "Stamps to reward"}
+            {type === "points"
+              ? dict.dashboard.programs.form.goalLabelPoints
+              : dict.dashboard.programs.form.goalLabelStamps}
           </Label>
           <Input
             id="goal"
@@ -59,11 +67,13 @@ export function ProgramForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="reward_description">Reward</Label>
+        <Label htmlFor="reward_description">
+          {dict.dashboard.programs.form.rewardLabel}
+        </Label>
         <Input
           id="reward_description"
           name="reward_description"
-          placeholder="A free coffee of your choice"
+          placeholder={dict.dashboard.programs.form.rewardPlaceholder}
           required
         />
       </div>
@@ -76,7 +86,9 @@ export function ProgramForm() {
 
       <div className="flex gap-3">
         <Button type="submit" disabled={pending}>
-          {pending ? "Creating…" : "Create program"}
+          {pending
+            ? dict.dashboard.programs.form.creating
+            : dict.dashboard.programs.form.create}
         </Button>
       </div>
     </form>

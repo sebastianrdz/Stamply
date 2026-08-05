@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n/provider";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import type { Business } from "@/types/database";
 
 const initialState: SettingsState = {};
@@ -26,6 +28,7 @@ function ImageUploadField({
   hint,
   currentUrl,
   previewClassName,
+  dict,
 }: {
   name: "logo" | "background_image";
   removeField: "remove_logo" | "remove_background";
@@ -33,6 +36,7 @@ function ImageUploadField({
   hint: string;
   currentUrl: string | null;
   previewClassName: string;
+  dict: Dictionary;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
@@ -58,7 +62,9 @@ function ImageUploadField({
               className="object-contain"
             />
           ) : (
-            <span className="text-xs">None</span>
+            <span className="text-xs">
+              {dict.dashboard.settings.businessForm.none}
+            </span>
           )}
         </div>
 
@@ -81,7 +87,7 @@ function ImageUploadField({
               className="text-muted-foreground hover:text-destructive self-start text-xs underline"
               onClick={() => setRemoved(true)}
             >
-              Remove current image
+              {dict.dashboard.settings.businessForm.removeCurrentImage}
             </button>
           )}
           {removed && (
@@ -90,7 +96,7 @@ function ImageUploadField({
               className="text-muted-foreground self-start text-xs underline"
               onClick={() => setRemoved(false)}
             >
-              Keep current image
+              {dict.dashboard.settings.businessForm.keepCurrentImage}
             </button>
           )}
         </div>
@@ -102,6 +108,7 @@ function ImageUploadField({
 }
 
 export function SettingsForm({ business }: { business: Business }) {
+  const dict = useTranslations();
   const [state, formAction, pending] = useActionState(
     updateBusiness,
     initialState,
@@ -110,7 +117,9 @@ export function SettingsForm({ business }: { business: Business }) {
   return (
     <form action={formAction} className="flex max-w-xl flex-col gap-5">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="name">Business name</Label>
+        <Label htmlFor="name">
+          {dict.dashboard.settings.businessForm.nameLabel}
+        </Label>
         <Input id="name" name="name" defaultValue={business.name} required />
         <label
           htmlFor="show_business_name"
@@ -124,13 +133,15 @@ export function SettingsForm({ business }: { business: Business }) {
             defaultChecked={business.show_business_name}
             className="border-input text-primary focus-visible:ring-ring size-4 cursor-pointer rounded border focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:outline-none"
           />
-          Show business name on wallet passes
+          {dict.dashboard.settings.businessForm.showNameCheckbox}
         </label>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="brand_primary_color">Primary color</Label>
+          <Label htmlFor="brand_primary_color">
+            {dict.dashboard.settings.businessForm.primaryColorLabel}
+          </Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -145,7 +156,9 @@ export function SettingsForm({ business }: { business: Business }) {
           </div>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="brand_secondary_color">Accent color</Label>
+          <Label htmlFor="brand_secondary_color">
+            {dict.dashboard.settings.businessForm.accentColorLabel}
+          </Label>
           <div className="flex items-center gap-2">
             <input
               type="color"
@@ -164,28 +177,32 @@ export function SettingsForm({ business }: { business: Business }) {
       <ImageUploadField
         name="logo"
         removeField="remove_logo"
-        label="Logo"
+        label={dict.dashboard.settings.businessForm.logoLabel}
         currentUrl={business.logo_url}
         previewClassName="size-16"
-        hint="Shown in the top-left corner of the wallet pass. Use a square PNG for best results."
+        hint={dict.dashboard.settings.businessForm.logoHint}
+        dict={dict}
       />
 
       <ImageUploadField
         name="background_image"
         removeField="remove_background"
-        label="Pass background"
+        label={dict.dashboard.settings.businessForm.passBgLabel}
         currentUrl={business.background_image_url}
         previewClassName="h-16 w-28"
-        hint="Sits behind the stamps on the wallet pass. Use a wide image (about 3:1); it will be scaled to fit."
+        hint={dict.dashboard.settings.businessForm.passBgHint}
+        dict={dict}
       />
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="timezone">Timezone</Label>
+        <Label htmlFor="timezone">
+          {dict.dashboard.settings.businessForm.timezoneLabel}
+        </Label>
         <Input
           id="timezone"
           name="timezone"
           defaultValue={business.timezone}
-          placeholder="America/New_York"
+          placeholder={dict.dashboard.settings.businessForm.timezonePlaceholder}
         />
       </div>
 
@@ -196,13 +213,13 @@ export function SettingsForm({ business }: { business: Business }) {
       )}
       {state.ok && (
         <p className="text-success text-sm" role="status">
-          Saved.
+          {dict.common.saved}
         </p>
       )}
 
       <div>
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving…" : "Save changes"}
+          {pending ? dict.common.saving : dict.common.save}
         </Button>
       </div>
     </form>

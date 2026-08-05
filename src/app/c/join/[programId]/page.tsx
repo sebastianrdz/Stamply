@@ -2,6 +2,9 @@ import { notFound } from "next/navigation";
 import { Gift } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { brandStyle } from "@/lib/brand";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Business, Program } from "@/types/database";
 import { EnrollForm } from "./enroll-form";
@@ -10,6 +13,7 @@ export default async function JoinPage({
   params,
 }: PageProps<"/c/join/[programId]">) {
   const { programId } = await params;
+  const dict = await getDictionary(await getLocale());
   const admin = createAdminClient();
   const { data } = await admin
     .from("programs")
@@ -32,7 +36,7 @@ export default async function JoinPage({
             {business.name}
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">
-            Join the loyalty club
+            {dict.customerJoin.title}
           </h1>
         </div>
 
@@ -45,8 +49,12 @@ export default async function JoinPage({
               <p className="font-medium">{program.reward_description}</p>
               <p className="text-muted-foreground">
                 {program.type === "points"
-                  ? `Collect ${program.goal} points`
-                  : `Collect ${program.goal} stamps`}
+                  ? interpolate(dict.customerJoin.collectPoints, {
+                      goal: program.goal,
+                    })
+                  : interpolate(dict.customerJoin.collectStamps, {
+                      goal: program.goal,
+                    })}
               </p>
             </div>
           </CardContent>
@@ -55,7 +63,7 @@ export default async function JoinPage({
         <EnrollForm programId={program.id} />
 
         <p className="text-muted-foreground mt-6 text-center text-xs">
-          Powered by Stamply
+          {dict.common.poweredBy}
         </p>
       </div>
     </div>

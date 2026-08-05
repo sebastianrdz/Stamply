@@ -10,14 +10,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 
-export const metadata: Metadata = { title: "Billing" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.dashboard.billing.metaTitle };
+}
 
-const RESOURCES: { key: LimitedResource; label: string }[] = [
-  { key: "locations", label: "Locations" },
-  { key: "employees", label: "Employees" },
-  { key: "customers", label: "Customers" },
-  { key: "programs", label: "Programs" },
+const RESOURCE_KEYS: LimitedResource[] = [
+  "locations",
+  "employees",
+  "customers",
+  "programs",
 ];
 
 export default async function BillingPage() {
@@ -25,37 +31,42 @@ export default async function BillingPage() {
   const business = membership.business;
   const plan = PLANS[business.plan];
   const supabase = await createClient();
+  const dict = await getDictionary(await getLocale());
 
   const usage = await Promise.all(
-    RESOURCES.map(async (r) => ({
-      ...r,
-      count: await currentCount(supabase, business.id, r.key),
-      limit: plan.limits[r.key],
+    RESOURCE_KEYS.map(async (key) => ({
+      key,
+      label: dict.dashboard.billing.resources[key],
+      count: await currentCount(supabase, business.id, key),
+      limit: plan.limits[key],
     })),
   );
 
   return (
     <>
       <PageHeader
-        title="Plan & billing"
-        description="Manage your subscription and see your usage."
+        title={dict.dashboard.billing.title}
+        description={dict.dashboard.billing.description}
       />
 
       <Card className="mb-6">
         <CardHeader className="flex-row items-center justify-between">
           <div>
-            <CardTitle>{plan.name} plan</CardTitle>
+            <CardTitle>
+              {dict.billing.plans[business.plan].name}{" "}
+              {dict.dashboard.billing.planSuffix}
+            </CardTitle>
             <p className="text-muted-foreground text-sm">
               {plan.price > 0
-                ? `$${plan.price}/mo · billed monthly`
-                : "Free trial"}{" "}
-              · {business.subscription_status}
+                ? `$${plan.price}${dict.common.perMonth} · ${dict.common.billedMonthly}`
+                : dict.common.freeTrial}{" "}
+              · {dict.common.subscriptionStatus[business.subscription_status]}
             </p>
           </div>
           {business.stripe_customer_id && (
             <form action={openBillingPortal}>
               <Button variant="outline" size="sm">
-                Manage subscription
+                {dict.dashboard.billing.manageSubscription}
               </Button>
             </form>
           )}
@@ -90,10 +101,13 @@ export default async function BillingPage() {
         </CardContent>
       </Card>
 
-      <h2 className="mb-4 text-lg font-semibold">Plans</h2>
+      <h2 className="mb-4 text-lg font-semibold">
+        {dict.dashboard.billing.plansHeading}
+      </h2>
       <div className="grid gap-6 md:grid-cols-3">
         {PAID_PLANS.map((p) => {
           const current = p.tier === business.plan;
+          const planCopy = dict.billing.plans[p.tier];
           return (
             <Card
               key={p.tier}
@@ -101,18 +115,24 @@ export default async function BillingPage() {
             >
               <CardContent className="flex h-full flex-col gap-5 p-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{p.name}</h3>
-                  {current && <Badge>Current</Badge>}
+                  <h3 className="text-lg font-semibold">{planCopy.name}</h3>
+                  {current && (
+                    <Badge>{dict.dashboard.billing.currentPlan}</Badge>
+                  )}
                 </div>
                 <div>
                   <div className="flex items-baseline gap-1">
                     <span className="text-3xl font-bold">${p.price}</span>
-                    <span className="text-muted-foreground">/mo</span>
+                    <span className="text-muted-foreground">
+                      {dict.common.perMonth}
+                    </span>
                   </div>
-                  <p className="text-muted-foreground text-xs">Billed monthly</p>
+                  <p className="text-muted-foreground text-xs">
+                    {dict.common.billedMonthly}
+                  </p>
                 </div>
                 <ul className="flex flex-col gap-2 text-sm">
-                  {p.features.map((f) => (
+                  {planCopy.features.map((f) => (
                     <li key={f} className="flex items-center gap-2">
                       <Check className="text-success size-4 shrink-0" />
                       {f}
@@ -129,7 +149,11 @@ export default async function BillingPage() {
                     className="w-full"
                     disabled={current}
                   >
-                    {current ? "Current plan" : `Switch to ${p.name}`}
+                    {current
+                      ? dict.dashboard.billing.currentPlan
+                      : interpolate(dict.common.switchTo, {
+                          name: planCopy.name,
+                        })}
                   </Button>
                 </form>
               </CardContent>

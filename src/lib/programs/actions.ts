@@ -5,17 +5,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import {
   assertWithinLimit,
   LimitExceededError,
 } from "@/lib/billing/entitlements";
-
-const schema = z.object({
-  name: z.string().min(2, "Give the program a name.").max(80),
-  type: z.enum(["stamp", "points"]),
-  goal: z.coerce.number().int().min(1, "Goal must be at least 1.").max(1000),
-  reward_description: z.string().min(2, "Describe the reward.").max(200),
-});
 
 export interface ProgramFormState {
   error?: string;
@@ -27,6 +23,24 @@ export async function createProgram(
 ): Promise<ProgramFormState> {
   const { membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
+  const dict = await getDictionary(await getLocale());
+
+  const schema = z.object({
+    name: z
+      .string()
+      .min(2, dict.dashboard.programs.errors.nameRequired)
+      .max(80),
+    type: z.enum(["stamp", "points"]),
+    goal: z.coerce
+      .number()
+      .int()
+      .min(1, dict.dashboard.programs.errors.goalMin)
+      .max(1000),
+    reward_description: z
+      .string()
+      .min(2, dict.dashboard.programs.errors.rewardRequired)
+      .max(200),
+  });
 
   const parsed = schema.safeParse({
     name: formData.get("name"),
@@ -41,7 +55,14 @@ export async function createProgram(
   try {
     await assertWithinLimit(supabase, business, "programs");
   } catch (e) {
-    if (e instanceof LimitExceededError) return { error: e.message };
+    if (e instanceof LimitExceededError) {
+      return {
+        error: interpolate(dict.dashboard.billing.limitExceeded, {
+          limit: e.limit,
+          resource: dict.dashboard.billing.resources[e.resource],
+        }),
+      };
+    }
     throw e;
   }
 

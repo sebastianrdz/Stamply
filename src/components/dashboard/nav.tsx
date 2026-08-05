@@ -14,51 +14,63 @@ import {
   Receipt,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n/provider";
 import type { MembershipRole } from "@/types/database";
+
+type NavKey =
+  | "overview"
+  | "scan"
+  | "programs"
+  | "customers"
+  | "locations"
+  | "analytics"
+  | "team"
+  | "billing"
+  | "settings";
 
 // `allow` lists the roles that may see an item; omit to allow everyone.
 const items: {
   href: string;
-  label: string;
+  key: NavKey;
   icon: typeof LayoutDashboard;
   exact?: boolean;
   allow?: MembershipRole[];
 }[] = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/scan", label: "Scan", icon: ScanLine },
+  { href: "/dashboard", key: "overview", icon: LayoutDashboard, exact: true },
+  { href: "/dashboard/scan", key: "scan", icon: ScanLine },
   {
     href: "/dashboard/programs",
-    label: "Programs",
+    key: "programs",
     icon: CreditCard,
     allow: ["owner", "admin"],
   },
-  { href: "/dashboard/customers", label: "Customers", icon: Users },
+  { href: "/dashboard/customers", key: "customers", icon: Users },
   {
     href: "/dashboard/locations",
-    label: "Locations",
+    key: "locations",
     icon: MapPin,
     allow: ["owner", "admin"],
   },
   {
     href: "/dashboard/analytics",
-    label: "Analytics",
+    key: "analytics",
     icon: BarChart3,
     allow: ["owner", "admin"],
   },
   {
     href: "/dashboard/team",
-    label: "Team",
+    key: "team",
     icon: UserCog,
     allow: ["owner", "admin"],
   },
   {
     href: "/dashboard/billing",
-    label: "Billing",
+    key: "billing",
     icon: Receipt,
     allow: ["owner"],
   },
   // Everyone can open Settings; only the owner sees the Business Profile inside.
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
+  { href: "/dashboard/settings", key: "settings", icon: Settings },
 ];
 
 /** Tiny inline dot that fades in only if navigation is still pending after
@@ -87,11 +99,23 @@ export function DashboardNav({
   className?: string;
 }) {
   const pathname = usePathname();
+  const dict = useTranslations();
+  const labelFor: Record<NavKey, string> = {
+    overview: dict.nav.overview,
+    scan: dict.nav.scan,
+    programs: dict.nav.programs,
+    customers: dict.nav.customers,
+    locations: dict.nav.locations,
+    analytics: dict.nav.analytics,
+    team: dict.nav.team,
+    billing: dict.nav.billing,
+    settings: dict.nav.settings,
+  };
   const visible = items.filter((i) => !i.allow || i.allow.includes(role));
 
   return (
     <nav className={cn("flex flex-col gap-1", className)}>
-      {visible.map(({ href, label, icon: Icon, exact }) => {
+      {visible.map(({ href, key, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
           <Link
@@ -105,7 +129,7 @@ export function DashboardNav({
             )}
           >
             <Icon className="size-4" />
-            {label}
+            {labelFor[key]}
             <NavLinkPendingHint />
           </Link>
         );

@@ -12,6 +12,8 @@ export function LoyaltyCard({
   logoUrl,
   backgroundImageUrl,
   showBusinessName = true,
+  rewardReadyLabel,
+  yourRewardLabel,
 }: {
   businessName: string;
   program: Pick<Program, "name" | "type" | "goal" | "reward_description">;
@@ -20,6 +22,10 @@ export function LoyaltyCard({
   logoUrl?: string | null;
   backgroundImageUrl?: string | null;
   showBusinessName?: boolean;
+  /** Localized copy — this is a server component with no dictionary access
+   *  of its own, so the caller passes the already-resolved strings. */
+  rewardReadyLabel: string;
+  yourRewardLabel: string;
 }) {
   return (
     <div className="overflow-hidden rounded-2xl bg-[hsl(var(--brand))] text-white shadow-lg">
@@ -43,7 +49,7 @@ export function LoyaltyCard({
           </div>
         </div>
         <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium">
-          {completed ? "Reward ready!" : `${progress}/${program.goal}`}
+          {completed ? rewardReadyLabel : `${progress}/${program.goal}`}
         </span>
       </div>
 
@@ -101,7 +107,7 @@ export function LoyaltyCard({
       </div>
 
       <div className="p-5 pt-4 text-sm">
-        <p className="opacity-90">Your reward</p>
+        <p className="opacity-90">{yourRewardLabel}</p>
         <p className="font-semibold">{program.reward_description}</p>
       </div>
     </div>

@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 
@@ -15,15 +17,6 @@ const ASSET_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/webp": "webp",
 };
-
-const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a #RRGGBB color.");
-
-const schema = z.object({
-  name: z.string().min(2, "Name is required.").max(80),
-  brand_primary_color: hex,
-  brand_secondary_color: hex,
-  timezone: z.string().min(1).max(64),
-});
 
 export interface SettingsState {
   error?: string;
@@ -40,13 +33,14 @@ async function uploadAsset(
   businessId: string,
   kind: "logo" | "background",
   file: FormDataEntryValue | null,
+  dict: Dictionary,
 ): Promise<string | null> {
   if (!(file instanceof File) || file.size === 0) return null;
 
   const ext = ASSET_TYPES[file.type];
-  if (!ext) throw new Error("Images must be PNG, JPEG, or WebP.");
+  if (!ext) throw new Error(dict.dashboard.settings.errors.imageType);
   if (file.size > MAX_ASSET_BYTES)
-    throw new Error("Images must be under 4 MB.");
+    throw new Error(dict.dashboard.settings.errors.imageTooLarge);
 
   // Unique filename per upload so wallet services (which cache by URL) always
   // pick up a replaced image.
@@ -63,8 +57,23 @@ export async function updateBusiness(
   _prev: SettingsState,
   formData: FormData,
 ): Promise<SettingsState> {
+  const dict = await getDictionary(await getLocale());
   const { membership } = await requireRole(["owner", "admin"]);
   const businessId = membership.business.id;
+
+  const hex = z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, dict.dashboard.settings.errors.colorFormat);
+
+  const schema = z.object({
+    name: z
+      .string()
+      .min(2, dict.dashboard.settings.errors.businessNameRequired)
+      .max(80),
+    brand_primary_color: hex,
+    brand_secondary_color: hex,
+    timezone: z.string().min(1).max(64),
+  });
 
   const parsed = schema.safeParse({
     name: formData.get("name"),
@@ -93,6 +102,7 @@ export async function updateBusiness(
       businessId,
       "logo",
       formData.get("logo"),
+      dict,
     );
     if (logoUrl) update.logo_url = logoUrl;
     else if (formData.get("remove_logo") === "1") update.logo_url = null;
@@ -102,12 +112,18 @@ export async function updateBusiness(
       businessId,
       "background",
       formData.get("background_image"),
+      dict,
     );
     if (bgUrl) update.background_image_url = bgUrl;
     else if (formData.get("remove_background") === "1")
       update.background_image_url = null;
   } catch (e) {
-    return { error: e instanceof Error ? e.message : "Upload failed." };
+    return {
+      error:
+        e instanceof Error
+          ? e.message
+          : dict.dashboard.settings.errors.uploadFailed,
+    };
   }
 
   const { error } = await supabase

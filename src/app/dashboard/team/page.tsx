@@ -11,20 +11,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { InviteForm } from "./invite-form";
 import { CopyInviteLink } from "./invite-link";
-import type { Membership, Invitation, MembershipRole } from "@/types/database";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
+import type { Membership, Invitation } from "@/types/database";
 
-export const metadata: Metadata = { title: "Team" };
-
-const roleLabel: Record<MembershipRole, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  employee: "Employee",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.dashboard.team.metaTitle };
+}
 
 export default async function TeamPage() {
   const { membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
   const supabase = await createClient();
+  const dict = await getDictionary(await getLocale());
 
   const [{ data: members }, { data: invites }, count] = await Promise.all([
     supabase
@@ -47,25 +48,28 @@ export default async function TeamPage() {
   return (
     <>
       <PageHeader
-        title="Team"
-        description="Invite staff and manage who can access this business."
+        title={dict.dashboard.team.title}
+        description={dict.dashboard.team.description}
         action={
           <Badge variant={atLimit ? "accent" : "secondary"}>
-            {count}
-            {limit == null ? "" : ` / ${limit}`} members
+            {limit == null
+              ? interpolate(dict.dashboard.team.membersBadge, { count })
+              : interpolate(dict.dashboard.team.membersBadgeWithLimit, {
+                  count,
+                  limit,
+                })}
           </Badge>
         }
       />
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Invite a teammate</CardTitle>
+          <CardTitle>{dict.dashboard.team.inviteCardTitle}</CardTitle>
         </CardHeader>
         <CardContent>
           {atLimit ? (
             <p className="text-muted-foreground text-sm">
-              You&apos;ve reached your plan&apos;s member limit. Upgrade your
-              plan to invite more.
+              {dict.dashboard.team.atLimit}
             </p>
           ) : (
             <InviteForm />
@@ -75,7 +79,7 @@ export default async function TeamPage() {
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Members</CardTitle>
+          <CardTitle>{dict.dashboard.team.membersCardTitle}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col divide-y">
           {(members ?? []).map((m: Membership) => (
@@ -85,17 +89,17 @@ export default async function TeamPage() {
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">
-                  {m.email ?? "Unknown email"}
+                  {m.email ?? dict.common.unknownEmail}
                 </p>
                 <Badge variant="muted" className="mt-0.5">
-                  {roleLabel[m.role]}
+                  {dict.common.roles[m.role]}
                 </Badge>
               </div>
               {m.role !== "owner" && (
                 <form action={removeMembership.bind(null, m.id)}>
                   <button
                     type="submit"
-                    aria-label="Remove member"
+                    aria-label={dict.dashboard.team.removeAria}
                     className="text-muted-foreground hover:text-destructive grid size-8 place-items-center rounded-lg transition-colors"
                   >
                     <Trash2 className="size-4" />
@@ -110,7 +114,7 @@ export default async function TeamPage() {
       {(invites ?? []).length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Pending invites</CardTitle>
+            <CardTitle>{dict.dashboard.team.pendingInvitesCardTitle}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col divide-y">
             {(invites ?? []).map((inv: Invitation) => {
@@ -123,18 +127,22 @@ export default async function TeamPage() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{inv.email}</p>
                     <div className="mt-0.5 flex items-center gap-2">
-                      <Badge variant="muted">{roleLabel[inv.role]}</Badge>
-                      {expired && <Badge variant="accent">Expired</Badge>}
+                      <Badge variant="muted">
+                        {dict.common.roles[inv.role]}
+                      </Badge>
+                      {expired && (
+                        <Badge variant="accent">
+                          {dict.dashboard.team.expiredBadge}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {!expired && (
-                      <CopyInviteLink path={`/join/${inv.token}`} />
-                    )}
+                    {!expired && <CopyInviteLink path={`/join/${inv.token}`} />}
                     <form action={revokeInvitation.bind(null, inv.id)}>
                       <button
                         type="submit"
-                        aria-label="Revoke invite"
+                        aria-label={dict.dashboard.team.revokeAria}
                         className="text-muted-foreground hover:text-destructive grid size-8 place-items-center rounded-lg transition-colors"
                       >
                         <X className="size-4" />

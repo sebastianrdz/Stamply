@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { interpolate } from "@/lib/i18n/format";
 import { Logo } from "@/components/brand/logo";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,15 +12,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AcceptInvite } from "./accept-invite";
 import { isInviteExpired } from "@/lib/team/shared";
-import type { MembershipRole } from "@/types/database";
 
-export const metadata: Metadata = { title: "Join a team" };
-
-const roleLabel: Record<MembershipRole, string> = {
-  owner: "Owner",
-  admin: "Admin",
-  employee: "Employee",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.join.metaTitle };
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -29,17 +28,18 @@ function Shell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="flex flex-1 items-center justify-center px-6 pb-16">
         <Card className="w-full max-w-md">
-          <CardContent className="flex flex-col gap-4 p-6">{children}</CardContent>
+          <CardContent className="flex flex-col gap-4 p-6">
+            {children}
+          </CardContent>
         </Card>
       </main>
     </div>
   );
 }
 
-export default async function JoinPage({
-  params,
-}: PageProps<"/join/[token]">) {
+export default async function JoinPage({ params }: PageProps<"/join/[token]">) {
   const { token } = await params;
+  const dict = await getDictionary(await getLocale());
 
   const admin = createAdminClient();
   const { data: invite } = await admin
@@ -51,10 +51,9 @@ export default async function JoinPage({
   if (!invite) {
     return (
       <Shell>
-        <h1 className="text-lg font-semibold">Invite not found</h1>
+        <h1 className="text-lg font-semibold">{dict.join.notFound.title}</h1>
         <p className="text-muted-foreground text-sm">
-          This invite link is invalid or has been revoked. Ask whoever invited
-          you for a new one.
+          {dict.join.notFound.description}
         </p>
       </Shell>
     );
@@ -74,12 +73,12 @@ export default async function JoinPage({
     return (
       <Shell>
         <h1 className="text-lg font-semibold">
-          {used ? "Invite already used" : "Invite expired"}
+          {used ? dict.join.alreadyUsed.title : dict.join.expired.title}
         </h1>
         <p className="text-muted-foreground text-sm">
           {used
-            ? "This invite has already been accepted."
-            : "This invite has expired. Ask for a new one."}
+            ? dict.join.alreadyUsed.description
+            : dict.join.expired.description}
         </p>
       </Shell>
     );
@@ -92,11 +91,12 @@ export default async function JoinPage({
     <Shell>
       <div className="flex flex-col gap-1">
         <h1 className="text-lg font-semibold">
-          Join {businessName} on Stamply
+          {interpolate(dict.join.title, { business: businessName })}
         </h1>
         <p className="text-muted-foreground text-sm">
-          You&apos;ve been invited as{" "}
-          <Badge variant="muted">{roleLabel[invite.role]}</Badge> for{" "}
+          {dict.join.invitedAs}{" "}
+          <Badge variant="muted">{dict.common.roles[invite.role]}</Badge>{" "}
+          {dict.join.invitedFor}{" "}
           <span className="font-medium">{invite.email}</span>.
         </p>
       </div>
@@ -104,13 +104,13 @@ export default async function JoinPage({
       {!user ? (
         <div className="flex flex-col gap-2">
           <p className="text-muted-foreground text-sm">
-            Sign in or create an account with {invite.email} to accept.
+            {interpolate(dict.join.signInOrCreate, { email: invite.email })}
           </p>
           <Link
             href={`/login?next=${nextParam}`}
             className={cn(buttonVariants({ size: "lg" }), "w-full")}
           >
-            Sign in
+            {dict.join.signIn}
           </Link>
           <Link
             href={`/register?next=${nextParam}`}
@@ -119,14 +119,16 @@ export default async function JoinPage({
               "w-full",
             )}
           >
-            Create an account
+            {dict.join.createAccount}
           </Link>
         </div>
       ) : (user.email ?? "").toLowerCase() !== invite.email.toLowerCase() ? (
         <div className="flex flex-col gap-2">
           <p className="text-destructive text-sm">
-            You&apos;re signed in as {user.email}, but this invite is for{" "}
-            {invite.email}.
+            {interpolate(dict.join.signedInAsDifferent, {
+              email: user.email ?? "",
+              inviteEmail: invite.email,
+            })}
           </p>
           <Link
             href={`/login?next=${nextParam}`}
@@ -135,7 +137,7 @@ export default async function JoinPage({
               "w-full",
             )}
           >
-            Sign in with a different account
+            {dict.join.signInDifferent}
           </Link>
         </div>
       ) : (

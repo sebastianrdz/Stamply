@@ -3,8 +3,10 @@ import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
 import type { Business, Program } from "@/types/database";
 
 const headersGetMock = vi.fn(() => null);
+const cookieGetMock = vi.fn(() => undefined);
 vi.mock("next/headers", () => ({
   headers: vi.fn(async () => ({ get: headersGetMock })),
+  cookies: vi.fn(async () => ({ get: cookieGetMock })),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -105,12 +107,12 @@ describe("enroll — validation", () => {
       {},
       form({ ...baseFields, email: "not-an-email" }),
     );
-    expect(state.error).toBe("Enter a valid email.");
+    expect(state.error).toBe("Ingresa un correo válido.");
   });
 
   it("surfaces the zod message for a missing name", async () => {
     const state = await enroll({}, form({ ...baseFields, full_name: "" }));
-    expect(state.error).toBe("Please enter your name.");
+    expect(state.error).toBe("Ingresa tu nombre.");
   });
 });
 
@@ -119,7 +121,7 @@ describe("enroll — rate limiting", () => {
     rateLimitMock.mockReturnValue(false);
     const state = await enroll({}, form(baseFields));
     expect(state.error).toBe(
-      "Too many attempts. Please wait a few minutes and try again.",
+      "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
     );
     expect(createAdminClientMock).not.toHaveBeenCalled();
   });
@@ -131,7 +133,7 @@ describe("enroll — program lookup", () => {
       makeSupabaseMock({ programs: { data: null } }),
     );
     const state = await enroll({}, form(baseFields));
-    expect(state.error).toBe("This loyalty program was not found.");
+    expect(state.error).toBe("No se encontró este programa de lealtad.");
   });
 
   it("returns an error when the program is inactive", async () => {
@@ -144,7 +146,7 @@ describe("enroll — program lookup", () => {
     );
     const state = await enroll({}, form(baseFields));
     expect(state.error).toBe(
-      "This program is not currently accepting new members.",
+      "Este programa no está aceptando nuevos miembros por ahora.",
     );
   });
 });
@@ -188,7 +190,7 @@ describe("enroll — new customer", () => {
     );
 
     const state = await enroll({}, form(baseFields));
-    expect(state.error).toBe("This business has reached its customer limit.");
+    expect(state.error).toBe("Este negocio alcanzó su límite de clientes.");
     expect(mock.callCounts.customers).toBe(1); // never reached the insert
   });
 
@@ -200,9 +202,7 @@ describe("enroll — new customer", () => {
     createAdminClientMock.mockReturnValue(mock);
     assertWithinLimitMock.mockRejectedValue(new Error("db exploded"));
 
-    await expect(enroll({}, form(baseFields))).rejects.toThrow(
-      "db exploded",
-    );
+    await expect(enroll({}, form(baseFields))).rejects.toThrow("db exploded");
   });
 
   it("creates the customer and issues a card, then redirects to the card page", async () => {

@@ -8,15 +8,13 @@ test.describe("404 handling", () => {
     expect(response?.status()).toBe(404);
 
     await expect(
-      page.getByRole("heading", { name: "Page not found" }),
+      page.getByRole("heading", { name: "Página no encontrada" }),
     ).toBeVisible();
     await expect(
-      page.getByText(
-        "This card or page doesn't exist, or the link has expired.",
-      ),
+      page.getByText("Esta tarjeta o página no existe, o el enlace venció."),
     ).toBeVisible();
 
-    const backHome = page.getByRole("link", { name: "Back home" });
+    const backHome = page.getByRole("link", { name: "Volver al inicio" });
     await expect(backHome).toHaveAttribute("href", "/");
 
     await backHome.click();

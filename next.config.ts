@@ -10,6 +10,17 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    // Dashboard pages are dynamic (they read cookies() via requireBusiness()),
+    // so Next's client Router Cache treats them as stale after 0s by default,
+    // replaying loading.tsx and refetching on every revisit. Every mutating
+    // Server Action calls revalidatePath() for the paths it touches, which
+    // invalidates this cache entry immediately — so this window only lets
+    // *unchanged* pages reuse their cached segment; real changes still show
+    // up on the next navigation.
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
   },
 };
 

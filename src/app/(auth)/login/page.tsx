@@ -1,16 +1,24 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { AuthForm } from "../auth-form";
 
-export const metadata: Metadata = { title: "Sign in" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.auth.login.metaTitle };
+}
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const dict = await getDictionary(await getLocale());
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {dict.auth.login.title}
+        </h1>
         <p className="text-muted-foreground text-sm">
-          Sign in to manage your loyalty programs.
+          {dict.auth.login.subtitle}
         </p>
       </div>
       <Suspense>

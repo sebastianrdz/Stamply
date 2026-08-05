@@ -1,18 +1,24 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { AuthForm } from "../auth-form";
 
-export const metadata: Metadata = { title: "Create account" };
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  return { title: dict.auth.register.metaTitle };
+}
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const dict = await getDictionary(await getLocale());
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5 text-center">
         <h1 className="text-2xl font-bold tracking-tight">
-          Start with Stamply
+          {dict.auth.register.title}
         </h1>
         <p className="text-muted-foreground text-sm">
-          Create your account and set up your first loyalty card.
+          {dict.auth.register.subtitle}
         </p>
       </div>
       <Suspense>

@@ -6,6 +6,9 @@ import type { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "@/lib/i18n/provider";
+import { interpolate } from "@/lib/i18n/format";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 type Mode = "stamp" | "redeem";
 
@@ -26,6 +29,7 @@ interface ScanResult {
 const READER_ID = "stamply-qr-reader";
 
 export function Scanner() {
+  const dict = useTranslations();
   const [mode, setMode] = useState<Mode>("stamp");
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
@@ -86,9 +90,7 @@ export function Scanner() {
       );
     } catch {
       setScanning(false);
-      setCameraError(
-        "Couldn't access the camera. Grant permission and use HTTPS.",
-      );
+      setCameraError(dict.dashboard.scan.cameraError);
     }
   }
 
@@ -118,7 +120,9 @@ export function Scanner() {
             ) : (
               <Gift className="size-4" />
             )}
-            {m}
+            {m === "stamp"
+              ? dict.dashboard.scan.modeStamp
+              : dict.dashboard.scan.modeRedeem}
           </button>
         ))}
       </div>
@@ -137,11 +141,15 @@ export function Scanner() {
           {!scanning && !result && (
             <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
               <p className="text-muted-foreground text-sm">
-                Point the camera at a customer&apos;s loyalty QR to{" "}
-                <span className="text-foreground font-medium">{mode}</span>.
+                {interpolate(dict.dashboard.scan.pointCameraHint, {
+                  mode:
+                    mode === "stamp"
+                      ? dict.dashboard.scan.modeStamp
+                      : dict.dashboard.scan.modeRedeem,
+                })}
               </p>
               <Button size="lg" onClick={start}>
-                Start scanning
+                {dict.dashboard.scan.startScanning}
               </Button>
               {cameraError && (
                 <p className="text-destructive text-sm">{cameraError}</p>
@@ -149,7 +157,7 @@ export function Scanner() {
             </div>
           )}
 
-          {result && <ResultView result={result} onNext={start} />}
+          {result && <ResultView result={result} dict={dict} onNext={start} />}
         </CardContent>
       </Card>
     </div>
@@ -158,9 +166,11 @@ export function Scanner() {
 
 function ResultView({
   result,
+  dict,
   onNext,
 }: {
   result: ScanResult;
+  dict: Dictionary;
   onNext: () => void;
 }) {
   const success = result.ok;
@@ -186,7 +196,9 @@ function ResultView({
         <>
           <div>
             <p className="text-lg font-semibold">
-              {result.action === "redeem" ? "Reward redeemed" : "Stamp added"}
+              {result.action === "redeem"
+                ? dict.dashboard.scan.rewardRedeemed
+                : dict.dashboard.scan.stampAdded}
             </p>
             {result.customerName && (
               <p className="text-muted-foreground text-sm">
@@ -205,35 +217,40 @@ function ResultView({
           {rewardReady && result.action === "stamp" && (
             <div className="bg-accent/15 text-accent-foreground flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium">
               <Gift className="size-4" />
-              Reward ready: {result.reward}
+              {interpolate(dict.dashboard.scan.rewardReady, {
+                reward: result.reward ?? "",
+              })}
             </div>
           )}
         </>
       ) : (
-        <p className="font-medium">{errorMessage(result)}</p>
+        <p className="font-medium">{errorMessage(result, dict)}</p>
       )}
 
       <Button onClick={onNext} variant="outline" className="mt-2 gap-2">
         <RotateCcw className="size-4" />
-        Scan next
+        {dict.dashboard.scan.scanNext}
       </Button>
     </div>
   );
 }
 
-function errorMessage(result: ScanResult): string {
+function errorMessage(result: ScanResult, dict: Dictionary): string {
   switch (result.error) {
     case "cooldown":
-      return `Just scanned — wait ${result.retryInSeconds ?? "a few"}s before stamping again.`;
+      return interpolate(dict.dashboard.scan.errors.cooldown, {
+        seconds:
+          result.retryInSeconds ?? dict.dashboard.scan.errors.cooldownFallback,
+      });
     case "card_not_found":
-      return "This card isn't recognized for your business.";
+      return dict.dashboard.scan.errors.cardNotFound;
     case "not_redeemable":
-      return "This card doesn't have a reward ready yet.";
+      return dict.dashboard.scan.errors.notRedeemable;
     case "unauthorized":
-      return "Your session expired. Please sign in again.";
+      return dict.dashboard.scan.errors.unauthorized;
     case "network":
-      return "Network error. Try again.";
+      return dict.dashboard.scan.errors.network;
     default:
-      return "Something went wrong. Try again.";
+      return dict.dashboard.scan.errors.generic;
   }
 }
