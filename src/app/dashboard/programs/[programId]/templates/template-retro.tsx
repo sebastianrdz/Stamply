@@ -202,14 +202,6 @@ export const TemplateRetro = React.forwardRef<SVGSVGElement, TemplateProps>(
 
         {logoUrl && (
           <>
-            <rect
-              x={530}
-              y={80}
-              width={140}
-              height={140}
-              rx={16}
-              fill="#ffffff"
-            />
             <image
               href={logoUrl}
               x={550}

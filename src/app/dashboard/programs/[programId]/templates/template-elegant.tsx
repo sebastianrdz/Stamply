@@ -137,14 +137,6 @@ export const TemplateElegant = React.forwardRef<SVGSVGElement, TemplateProps>(
 
         {logoUrl && (
           <>
-            <circle
-              cx={600}
-              cy={210}
-              r={70}
-              fill="#ffffff"
-              stroke={secondaryColor}
-              strokeWidth={1.5}
-            />
             <image
               href={logoUrl}
               x={550}

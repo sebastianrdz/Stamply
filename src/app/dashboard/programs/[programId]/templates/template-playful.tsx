@@ -339,14 +339,6 @@ export const TemplatePlayful = React.forwardRef<SVGSVGElement, TemplateProps>(
 
         {logoUrl && (
           <>
-            <rect
-              x={80}
-              y={90}
-              width={150}
-              height={150}
-              rx={32}
-              fill="#ffffff"
-            />
             <image
               href={logoUrl}
               x={100}
