@@ -50,7 +50,7 @@ export function LoyaltyCard({
     program.type === "stamp" ? computeStampGrid(progress, program.goal) : null;
 
   return (
-    <div className="overflow-hidden rounded-2xl bg-[hsl(var(--brand))] text-[hsl(var(--brand-foreground))] shadow-lg">
+    <div className="bg-brand overflow-hidden rounded-2xl text-[hsl(var(--brand-foreground))] shadow-lg">
       {/* Header — logo + business name, stamps count. All on brand color. */}
       <div className="flex items-start justify-between gap-3 p-5">
         <div className="flex min-w-0 items-center gap-3">
@@ -61,7 +61,7 @@ export function LoyaltyCard({
               width={52}
               height={52}
               unoptimized
-              className="size-[52px] shrink-0 object-contain"
+              className="size-13 shrink-0 object-contain"
             />
           )}
           <div className="min-w-0">
@@ -95,7 +95,7 @@ export function LoyaltyCard({
             <div className="absolute inset-0 bg-black/40" />
           </>
         ) : (
-          <div className="absolute inset-0 bg-[hsl(var(--brand))]" />
+          <div className="bg-brand absolute inset-0" />
         )}
         <div className="relative p-4">
           {program.type === "stamp" && grid ? (

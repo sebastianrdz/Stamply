@@ -155,7 +155,7 @@ function TemplateCard({
         <CardTitle>{name}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="mx-auto w-full max-w-[220px]">
+        <div className="mx-auto w-full max-w-55">
           <Component
             ref={svgRef}
             businessName={business.name}
