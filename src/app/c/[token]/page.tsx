@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -46,25 +45,13 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           showBusinessName={card.business.show_business_name}
           customerName={card.customer.full_name}
           availableRewards={availableRewards}
+          qrImageUrl={qr}
           stampsLabel={dict.card.stamps}
-          availableRewardsLabel={dict.card.availableRewards}
-          customerLabel={dict.card.customer}
+          nameLabel={dict.card.name}
+          rewardsLabel={dict.card.rewards}
           guestLabel={dict.card.guest}
           rewardReadyLabel={dict.card.rewardReady}
         />
-
-        <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-6">
-          <p className="text-sm font-medium">{dict.card.showAtCheckout}</p>
-          <div className="border-border rounded-xl border bg-white p-3">
-            <Image
-              src={qr}
-              alt={dict.card.qrAlt}
-              width={200}
-              height={200}
-              unoptimized
-            />
-          </div>
-        </div>
 
         <WalletButtons
           token={token}

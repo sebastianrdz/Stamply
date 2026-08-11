@@ -1,12 +1,13 @@
 import Image from "next/image";
-import { Stamp, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { computeStampGrid } from "@/lib/wallet/stamp-layout";
 import type { Program } from "@/types/database";
 
 /**
- * Visual representation of a stamp/points card.
- * Header and footer sit on the neutral card surface; the stamp/points band
- * between them is themed by --brand (or the business's background image).
+ * Visual representation of a stamp/points card — mirrors the Apple/Google
+ * Wallet pass design: a single brand-colored surface, top to bottom:
+ * logo + business name / stamps count header, a big stamp strip (or the
+ * business's background image), a name/rewards row, and the QR code.
  */
 export function LoyaltyCard({
   businessName,
@@ -19,9 +20,10 @@ export function LoyaltyCard({
   showBusinessName = true,
   customerName,
   availableRewards,
+  qrImageUrl,
   stampsLabel,
-  availableRewardsLabel,
-  customerLabel,
+  nameLabel,
+  rewardsLabel,
   guestLabel,
   rewardReadyLabel,
 }: {
@@ -35,40 +37,41 @@ export function LoyaltyCard({
   showBusinessName?: boolean;
   customerName?: string | null;
   availableRewards: number;
+  qrImageUrl: string;
   /** Localized copy — this is a server component with no dictionary access
    *  of its own, so the caller passes the already-resolved strings. */
   stampsLabel: string;
-  availableRewardsLabel: string;
-  customerLabel: string;
+  nameLabel: string;
+  rewardsLabel: string;
   guestLabel: string;
   rewardReadyLabel: string;
 }) {
+  const grid =
+    program.type === "stamp" ? computeStampGrid(progress, program.goal) : null;
+
   return (
-    <div className="border-border bg-card text-card-foreground overflow-hidden rounded-2xl border shadow-lg">
-      {/* Header — neutral surface. */}
+    <div className="overflow-hidden rounded-2xl bg-[hsl(var(--brand))] text-[hsl(var(--brand-foreground))] shadow-lg">
+      {/* Header — logo + business name, stamps count. All on brand color. */}
       <div className="flex items-start justify-between gap-3 p-5">
         <div className="flex min-w-0 items-center gap-3">
           {logoUrl && (
             <Image
               src={logoUrl}
               alt={`${businessName} logo`}
-              width={40}
-              height={40}
+              width={52}
+              height={52}
               unoptimized
-              className="border-border size-10 shrink-0 rounded-lg border bg-white object-contain p-0.5"
+              className="size-[52px] shrink-0 object-contain"
             />
           )}
           <div className="min-w-0">
             {showBusinessName && (
-              <p className="text-muted-foreground truncate text-sm/5 font-medium">
-                {businessName}
-              </p>
+              <h2 className="truncate text-lg font-bold">{businessName}</h2>
             )}
-            <h2 className="truncate text-lg font-bold">{program.name}</h2>
           </div>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+          <p className="text-[11px] font-semibold tracking-wide text-[hsl(var(--brand-foreground))]/70 uppercase">
             {stampsLabel}
           </p>
           <p className="text-lg font-bold">
@@ -77,9 +80,10 @@ export function LoyaltyCard({
         </div>
       </div>
 
-      {/* Stamp/points band — brand-colored, or the business background image. */}
-      <div className="relative mx-5 overflow-hidden rounded-xl bg-[hsl(var(--brand))] p-5 text-white">
-        {backgroundImageUrl && (
+      {/* Stamp strip — business background image (with dark overlay) or
+       *  solid brand color fallback. Big stamps on top. */}
+      <div className="relative mx-5 overflow-hidden rounded-xl">
+        {backgroundImageUrl ? (
           <>
             <Image
               src={backgroundImageUrl}
@@ -90,62 +94,54 @@ export function LoyaltyCard({
             />
             <div className="absolute inset-0 bg-black/40" />
           </>
+        ) : (
+          <div className="absolute inset-0 bg-[hsl(var(--brand))]" />
         )}
-        <div className="relative">
-          {program.type === "stamp" ? (
-            <div className="grid grid-cols-4 gap-2.5">
-              {Array.from({ length: program.goal }).map((_, i) =>
-                stampIconUrl ? (
-                  // Custom stamp icon: used only as a CSS mask (never rendered
-                  // as an <img>/inline <svg>) so untrusted SVG markup is never
-                  // executed — the mask can only ever paint a solid color.
-                  <div key={i} className="aspect-square overflow-hidden rounded">
-                    <div
-                      aria-hidden
-                      className={cn(
-                        "size-full",
-                        i < progress ? "bg-white" : "bg-white/30",
-                      )}
-                      style={{
-                        WebkitMaskImage: `url(${stampIconUrl})`,
-                        maskImage: `url(${stampIconUrl})`,
-                        WebkitMaskRepeat: "no-repeat",
-                        maskRepeat: "no-repeat",
-                        WebkitMaskPosition: "center",
-                        maskPosition: "center",
-                        WebkitMaskSize: "contain",
-                        maskSize: "contain",
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div
-                    key={i}
-                    className={cn(
-                      "flex aspect-square items-center justify-center rounded-full border-2",
-                      i < progress
-                        ? "border-white/0 bg-white text-[hsl(var(--brand))]"
-                        : "border-white/40 text-white/40",
-                    )}
-                  >
-                    {i < progress ? (
-                      <Check className="size-4" strokeWidth={3} />
+        <div className="relative p-4">
+          {program.type === "stamp" && grid ? (
+            <div className="flex flex-col gap-3">
+              {grid.rows.map((row, rowIndex) => (
+                <div key={rowIndex} className="flex justify-center gap-3">
+                  {row.map((slot, slotIndex) =>
+                    stampIconUrl ? (
+                      // Custom stamp icon: rendered as a plain <img> (never
+                      // inline <svg>/dangerouslySetInnerHTML) so untrusted
+                      // SVG markup is never executed. Shown in its own
+                      // colors — full opacity when filled, dimmed when not.
+                      // eslint-disable-next-line @next/next/no-img-element -- must stay a raw <img>, not next/image, so no SVG allowlisting is needed in next.config.
+                      <img
+                        key={slotIndex}
+                        src={stampIconUrl}
+                        alt=""
+                        className="aspect-square max-w-14 flex-1 object-contain"
+                        style={{ opacity: slot.filled ? 1 : 0.25 }}
+                      />
                     ) : (
-                      <Stamp className="size-4" />
-                    )}
-                  </div>
-                ),
-              )}
+                      <div
+                        key={slotIndex}
+                        className={cn(
+                          "aspect-square max-w-16 flex-1 rounded-full",
+                          slot.filled
+                            ? "bg-[hsl(var(--brand-foreground))]"
+                            : "border-2 border-[hsl(var(--brand-foreground))]/40",
+                        )}
+                      />
+                    ),
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 py-2">
               <div className="flex items-baseline justify-between">
                 <span className="text-3xl font-bold">{progress}</span>
-                <span className="text-sm opacity-90">/ {program.goal} pts</span>
+                <span className="text-sm text-[hsl(var(--brand-foreground))]/80">
+                  / {program.goal} pts
+                </span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/25">
+              <div className="h-2 overflow-hidden rounded-full bg-[hsl(var(--brand-foreground))]/25">
                 <div
-                  className="h-full rounded-full bg-white"
+                  className="h-full rounded-full bg-[hsl(var(--brand-foreground))]"
                   style={{
                     width: `${Math.min(100, (progress / program.goal) * 100)}%`,
                   }}
@@ -156,21 +152,28 @@ export function LoyaltyCard({
         </div>
       </div>
 
-      {/* Footer — neutral surface. */}
-      <div className="flex items-end justify-between gap-3 p-5 pt-4">
+      {/* NAME / REWARDS row — still on the brand band. */}
+      <div className="flex items-end justify-between gap-3 px-5 pt-4">
         <div className="min-w-0">
-          <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
-            {customerLabel}
+          <p className="text-[11px] font-semibold tracking-wide text-[hsl(var(--brand-foreground))]/70 uppercase">
+            {nameLabel}
           </p>
           <p className="truncate text-sm font-semibold">
             {customerName || guestLabel}
           </p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
-            {availableRewardsLabel}
+          <p className="text-[11px] font-semibold tracking-wide text-[hsl(var(--brand-foreground))]/70 uppercase">
+            {rewardsLabel}
           </p>
           <p className="text-2xl font-bold">{availableRewards}</p>
+        </div>
+      </div>
+
+      {/* QR code — inside the card, centered, in a white box. */}
+      <div className="flex justify-center p-5">
+        <div className="rounded-xl bg-white p-3">
+          <Image src={qrImageUrl} alt="" width={150} height={150} unoptimized />
         </div>
       </div>
     </div>

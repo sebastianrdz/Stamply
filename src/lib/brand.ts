@@ -33,11 +33,30 @@ export function hexToHslTriplet(hex: string): string | null {
   return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
+/**
+ * Near-black or white HSL triplet for text sitting on a brand-colored
+ * surface. Same luminance threshold/formula as `readableForeground` in
+ * `src/lib/colors.ts` (kept inline here rather than imported since that
+ * helper returns an `rgb(...)` string, not an "H S% L%" triplet).
+ */
+function foregroundTripletFor(hex: string): string {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim());
+  if (!m) return "0 0% 100%";
+  const [r, g, b] = [1, 2, 3].map((i) => parseInt(m[i], 16));
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "222 18% 9%" : "0 0% 100%";
+}
+
 /** Inline style that themes a subtree with a business's brand color. */
 export function brandStyle(business: {
   brand_primary_color: string;
 }): CSSProperties {
   const triplet = hexToHslTriplet(business.brand_primary_color);
   if (!triplet) return {};
-  return { ["--brand" as string]: triplet } as CSSProperties;
+  return {
+    ["--brand" as string]: triplet,
+    ["--brand-foreground" as string]: foregroundTripletFor(
+      business.brand_primary_color,
+    ),
+  } as CSSProperties;
 }

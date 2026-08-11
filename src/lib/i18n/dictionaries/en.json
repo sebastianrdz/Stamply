@@ -507,7 +507,9 @@
     "stamps": "Stamps",
     "availableRewards": "Available rewards",
     "customer": "Customer",
-    "guest": "Guest"
+    "guest": "Guest",
+    "name": "Name",
+    "rewards": "Rewards"
   },
   "landing": {
     "nav": {

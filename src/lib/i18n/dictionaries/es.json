@@ -507,7 +507,9 @@
     "stamps": "Sellos",
     "availableRewards": "Recompensas disponibles",
     "customer": "Cliente",
-    "guest": "Invitado"
+    "guest": "Invitado",
+    "name": "Nombre",
+    "rewards": "Recompensas"
   },
   "landing": {
     "nav": {
