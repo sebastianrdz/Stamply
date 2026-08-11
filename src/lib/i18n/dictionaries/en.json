@@ -373,6 +373,8 @@
         "logoHint": "Shown in the top-left corner of the wallet pass. Use a square PNG for best results.",
         "passBgLabel": "Pass background",
         "passBgHint": "Sits behind the stamps on the wallet pass. Use a wide image (about 3:1); it will be scaled to fit.",
+        "stampIconLabel": "Stamp icon",
+        "stampIconHint": "An SVG shown as each stamp on the card. Use a simple single-color icon — it's tinted automatically.",
         "timezoneLabel": "Timezone",
         "timezonePlaceholder": "America/New_York",
         "removeCurrentImage": "Remove current image",
@@ -388,6 +390,8 @@
         "colorFormat": "Use a #RRGGBB color.",
         "imageType": "Images must be PNG, JPEG, or WebP.",
         "imageTooLarge": "Images must be under 4 MB.",
+        "stampIconType": "The stamp icon must be an SVG file.",
+        "stampIconTooLarge": "The stamp icon must be under 1 MB.",
         "uploadFailed": "Upload failed."
       }
     }
@@ -499,7 +503,11 @@
     "addAppleWallet": "Add to Apple Wallet",
     "addGoogleWallet": "Add to Google Wallet",
     "rewardReady": "Reward ready!",
-    "yourReward": "Your reward"
+    "yourReward": "Your reward",
+    "stamps": "Stamps",
+    "availableRewards": "Available rewards",
+    "customer": "Customer",
+    "guest": "Guest"
   },
   "landing": {
     "nav": {

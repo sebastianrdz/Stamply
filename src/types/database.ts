@@ -29,6 +29,18 @@ export type Business = Timestamped & {
   brand_secondary_color: string;
   logo_url: string | null;
   background_image_url: string | null;
+  // Optional (not just nullable) unlike this file's usual convention, same
+  // reason as `last_billing_event_at` below: several test fixtures
+  // (src/lib/auth/session.test.ts, src/lib/billing/actions.test.ts,
+  // src/lib/enroll/actions.test.ts, src/lib/programs/actions.test.ts,
+  // src/lib/team/actions.test.ts, src/lib/wallet/apple/pass.test.ts,
+  // src/lib/wallet/google/wallet.test.ts — all off-limits to edit here)
+  // build full `Business` literals predating this column and can't be
+  // updated as part of this change, so the key itself must be optional to
+  // stay assignable. Runtime rows always have the key (value is `null`
+  // until an icon is uploaded via migration 0011); treat a missing key the
+  // same as `null`.
+  stamp_icon_url?: string | null;
   show_business_name: boolean;
   timezone: string;
   // Optional (not just nullable) unlike this file's usual convention: a test
@@ -176,6 +188,7 @@ export interface Database {
         | "brand_secondary_color"
         | "logo_url"
         | "background_image_url"
+        | "stamp_icon_url"
         | "show_business_name"
         | "timezone"
         | "last_billing_event_at"

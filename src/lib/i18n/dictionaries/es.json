@@ -373,6 +373,8 @@
         "logoHint": "Se muestra en la esquina superior izquierda de la tarjeta del wallet. Usa un PNG cuadrado para mejores resultados.",
         "passBgLabel": "Fondo de la tarjeta",
         "passBgHint": "Va detrás de los sellos en la tarjeta del wallet. Usa una imagen ancha (más o menos 3:1); se ajustará automáticamente.",
+        "stampIconLabel": "Icono de sello",
+        "stampIconHint": "Un SVG que se muestra como cada sello en la tarjeta. Usa un icono simple de un solo color: se colorea automáticamente.",
         "timezoneLabel": "Zona horaria",
         "timezonePlaceholder": "America/Mexico_City",
         "removeCurrentImage": "Quitar imagen actual",
@@ -388,6 +390,8 @@
         "colorFormat": "Usa un color #RRGGBB.",
         "imageType": "Las imágenes deben ser PNG, JPEG o WebP.",
         "imageTooLarge": "Las imágenes deben pesar menos de 4 MB.",
+        "stampIconType": "El icono de sello debe ser un archivo SVG.",
+        "stampIconTooLarge": "El icono de sello debe pesar menos de 1 MB.",
         "uploadFailed": "No se pudo subir la imagen."
       }
     }
@@ -499,7 +503,11 @@
     "addAppleWallet": "Agregar a Apple Wallet",
     "addGoogleWallet": "Agregar a Google Wallet",
     "rewardReady": "¡Recompensa lista!",
-    "yourReward": "Tu recompensa"
+    "yourReward": "Tu recompensa",
+    "stamps": "Sellos",
+    "availableRewards": "Recompensas disponibles",
+    "customer": "Cliente",
+    "guest": "Invitado"
   },
   "landing": {
     "nav": {

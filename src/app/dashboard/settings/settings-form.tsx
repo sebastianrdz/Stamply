@@ -28,14 +28,18 @@ function ImageUploadField({
   hint,
   currentUrl,
   previewClassName,
+  accept = "image/png,image/jpeg,image/webp",
+  isMask,
   dict,
 }: {
-  name: "logo" | "background_image";
-  removeField: "remove_logo" | "remove_background";
+  name: "logo" | "background_image" | "stamp_icon";
+  removeField: "remove_logo" | "remove_background" | "remove_stamp_icon";
   label: string;
   hint: string;
   currentUrl: string | null;
   previewClassName: string;
+  accept?: string;
+  isMask?: boolean;
   dict: Dictionary;
 }) {
   const [preview, setPreview] = useState<string | null>(null);
@@ -54,13 +58,32 @@ function ImageUploadField({
           )}
         >
           {shown ? (
-            <Image
-              src={shown}
-              alt={`${label} preview`}
-              fill
-              unoptimized
-              className="object-contain"
-            />
+            isMask ? (
+              // SVG preview: `next/image` can't safely render it here
+              // (dangerouslyAllowSVG is off), so mask a tinted div instead.
+              <div
+                aria-hidden
+                className="size-full bg-foreground/70"
+                style={{
+                  WebkitMaskImage: `url(${shown})`,
+                  maskImage: `url(${shown})`,
+                  WebkitMaskRepeat: "no-repeat",
+                  maskRepeat: "no-repeat",
+                  WebkitMaskPosition: "center",
+                  maskPosition: "center",
+                  WebkitMaskSize: "contain",
+                  maskSize: "contain",
+                }}
+              />
+            ) : (
+              <Image
+                src={shown}
+                alt={`${label} preview`}
+                fill
+                unoptimized
+                className="object-contain"
+              />
+            )
           ) : (
             <span className="text-xs">
               {dict.dashboard.settings.businessForm.none}
@@ -73,7 +96,7 @@ function ImageUploadField({
             id={name}
             name={name}
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept={accept}
             className="file:bg-muted h-auto cursor-pointer py-1.5 file:mr-3 file:rounded-md file:border-0 file:px-3 file:py-1 file:text-sm"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -191,6 +214,18 @@ export function SettingsForm({ business }: { business: Business }) {
         currentUrl={business.background_image_url}
         previewClassName="h-16 w-28"
         hint={dict.dashboard.settings.businessForm.passBgHint}
+        dict={dict}
+      />
+
+      <ImageUploadField
+        name="stamp_icon"
+        removeField="remove_stamp_icon"
+        label={dict.dashboard.settings.businessForm.stampIconLabel}
+        currentUrl={business.stamp_icon_url ?? null}
+        previewClassName="size-16"
+        hint={dict.dashboard.settings.businessForm.stampIconHint}
+        accept="image/svg+xml"
+        isMask
         dict={dict}
       />
 

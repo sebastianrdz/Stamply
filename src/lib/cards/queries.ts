@@ -50,3 +50,19 @@ export function cardProgress(
 ) {
   return program.type === "points" ? card.points : card.stamps;
 }
+
+/** How many rewards this customer can currently redeem at a business:
+ *  the count of their cards in the 'completed' state. */
+export async function availableRewardsForCustomer(
+  supabase: Client,
+  businessId: string,
+  customerId: string,
+): Promise<number> {
+  const { count } = await supabase
+    .from("cards")
+    .select("id", { count: "exact", head: true })
+    .eq("business_id", businessId)
+    .eq("customer_id", customerId)
+    .eq("status", "completed");
+  return count ?? 0;
+}

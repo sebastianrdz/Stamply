@@ -1,7 +1,11 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getCardByToken, cardProgress } from "@/lib/cards/queries";
+import {
+  getCardByToken,
+  cardProgress,
+  availableRewardsForCustomer,
+} from "@/lib/cards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { brandStyle } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/locale";
@@ -19,6 +23,11 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   const progress = cardProgress(card, card.program);
   const completed = card.status === "completed";
   const qr = await qrDataUrl(card.barcode_value, { width: 260 });
+  const availableRewards = await availableRewardsForCustomer(
+    admin,
+    card.business_id,
+    card.customer_id,
+  );
 
   return (
     <div
@@ -33,9 +42,15 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           completed={completed}
           logoUrl={card.business.logo_url}
           backgroundImageUrl={card.business.background_image_url}
+          stampIconUrl={card.business.stamp_icon_url}
           showBusinessName={card.business.show_business_name}
+          customerName={card.customer.full_name}
+          availableRewards={availableRewards}
+          stampsLabel={dict.card.stamps}
+          availableRewardsLabel={dict.card.availableRewards}
+          customerLabel={dict.card.customer}
+          guestLabel={dict.card.guest}
           rewardReadyLabel={dict.card.rewardReady}
-          yourRewardLabel={dict.card.yourReward}
         />
 
         <div className="border-border bg-card flex flex-col items-center gap-3 rounded-2xl border p-6">

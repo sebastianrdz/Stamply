@@ -12,10 +12,16 @@ import type { Database } from "@/types/database";
 
 const ASSET_BUCKET = "business-assets";
 const MAX_ASSET_BYTES = 4 * 1024 * 1024; // 4 MB
+const MAX_SVG_BYTES = 1 * 1024 * 1024; // 1 MB
 const ASSET_TYPES: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
+};
+// Separate from ASSET_TYPES so SVG is ONLY ever accepted for the stamp-icon
+// kind, never for logo/background.
+const STAMP_ASSET_TYPES: Record<string, string> = {
+  "image/svg+xml": "svg",
 };
 
 export interface SettingsState {
@@ -31,16 +37,36 @@ export interface SettingsState {
 async function uploadAsset(
   supabase: SupabaseClient<Database>,
   businessId: string,
-  kind: "logo" | "background",
+  kind: "logo" | "background" | "stamp",
   file: FormDataEntryValue | null,
   dict: Dictionary,
 ): Promise<string | null> {
   if (!(file instanceof File) || file.size === 0) return null;
 
-  const ext = ASSET_TYPES[file.type];
-  if (!ext) throw new Error(dict.dashboard.settings.errors.imageType);
-  if (file.size > MAX_ASSET_BYTES)
-    throw new Error(dict.dashboard.settings.errors.imageTooLarge);
+  // SVGs are rendered *inside the app* only as a CSS `mask-image` (never
+  // inlined as markup nor via <img>), so an embedded `<script>` never executes
+  // in our origin — hence no server-side SVG sanitization here. Caveat: the
+  // asset also lives in a PUBLIC bucket, so navigating directly to its storage
+  // URL would render/execute the SVG on the *storage* origin (which carries no
+  // app session/cookies — impact is low, but not zero). Accepted risk for now;
+  // a stricter option is stripping <script>/on*=/javascript: on upload or
+  // serving the stamp kind with Content-Disposition: attachment. The write
+  // boundary is unchanged from logo/background: `upsert: false` + the
+  // per-business folder path enforced by existing storage RLS.
+  const ext = kind === "stamp" ? STAMP_ASSET_TYPES[file.type] : ASSET_TYPES[file.type];
+  if (!ext)
+    throw new Error(
+      kind === "stamp"
+        ? dict.dashboard.settings.errors.stampIconType
+        : dict.dashboard.settings.errors.imageType,
+    );
+  const maxBytes = kind === "stamp" ? MAX_SVG_BYTES : MAX_ASSET_BYTES;
+  if (file.size > maxBytes)
+    throw new Error(
+      kind === "stamp"
+        ? dict.dashboard.settings.errors.stampIconTooLarge
+        : dict.dashboard.settings.errors.imageTooLarge,
+    );
 
   // Unique filename per upload so wallet services (which cache by URL) always
   // pick up a replaced image.
@@ -117,6 +143,17 @@ export async function updateBusiness(
     if (bgUrl) update.background_image_url = bgUrl;
     else if (formData.get("remove_background") === "1")
       update.background_image_url = null;
+
+    const stampIconUrl = await uploadAsset(
+      supabase,
+      businessId,
+      "stamp",
+      formData.get("stamp_icon"),
+      dict,
+    );
+    if (stampIconUrl) update.stamp_icon_url = stampIconUrl;
+    else if (formData.get("remove_stamp_icon") === "1")
+      update.stamp_icon_url = null;
   } catch (e) {
     return {
       error:

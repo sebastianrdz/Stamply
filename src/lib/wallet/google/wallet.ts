@@ -5,11 +5,20 @@ import jwt from "jsonwebtoken";
 import { requireEnv } from "@/lib/env";
 import { appUrlBase } from "@/lib/wallet/shared";
 import type { CardWithRelations } from "@/lib/cards/queries";
-import { cardProgress } from "@/lib/cards/queries";
+import { cardProgress, availableRewardsForCustomer } from "@/lib/cards/queries";
 import type { PassLocation } from "@/lib/wallet/apple/pass";
+import { renderStampStrip } from "@/lib/wallet/stamp-image";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+type AdminClient = ReturnType<typeof createAdminClient>;
 
 const BASE = "https://walletobjects.googleapis.com/walletobjects/v1";
 const SCOPE = "https://www.googleapis.com/auth/wallet_object.issuer";
+const HERO_ASSET_BUCKET = "business-assets";
+// Google's loyalty hero image is roughly 1032x336 — close enough to the same
+// 375:123 ratio the renderer already uses for Apple's strip that one shape
+// serves both call sites.
+const HERO_WIDTH = 1032;
 
 function serviceAccount(): { email: string; privateKey: string } {
   const feature = "Google Wallet";
@@ -45,12 +54,105 @@ export function objectId(cardId: string): string {
   return `${issuerId()}.card_${sanitize(cardId.replace(/-/g, ""))}`;
 }
 
+/**
+ * Render the stamp-grid hero PNG for a card's current progress and upload it
+ * to the business-assets bucket at a state-specific path (per card id +
+ * progress), so Google's URL-keyed image cache is busted whenever progress
+ * changes. Returns null (never throws) on any failure so callers can fall
+ * back to the raw background image instead of leaving the pass broken.
+ */
+async function renderAndUploadStampHero(
+  admin: AdminClient,
+  card: CardWithRelations,
+  progress: number,
+): Promise<string | null> {
+  try {
+    const png = await renderStampStrip({
+      progress,
+      goal: card.program.goal,
+      brandHex: card.business.brand_primary_color,
+      stampIconUrl: card.business.stamp_icon_url ?? null,
+      backgroundImageUrl: card.business.background_image_url,
+      width: HERO_WIDTH,
+    });
+    const path = `${card.business_id}/wallet/hero-${card.id}-${progress}.png`;
+    const { error } = await admin.storage
+      .from(HERO_ASSET_BUCKET)
+      .upload(path, png, { contentType: "image/png", upsert: true });
+    if (error) throw new Error(error.message);
+    return admin.storage.from(HERO_ASSET_BUCKET).getPublicUrl(path).data
+      .publicUrl;
+  } catch (e) {
+    console.error("[google wallet] stamp hero render/upload failed", e);
+    return null;
+  }
+}
+
+/**
+ * Hero image URI for the current card state: a rendered stamp grid for
+ * stamp-type programs (falling back to the raw background on render/upload
+ * failure), or the raw business background unchanged for points programs.
+ */
+async function heroImageUri(
+  admin: AdminClient,
+  card: CardWithRelations,
+  progress: number,
+): Promise<string | undefined> {
+  if (card.program.type === "stamp") {
+    const rendered = await renderAndUploadStampHero(admin, card, progress);
+    if (rendered) return rendered;
+  }
+  return card.business.background_image_url ?? undefined;
+}
+
+/**
+ * Number of rewards this customer can currently redeem — shown as
+ * secondaryLoyaltyPoints alongside the main progress balance, for both
+ * program types (it's about identity/redeemability, not stamps). Never
+ * throws: a transient query failure shouldn't break the Google Wallet
+ * integration, so this degrades to 0 rather than propagating.
+ */
+async function safeAvailableRewards(
+  admin: AdminClient,
+  card: CardWithRelations,
+): Promise<number> {
+  try {
+    return await availableRewardsForCustomer(
+      admin,
+      card.business_id,
+      card.customer_id,
+    );
+  } catch (e) {
+    console.error("[google wallet] rewards count failed", e);
+    return 0;
+  }
+}
+
 /** Create the LoyaltyClass for a program if it does not already exist. */
 export async function ensureLoyaltyClass(
   card: CardWithRelations,
 ): Promise<void> {
   const client = await auth().getClient();
   const id = classId(card.program.id);
+
+  // Check existence FIRST: this runs on every "Add to Wallet" / progress
+  // update, and building the class body (in particular the stamp render +
+  // upload below) is only needed the one time the class doesn't exist yet —
+  // doing it unconditionally would pay for a render, two image fetches, and
+  // a Storage upload on every call, all discarded when the class already exists.
+  try {
+    await client.request({ url: `${BASE}/loyaltyClass/${id}`, method: "GET" });
+    return;
+  } catch {
+    // falls through to create below
+  }
+
+  // The class-level heroImage is a generic template: it's shared by every
+  // card issued under this program, and an object-level heroImage (set per
+  // card in ensureLoyaltyObject/patchLoyaltyObject) always overrides it when
+  // present. So this must NOT be a live per-card stamp-progress render —
+  // that would bake one customer's progress into every other customer's
+  // fallback image. Use the raw business background (or nothing) instead.
   const loyaltyClass = {
     id,
     issuerName: card.business.name,
@@ -64,20 +166,23 @@ export async function ensureLoyaltyClass(
       ? { sourceUri: { uri: card.business.background_image_url } }
       : undefined,
   };
-
-  try {
-    await client.request({ url: `${BASE}/loyaltyClass/${id}`, method: "GET" });
-  } catch {
-    await client.request({
-      url: `${BASE}/loyaltyClass`,
-      method: "POST",
-      data: loyaltyClass,
-    });
-  }
+  await client.request({
+    url: `${BASE}/loyaltyClass`,
+    method: "POST",
+    data: loyaltyClass,
+  });
 }
 
-function objectPayload(card: CardWithRelations, locations: PassLocation[]) {
+async function objectPayload(
+  admin: AdminClient,
+  card: CardWithRelations,
+  locations: PassLocation[],
+) {
   const progress = cardProgress(card, card.program);
+  const [heroUri, rewards] = await Promise.all([
+    heroImageUri(admin, card, progress),
+    safeAvailableRewards(admin, card),
+  ]);
   return {
     id: objectId(card.id),
     classId: classId(card.program.id),
@@ -88,6 +193,10 @@ function objectPayload(card: CardWithRelations, locations: PassLocation[]) {
       label: card.program.type === "points" ? "Points" : "Stamps",
       balance: { int: progress },
     },
+    // Mirrors Apple's REWARDS field — how many rewards this customer can
+    // redeem right now, for both program types.
+    secondaryLoyaltyPoints: { label: "Rewards", balance: { int: rewards } },
+    ...(heroUri && { heroImage: { sourceUri: { uri: heroUri } } }),
     locations: locations.map((l) => ({
       latitude: l.lat,
       longitude: l.lng,
@@ -106,25 +215,46 @@ export async function ensureLoyaltyObject(
   try {
     await client.request({ url: `${BASE}/loyaltyObject/${id}`, method: "GET" });
   } catch {
+    // Single admin client, reused for both the hero render/upload and the
+    // rewards count query below (heroImageUri/objectPayload), rather than
+    // creating one per use.
+    const admin = createAdminClient();
     await client.request({
       url: `${BASE}/loyaltyObject`,
       method: "POST",
-      data: objectPayload(card, locations),
+      data: await objectPayload(admin, card, locations),
     });
   }
 }
 
-/** Patch the LoyaltyObject to reflect updated progress; Google pushes the update. */
+/** Patch the LoyaltyObject to reflect updated progress; Google pushes the update.
+ *  For stamp programs this also re-renders and re-patches the hero image so
+ *  the stamp grid reflects the new progress, and both program types get a
+ *  refreshed rewards count. */
 export async function patchLoyaltyObject(
   card: CardWithRelations,
 ): Promise<void> {
   const client = await auth().getClient();
   const id = objectId(card.id);
   const progress = cardProgress(card, card.program);
+  const admin = createAdminClient();
+  // Intentionally awaited (not fire-and-forget): this adds render+upload
+  // latency to notifyCardUpdated's synchronous scan-time call, but on
+  // serverless a detached background task can be killed once the response is
+  // sent, silently dropping the wallet update. Awaiting trades latency for
+  // delivery guarantees; revisit only if that tradeoff becomes a problem.
+  const [heroUri, rewards] = await Promise.all([
+    heroImageUri(admin, card, progress),
+    safeAvailableRewards(admin, card),
+  ]);
   await client.request({
     url: `${BASE}/loyaltyObject/${id}`,
     method: "PATCH",
-    data: { loyaltyPoints: { balance: { int: progress } } },
+    data: {
+      loyaltyPoints: { balance: { int: progress } },
+      secondaryLoyaltyPoints: { label: "Rewards", balance: { int: rewards } },
+      ...(heroUri && { heroImage: { sourceUri: { uri: heroUri } } }),
+    },
   });
 }
 

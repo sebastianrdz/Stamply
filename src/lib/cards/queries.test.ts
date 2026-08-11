@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
-import { cardProgress, getCardByBarcode, getCardByToken } from "./queries";
+import {
+  availableRewardsForCustomer,
+  cardProgress,
+  getCardByBarcode,
+  getCardByToken,
+} from "./queries";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = any;
@@ -52,5 +57,36 @@ describe("getCardByBarcode", () => {
     const mock = makeSupabaseMock({ cards: { data: null } });
     const card = await getCardByBarcode(mock as AnyClient, "stmp_missing");
     expect(card).toBeNull();
+  });
+});
+
+describe("availableRewardsForCustomer", () => {
+  it("counts the customer's completed cards at the business", async () => {
+    const mock = makeSupabaseMock({ cards: { count: 3 } });
+    const n = await availableRewardsForCustomer(
+      mock as AnyClient,
+      "biz-1",
+      "cust-1",
+    );
+    expect(n).toBe(3);
+    expect(mock.from).toHaveBeenCalledWith("cards");
+    const builder = mock.builderFor("cards");
+    expect(builder.select).toHaveBeenCalledWith("id", {
+      count: "exact",
+      head: true,
+    });
+    expect(builder.eq).toHaveBeenCalledWith("business_id", "biz-1");
+    expect(builder.eq).toHaveBeenCalledWith("customer_id", "cust-1");
+    expect(builder.eq).toHaveBeenCalledWith("status", "completed");
+  });
+
+  it("returns 0 when the count is null", async () => {
+    const mock = makeSupabaseMock({ cards: { count: null } });
+    const n = await availableRewardsForCustomer(
+      mock as AnyClient,
+      "biz-1",
+      "cust-2",
+    );
+    expect(n).toBe(0);
   });
 });

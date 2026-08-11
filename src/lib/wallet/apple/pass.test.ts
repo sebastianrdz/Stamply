@@ -40,6 +40,16 @@ vi.mock("./assets", () => ({
   placeholderIcon: vi.fn(() => Buffer.from("icon")),
 }));
 
+// Mocked so tests stay hermetic and don't hit the native rasterizer; returns
+// a buffer tagged with the requested width so callers can tell scales apart.
+const renderStampStripMock = vi.fn(
+  async ({ width }: { width: number }) => Buffer.from(`stamp-strip-${width}`),
+);
+vi.mock("@/lib/wallet/stamp-image", () => ({
+  renderStampStrip: (...args: [{ width: number }]) =>
+    renderStampStripMock(...args),
+}));
+
 const appUrlBaseMock = vi.fn(() => "http://localhost:3000");
 vi.mock("@/lib/wallet/shared", () => ({
   appUrlBase: () => appUrlBaseMock(),
@@ -133,8 +143,9 @@ function cardWithRelations(
 async function buildPassJson(
   c: CardWithRelations,
   locations?: PassLocation[],
+  availableRewards?: number,
 ): Promise<Record<string, unknown>> {
-  await buildApplePass(c, locations);
+  await buildApplePass(c, locations, availableRewards);
   const [buffers] = pkPassCtor.mock.calls.at(-1) as [Record<string, Buffer>];
   return JSON.parse(buffers["pass.json"].toString());
 }
@@ -142,7 +153,17 @@ async function buildPassJson(
 beforeEach(() => {
   pkPassCtor.mockClear();
   appUrlBaseMock.mockReturnValue("http://localhost:3000");
+  renderStampStripMock.mockClear();
 });
+
+async function buildPassBuffers(
+  c: CardWithRelations,
+  availableRewards?: number,
+): Promise<Record<string, Buffer>> {
+  await buildApplePass(c, undefined, availableRewards);
+  const [buffers] = pkPassCtor.mock.calls.at(-1) as [Record<string, Buffer>];
+  return buffers;
+}
 
 describe("buildApplePass", () => {
   it("derives backgroundColor/labelColor/foregroundColor from the brand color", async () => {
@@ -248,5 +269,115 @@ describe("buildApplePass", () => {
       cardWithRelations({ apple_serial: "serial-xyz", id: "card-1" }),
     );
     expect(json.serialNumber).toBe("serial-xyz");
+  });
+
+  it("renders the stamp-grid strip at 1x/2x/3x for a stamp program", async () => {
+    const c = cardWithRelations({ stamps: 3 }, {}, { type: "stamp", goal: 8 });
+    const buffers = await buildPassBuffers(c);
+
+    expect(renderStampStripMock).toHaveBeenCalledTimes(3);
+    const widths = renderStampStripMock.mock.calls.map(([opts]) => opts.width);
+    expect(widths.sort((a, b) => a - b)).toEqual([375, 750, 1125]);
+    expect(renderStampStripMock).toHaveBeenCalledWith(
+      expect.objectContaining({ progress: 3, goal: 8 }),
+    );
+    expect(buffers["strip.png"]).toEqual(Buffer.from("stamp-strip-375"));
+    expect(buffers["strip@2x.png"]).toEqual(Buffer.from("stamp-strip-750"));
+    expect(buffers["strip@3x.png"]).toEqual(Buffer.from("stamp-strip-1125"));
+  });
+
+  it("falls back to the raw background strip when the stamp renderer throws, instead of failing pass generation", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    renderStampStripMock.mockRejectedValueOnce(new Error("rasterizer failed"));
+    renderStampStripMock.mockRejectedValueOnce(new Error("rasterizer failed"));
+    renderStampStripMock.mockRejectedValueOnce(new Error("rasterizer failed"));
+
+    const c = cardWithRelations(
+      {},
+      { background_image_url: "https://cdn.example/bg.jpg" },
+      { type: "stamp" },
+    );
+
+    // Must not throw: a render failure has to degrade to the legacy strip,
+    // not break pass generation (the APNs webservice route that also calls
+    // buildApplePass has no try/catch of its own).
+    const buffers = await buildPassBuffers(c);
+
+    expect(buffers["strip.png"]).toEqual(Buffer.from("strip"));
+    expect(buffers["strip@2x.png"]).toEqual(Buffer.from("strip"));
+    expect(buffers["strip@3x.png"]).toBeUndefined();
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
+  });
+
+  it("omits primaryFields but keeps secondaryFields for a stamp program (strip collision)", async () => {
+    const json = await buildPassJson(
+      cardWithRelations({}, {}, { type: "stamp" }),
+    );
+    const storeCard = json.storeCard as Record<string, unknown>;
+    expect(storeCard.primaryFields).toBeUndefined();
+    expect(storeCard.secondaryFields).toEqual([
+      { key: "name", label: "NAME", value: "Jane Doe" },
+      {
+        key: "rewards",
+        label: "REWARDS",
+        value: "0",
+        textAlignment: "PKTextAlignmentRight",
+      },
+    ]);
+  });
+
+  it("shows the customer name and available-rewards count in secondaryFields for both program types", async () => {
+    const stampJson = await buildPassJson(
+      cardWithRelations({}, {}, { type: "stamp" }),
+      undefined,
+      3,
+    );
+    const pointsJson = await buildPassJson(
+      cardWithRelations({}, {}, { type: "points" }),
+      undefined,
+      3,
+    );
+    for (const json of [stampJson, pointsJson]) {
+      const storeCard = json.storeCard as { secondaryFields: Array<Record<string, unknown>> };
+      expect(storeCard.secondaryFields).toEqual([
+        { key: "name", label: "NAME", value: "Jane Doe" },
+        {
+          key: "rewards",
+          label: "REWARDS",
+          value: "3",
+          textAlignment: "PKTextAlignmentRight",
+        },
+      ]);
+    }
+  });
+
+  it("falls back to 'Member' when the customer has no full_name", async () => {
+    const c = cardWithRelations();
+    c.customer.full_name = null;
+    const json = await buildPassJson(c);
+    const storeCard = json.storeCard as { secondaryFields: Array<Record<string, unknown>> };
+    expect(storeCard.secondaryFields[0]).toEqual({
+      key: "name",
+      label: "NAME",
+      value: "Member",
+    });
+  });
+
+  it("keeps the raw background strip and primaryFields for a points program", async () => {
+    const c = cardWithRelations(
+      {},
+      { background_image_url: "https://cdn.example/bg.jpg" },
+      { type: "points" },
+    );
+    const buffers = await buildPassBuffers(c);
+    const json = JSON.parse(buffers["pass.json"].toString());
+
+    expect(renderStampStripMock).not.toHaveBeenCalled();
+    expect(buffers["strip.png"]).toEqual(Buffer.from("strip"));
+    expect(buffers["strip@3x.png"]).toBeUndefined();
+    expect(json.storeCard.primaryFields).toEqual([
+      { key: "reward", label: "REWARD", value: "A free coffee" },
+    ]);
   });
 });
