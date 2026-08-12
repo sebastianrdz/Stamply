@@ -12,7 +12,22 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   const { token } = await params;
   const dict = await getDictionary(await getLocale());
   const admin = createAdminClient();
-  const card = await getCardByToken(admin, token);
+  let card: Awaited<ReturnType<typeof getCardByToken>>;
+  try {
+    card = await getCardByToken(admin, token);
+  } catch (e) {
+    // A real backend failure shouldn't masquerade as a missing card (404) or
+    // crash into an unstyled 500 — show a friendly, retryable error instead.
+    console.error("[card] lookup failed", e);
+    return (
+      <div className="flex min-h-full flex-1 flex-col items-center justify-center gap-2 px-6 text-center">
+        <h1 className="text-lg font-semibold">{dict.card.error.title}</h1>
+        <p className="text-muted-foreground text-sm">
+          {dict.card.error.description}
+        </p>
+      </div>
+    );
+  }
   if (!card) notFound();
 
   const progress = cardProgress(card, card.program);

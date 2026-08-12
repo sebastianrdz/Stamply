@@ -1,29 +1,28 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * src/lib/cards/queries.ts's fetchOne() discards the Supabase query error and
- * returns `null` whenever the lookup fails — including when it fails because
- * the backend is unreachable (fake project URL here). Both wallet routes
- * treat a null card as "not found" and return 404 before ever attempting to
- * build a pass, so this is the only branch reachable via black-box E2E
- * without a live DB. The documented 503 apple_wallet_unavailable /
- * google_wallet_unavailable graceful-degradation path (pass-build failure
- * for a card that *does* exist) is NOT reachable this way — see e2e/README.md.
+ * Both wallet routes look up the card via the admin (service-role) Supabase
+ * client. The e2e env points at a non-existent Supabase project, so the lookup
+ * fails with an ERROR (not a clean "no rows"). After the launch-hardening pass
+ * the routes surface that as a 503 "temporarily unavailable" — the correct
+ * signal for a backend outage — rather than a misleading 404 not_found. The
+ * genuine not_found path (a live backend returning zero rows) needs a real DB
+ * and is covered at the query layer by src/lib/cards/queries.test.ts.
  */
 test.describe("Wallet route degradation (no live DB)", () => {
-  test("GET /api/wallet/apple/<token> returns 404 not_found", async ({
+  test("GET /api/wallet/apple/<token> returns 503 when the lookup fails", async ({
     request,
   }) => {
     const res = await request.get("/api/wallet/apple/fake-token-123");
-    expect(res.status()).toBe(404);
-    expect(await res.json()).toEqual({ error: "not_found" });
+    expect(res.status()).toBe(503);
+    expect(await res.json()).toEqual({ error: "apple_wallet_unavailable" });
   });
 
-  test("GET /api/wallet/google/<token> returns 404 not_found", async ({
+  test("GET /api/wallet/google/<token> returns 503 when the lookup fails", async ({
     request,
   }) => {
     const res = await request.get("/api/wallet/google/fake-token-123");
-    expect(res.status()).toBe(404);
-    expect(await res.json()).toEqual({ error: "not_found" });
+    expect(res.status()).toBe(503);
+    expect(await res.json()).toEqual({ error: "google_wallet_unavailable" });
   });
 });

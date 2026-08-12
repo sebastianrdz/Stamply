@@ -507,6 +507,10 @@
     }
   },
   "card": {
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load your card. Please try again in a moment."
+    },
     "showAtCheckout": "Show this at checkout",
     "qrAlt": "Your loyalty QR code",
     "addAppleWallet": "Add to Apple Wallet",

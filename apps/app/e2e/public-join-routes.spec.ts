@@ -1,51 +1,46 @@
 import { test, expect } from "@playwright/test";
+import esDict from "@stamply/i18n/dictionaries/es.json";
 
 /**
- * Both public "join" pages do a lookup via the admin (service-role) Supabase
- * client against the fake project URL. Without a live DB there is no way to
- * reach the "happy path" (a real invite/program), so these specs assert the
- * not-found/graceful-degradation branch, which is real and reachable:
+ * Both public "join" pages look up their record via the admin (service-role)
+ * Supabase client. The e2e env points at a non-existent Supabase project, so
+ * every lookup comes back as an ERROR (not a clean "no rows") — which means
+ * these specs exercise the pages' error branch added in the launch-hardening
+ * pass: a real backend failure now renders a friendly "something went wrong"
+ * state (HTTP 200) instead of a misleading "not found". The genuine not-found
+ * path needs a live DB returning zero rows and is covered at the query layer
+ * by src/lib/cards/queries.test.ts.
  *
- * - src/app/join/[token]/page.tsx: `.maybeSingle()` on the invitations table
- *   discards the query error and returns `data: null` when the request fails
- *   against the fake backend, so `!invite` is true and the page renders its
- *   own in-page "Invite not found" state (200, not the global 404 page).
- * - src/app/c/join/[programId]/page.tsx: `.single()` on programs similarly
- *   resolves to `data: null`, and the page calls `notFound()`, which renders
- *   the global custom not-found page (404).
- *
- * Verified manually (node fetch against a locally booted dev server with the
- * same fake env vars) before writing these assertions:
- *   GET /join/nonexistent-token-xyz            -> 200, h1 "Invite not found"
- *   GET /c/join/00000000-0000-0000-0000-000000000000 -> 404, "Page not found"
+ * Verified against a dev server booted with the same fake env:
+ *   GET /join/<token>  -> 200, h1 "Algo salió mal" (dict.join.error)
+ *   GET /c/join/<uuid> -> 200, h1 "Algo salió mal" (dict.customerJoin.error)
  */
-test.describe("Public join/invite routes (no live DB)", () => {
-  test("/join/<token> for a nonexistent token shows in-page 'Invite not found'", async ({
+test.describe("Public join/invite routes (backend error path)", () => {
+  test("/join/<token> renders the friendly error state when the lookup fails", async ({
     page,
   }) => {
     const response = await page.goto("/join/nonexistent-token-xyz");
     expect(response?.status()).toBe(200);
 
     await expect(
-      page.getByRole("heading", { name: "Invitación no encontrada" }),
+      page.getByRole("heading", { name: esDict.join.error.title }),
     ).toBeVisible();
-    await expect(
-      page.getByText(
-        "Este enlace de invitación no es válido o fue revocado. Pide a quien te invitó que te envíe uno nuevo.",
-      ),
-    ).toBeVisible();
+    await expect(page.getByText(esDict.join.error.description)).toBeVisible();
   });
 
-  test("/c/join/<programId> for a nonexistent program renders the global 404 page", async ({
+  test("/c/join/<programId> renders the friendly error state when the lookup fails", async ({
     page,
   }) => {
     const response = await page.goto(
       "/c/join/00000000-0000-0000-0000-000000000000",
     );
-    expect(response?.status()).toBe(404);
+    expect(response?.status()).toBe(200);
 
     await expect(
-      page.getByRole("heading", { name: "Página no encontrada" }),
+      page.getByRole("heading", { name: esDict.customerJoin.error.title }),
+    ).toBeVisible();
+    await expect(
+      page.getByText(esDict.customerJoin.error.description),
     ).toBeVisible();
   });
 });

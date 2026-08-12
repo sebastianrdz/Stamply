@@ -507,6 +507,10 @@
     }
   },
   "card": {
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar tu tarjeta. Intenta de nuevo en unos momentos."
+    },
     "showAtCheckout": "Muestra esto al pagar",
     "qrAlt": "Tu código QR de lealtad",
     "addAppleWallet": "Agregar a Apple Wallet",

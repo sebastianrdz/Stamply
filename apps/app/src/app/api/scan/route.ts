@@ -38,7 +38,15 @@ export async function POST(req: NextRequest) {
   const { barcode, action, delta, location_id } = parsed.data;
 
   // RLS scopes this to cards in the employee's business(es).
-  const card = await getCardByBarcode(supabase, barcode);
+  let card: Awaited<ReturnType<typeof getCardByBarcode>>;
+  try {
+    card = await getCardByBarcode(supabase, barcode);
+  } catch (e) {
+    // A real lookup failure is a backend outage, not a missing card — don't
+    // report it as card_not_found.
+    console.error("[scan] card lookup failed", e);
+    return NextResponse.json({ error: "lookup_failed" }, { status: 503 });
+  }
   if (!card) {
     return NextResponse.json({ error: "card_not_found" }, { status: 404 });
   }
@@ -123,7 +131,15 @@ export async function POST(req: NextRequest) {
   }
 
   // Reload with relations and push the update to both wallets (best-effort).
-  const updated = await getCardByBarcode(admin, barcode);
+  // The stamp/redeem already succeeded above, so a failure here must NOT turn
+  // it into an error response (that would invite a double-scan) — fall back to
+  // the minimal ok payload.
+  let updated: Awaited<ReturnType<typeof getCardByBarcode>> = null;
+  try {
+    updated = await getCardByBarcode(admin, barcode);
+  } catch (e) {
+    console.error("[scan] post-mutation reload failed", e);
+  }
   if (updated) {
     await notifyCardUpdated(admin, updated);
     return NextResponse.json({

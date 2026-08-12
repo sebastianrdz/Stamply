@@ -12,7 +12,19 @@ export async function GET(
 ) {
   const { token } = await ctx.params;
   const admin = createAdminClient();
-  const card = await getCardByToken(admin, token);
+  let card: Awaited<ReturnType<typeof getCardByToken>>;
+  try {
+    card = await getCardByToken(admin, token);
+  } catch (e) {
+    // A real lookup failure (backend down) is "temporarily unavailable", not a
+    // missing card — surface it as 503 rather than a misleading 404 or an
+    // unhandled 500.
+    console.error("[google pass] card lookup failed", e);
+    return NextResponse.json(
+      { error: "google_wallet_unavailable" },
+      { status: 503 },
+    );
+  }
   if (!card) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }

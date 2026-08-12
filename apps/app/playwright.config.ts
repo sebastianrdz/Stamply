@@ -3,6 +3,11 @@ import { defineConfig, devices } from "@playwright/test";
 const PORT = 3100;
 const BASE_URL = `http://localhost:${PORT}`;
 
+// The marketing apex the app links back to (logo, "back home"). Fixed here so
+// cross-domain link assertions are deterministic; the marketing app isn't
+// booted in this suite.
+export const MARKETING_URL = "http://localhost:3001";
+
 /**
  * E2E config. With no live Supabase project and all external services
  * unavailable in CI, we deliberately point the app at obviously-fake
@@ -38,6 +43,7 @@ export default defineConfig({
     timeout: 60_000,
     env: {
       NEXT_PUBLIC_APP_URL: BASE_URL,
+      NEXT_PUBLIC_MARKETING_URL: MARKETING_URL,
       // Fake, non-resolving-to-anything-real Supabase project. Deliberately
       // NOT the real dev project in .env.local — E2E must never touch it.
       NEXT_PUBLIC_SUPABASE_URL: "https://e2e-test-project.supabase.co",
