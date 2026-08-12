@@ -116,6 +116,7 @@ function card(overrides: Partial<Card> = {}): Card {
     customer_id: "cust-1",
     stamps: 4,
     points: 0,
+    rewards: 0,
     status: "active",
     barcode_value: "stmp_abc123",
     pass_auth_token: "tok_abc123",

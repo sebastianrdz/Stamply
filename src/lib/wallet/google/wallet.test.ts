@@ -44,24 +44,8 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => createAdminClientMock(),
 }));
 
-// availableRewardsForCustomer hits the real Supabase query builder, which the
-// admin mock above doesn't implement — mock it directly so it stays
-// hermetic. cardProgress (also exported from this module) is left real via
-// importOriginal since it's pure and used unmocked elsewhere in wallet.ts.
-const availableRewardsMock = vi.fn(
-  async (_supabase: unknown, _businessId: string, _customerId: string) => 0,
-);
-vi.mock("@/lib/cards/queries", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/cards/queries")>();
-  return {
-    ...actual,
-    availableRewardsForCustomer: (
-      supabase: unknown,
-      businessId: string,
-      customerId: string,
-    ) => availableRewardsMock(supabase, businessId, customerId),
-  };
-});
+// Rewards are read directly off card.rewards now (per-program), so there's no
+// queries module to mock — cardProgress (pure) is used as the real import.
 
 function stubCoreEnv() {
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://example.supabase.co");
@@ -99,8 +83,6 @@ beforeEach(() => {
     data: { publicUrl: "https://cdn.example/business-assets/hero.png" },
   });
   createAdminClientMock.mockClear();
-  availableRewardsMock.mockClear();
-  availableRewardsMock.mockResolvedValue(0);
 });
 
 afterEach(() => {
@@ -166,6 +148,7 @@ function card(overrides: Partial<Card> = {}): Card {
     customer_id: "cust-1",
     stamps: 4,
     points: 0,
+    rewards: 0,
     status: "active",
     barcode_value: "stmp_abc123",
     pass_auth_token: "tok_abc123",
@@ -324,10 +307,8 @@ describe("ensureLoyaltyObject", () => {
       return Promise.resolve({});
     });
 
-    availableRewardsMock.mockResolvedValue(2);
-
     const { ensureLoyaltyObject, objectId, classId } = await freshWallet();
-    await ensureLoyaltyObject(cardWithRelations());
+    await ensureLoyaltyObject(cardWithRelations({ rewards: 2 }));
 
     const postCalls = requestMock.mock.calls.filter(
       ([opts]) => opts.method === "POST",
@@ -348,11 +329,6 @@ describe("ensureLoyaltyObject", () => {
       label: "Rewards",
       balance: { int: 2 },
     });
-    expect(availableRewardsMock).toHaveBeenCalledWith(
-      expect.anything(),
-      "biz-1",
-      "cust-1",
-    );
     expect(data.heroImage).toEqual({
       sourceUri: { uri: "https://cdn.example/business-assets/hero.png" },
     });
@@ -378,10 +354,9 @@ describe("patchLoyaltyObject", () => {
     stubCoreEnv();
     stubGoogleEnv();
     requestMock.mockResolvedValue({ data: {} });
-    availableRewardsMock.mockResolvedValue(5);
 
     const { patchLoyaltyObject, objectId } = await freshWallet();
-    await patchLoyaltyObject(cardWithRelations({ stamps: 7 }));
+    await patchLoyaltyObject(cardWithRelations({ stamps: 7, rewards: 5 }));
 
     expect(renderStampStripMock).toHaveBeenCalledWith(
       expect.objectContaining({ progress: 7, goal: 10 }),
@@ -391,8 +366,7 @@ describe("patchLoyaltyObject", () => {
       expect.any(Buffer),
       expect.objectContaining({ contentType: "image/png" }),
     );
-    // A single admin client is created and reused for both the hero
-    // upload and the rewards-count query.
+    // A single admin client is created for the hero upload.
     expect(createAdminClientMock).toHaveBeenCalledTimes(1);
     const patchCall = requestMock.mock.calls.find(
       ([opts]) => opts.method === "PATCH",
@@ -416,11 +390,13 @@ describe("patchLoyaltyObject", () => {
     stubCoreEnv();
     stubGoogleEnv();
     requestMock.mockResolvedValue({ data: {} });
-    availableRewardsMock.mockResolvedValue(1);
 
     const { patchLoyaltyObject } = await freshWallet();
+    // 125 lifetime points over a goal of 10 -> 12 rewards earned, 5 toward the
+    // next. loyaltyPoints shows the remainder progress, not the raw total.
+    // rewards:1 is this card's own banked count (per-program).
     const c: CardWithRelations = {
-      ...cardWithRelations({ points: 120 }),
+      ...cardWithRelations({ points: 125, rewards: 1 }),
       program: program({ type: "points" }),
     };
     await patchLoyaltyObject(c);
@@ -429,32 +405,12 @@ describe("patchLoyaltyObject", () => {
     const [patchOpts] = requestMock.mock.calls.find(
       ([opts]) => opts.method === "PATCH",
     )!;
-    expect(patchOpts.data.loyaltyPoints).toEqual({ balance: { int: 120 } });
+    expect(patchOpts.data.loyaltyPoints).toEqual({ balance: { int: 5 } });
     expect(patchOpts.data.secondaryLoyaltyPoints).toEqual({
       label: "Rewards",
       balance: { int: 1 },
     });
     expect(patchOpts.data.heroImage).toBeUndefined();
-  });
-
-  it("degrades to a rewards count of 0 (never throws) when the rewards query fails", async () => {
-    stubCoreEnv();
-    stubGoogleEnv();
-    requestMock.mockResolvedValue({ data: {} });
-    availableRewardsMock.mockRejectedValueOnce(new Error("query failed"));
-    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    const { patchLoyaltyObject } = await freshWallet();
-    await patchLoyaltyObject(cardWithRelations());
-
-    const [patchOpts] = requestMock.mock.calls.find(
-      ([opts]) => opts.method === "PATCH",
-    )!;
-    expect(patchOpts.data.secondaryLoyaltyPoints).toEqual({
-      label: "Rewards",
-      balance: { int: 0 },
-    });
-    errorSpy.mockRestore();
   });
 });
 

@@ -110,6 +110,8 @@ export type Card = Timestamped & {
   customer_id: string;
   stamps: number;
   points: number;
+  /** Banked, earned-but-unredeemed rewards. Accrues 1,2,3,…; decremented on redeem. */
+  rewards: number;
   status: CardStatus;
   barcode_value: string;
   pass_auth_token: string;
@@ -225,6 +227,7 @@ export interface Database {
         | "updated_at"
         | "stamps"
         | "points"
+        | "rewards"
         | "status"
         | "apple_serial"
         | "google_object_id"

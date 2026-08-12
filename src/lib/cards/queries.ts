@@ -43,26 +43,18 @@ export function getCardByBarcode(supabase: Client, barcode: string) {
   return fetchOne(supabase, "barcode_value", barcode);
 }
 
-/** Progress value (stamps or points) for a card given its program. */
+/**
+ * Progress toward the customer's NEXT reward: the remainder of the lifetime
+ * stamp/point total over the program goal. The raw `stamps`/`points` columns
+ * accumulate forever and are never reset — displayed progress "resets to 0"
+ * each time a goal is reached because `total % goal` wraps. Banked rewards are
+ * tracked separately in `cards.rewards` (see availableRewardsForCustomer).
+ */
 export function cardProgress(
   card: Pick<Card, "stamps" | "points">,
-  program: Pick<Program, "type">,
+  program: Pick<Program, "type" | "goal">,
 ) {
-  return program.type === "points" ? card.points : card.stamps;
-}
-
-/** How many rewards this customer can currently redeem at a business:
- *  the count of their cards in the 'completed' state. */
-export async function availableRewardsForCustomer(
-  supabase: Client,
-  businessId: string,
-  customerId: string,
-): Promise<number> {
-  const { count } = await supabase
-    .from("cards")
-    .select("id", { count: "exact", head: true })
-    .eq("business_id", businessId)
-    .eq("customer_id", customerId)
-    .eq("status", "completed");
-  return count ?? 0;
+  const total = program.type === "points" ? card.points : card.stamps;
+  const goal = program.goal > 0 ? program.goal : 1;
+  return total % goal;
 }

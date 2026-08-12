@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { requireEnv } from "@/lib/env";
 import { appUrlBase } from "@/lib/wallet/shared";
 import type { CardWithRelations } from "@/lib/cards/queries";
-import { cardProgress, availableRewardsForCustomer } from "@/lib/cards/queries";
+import { cardProgress } from "@/lib/cards/queries";
 import type { PassLocation } from "@/lib/wallet/apple/pass";
 import { renderStampStrip } from "@/lib/wallet/stamp-image";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -105,29 +105,6 @@ async function heroImageUri(
   return card.business.background_image_url ?? undefined;
 }
 
-/**
- * Number of rewards this customer can currently redeem — shown as
- * secondaryLoyaltyPoints alongside the main progress balance, for both
- * program types (it's about identity/redeemability, not stamps). Never
- * throws: a transient query failure shouldn't break the Google Wallet
- * integration, so this degrades to 0 rather than propagating.
- */
-async function safeAvailableRewards(
-  admin: AdminClient,
-  card: CardWithRelations,
-): Promise<number> {
-  try {
-    return await availableRewardsForCustomer(
-      admin,
-      card.business_id,
-      card.customer_id,
-    );
-  } catch (e) {
-    console.error("[google wallet] rewards count failed", e);
-    return 0;
-  }
-}
-
 /** Create the LoyaltyClass for a program if it does not already exist. */
 export async function ensureLoyaltyClass(
   card: CardWithRelations,
@@ -179,10 +156,9 @@ async function objectPayload(
   locations: PassLocation[],
 ) {
   const progress = cardProgress(card, card.program);
-  const [heroUri, rewards] = await Promise.all([
-    heroImageUri(admin, card, progress),
-    safeAvailableRewards(admin, card),
-  ]);
+  // Per-program: this card's own banked rewards, not a cross-program total.
+  const rewards = card.rewards;
+  const heroUri = await heroImageUri(admin, card, progress);
   return {
     id: objectId(card.id),
     classId: classId(card.program.id),
@@ -238,15 +214,14 @@ export async function patchLoyaltyObject(
   const id = objectId(card.id);
   const progress = cardProgress(card, card.program);
   const admin = createAdminClient();
+  // Per-program: this card's own banked rewards, not a cross-program total.
+  const rewards = card.rewards;
   // Intentionally awaited (not fire-and-forget): this adds render+upload
   // latency to notifyCardUpdated's synchronous scan-time call, but on
   // serverless a detached background task can be killed once the response is
   // sent, silently dropping the wallet update. Awaiting trades latency for
   // delivery guarantees; revisit only if that tradeoff becomes a problem.
-  const [heroUri, rewards] = await Promise.all([
-    heroImageUri(admin, card, progress),
-    safeAvailableRewards(admin, card),
-  ]);
+  const heroUri = await heroImageUri(admin, card, progress);
   await client.request({
     url: `${BASE}/loyaltyObject/${id}`,
     method: "PATCH",

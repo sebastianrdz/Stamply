@@ -253,6 +253,7 @@
       "errors": {
         "nameRequired": "Ponle un nombre al programa.",
         "goalMin": "La meta debe ser al menos 1.",
+        "stampGoalMax": "Las tarjetas de sellos pueden tener como máximo 10 sellos.",
         "rewardRequired": "Describe la recompensa."
       }
     },

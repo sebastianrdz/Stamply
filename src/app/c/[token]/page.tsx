@@ -1,10 +1,6 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  getCardByToken,
-  cardProgress,
-  availableRewardsForCustomer,
-} from "@/lib/cards/queries";
+import { getCardByToken, cardProgress } from "@/lib/cards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { brandStyle } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/locale";
@@ -22,11 +18,9 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   const progress = cardProgress(card, card.program);
   const completed = card.status === "completed";
   const qr = await qrDataUrl(card.barcode_value, { width: 260 });
-  const availableRewards = await availableRewardsForCustomer(
-    admin,
-    card.business_id,
-    card.customer_id,
-  );
+  // Rewards are per-program: this card's own banked count, not a sum across the
+  // customer's cards in other programs.
+  const availableRewards = card.rewards;
 
   return (
     <div

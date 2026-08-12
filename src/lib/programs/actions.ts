@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getLocale } from "@/lib/i18n/locale";
-import { getDictionary } from "@/lib/i18n/dictionaries";
+import { getDictionary, type Dictionary } from "@/lib/i18n/dictionaries";
 import { interpolate } from "@/lib/i18n/format";
 import {
   assertWithinLimit,
@@ -17,6 +17,41 @@ export interface ProgramFormState {
   error?: string;
 }
 
+/** Maximum stamps a stamp-type card can require — the stamp grid renders at
+ *  most 10 slots, so goals above this aren't allowed for stamp programs. */
+const MAX_STAMP_GOAL = 10;
+
+/** Shared create/update validation. Stamp programs are capped at 10 stamps;
+ *  points programs keep the generous 1000 ceiling. */
+function programSchema(dict: Dictionary) {
+  return z
+    .object({
+      name: z
+        .string()
+        .min(2, dict.dashboard.programs.errors.nameRequired)
+        .max(80),
+      type: z.enum(["stamp", "points"]),
+      goal: z.coerce
+        .number()
+        .int()
+        .min(1, dict.dashboard.programs.errors.goalMin)
+        .max(1000),
+      reward_description: z
+        .string()
+        .min(2, dict.dashboard.programs.errors.rewardRequired)
+        .max(200),
+    })
+    .superRefine((val, ctx) => {
+      if (val.type === "stamp" && val.goal > MAX_STAMP_GOAL) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["goal"],
+          message: dict.dashboard.programs.errors.stampGoalMax,
+        });
+      }
+    });
+}
+
 export async function createProgram(
   _prev: ProgramFormState,
   formData: FormData,
@@ -25,24 +60,7 @@ export async function createProgram(
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
 
-  const schema = z.object({
-    name: z
-      .string()
-      .min(2, dict.dashboard.programs.errors.nameRequired)
-      .max(80),
-    type: z.enum(["stamp", "points"]),
-    goal: z.coerce
-      .number()
-      .int()
-      .min(1, dict.dashboard.programs.errors.goalMin)
-      .max(1000),
-    reward_description: z
-      .string()
-      .min(2, dict.dashboard.programs.errors.rewardRequired)
-      .max(200),
-  });
-
-  const parsed = schema.safeParse({
+  const parsed = programSchema(dict).safeParse({
     name: formData.get("name"),
     type: formData.get("type"),
     goal: formData.get("goal"),
@@ -100,24 +118,7 @@ export async function updateProgram(
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
 
-  const schema = z.object({
-    name: z
-      .string()
-      .min(2, dict.dashboard.programs.errors.nameRequired)
-      .max(80),
-    type: z.enum(["stamp", "points"]),
-    goal: z.coerce
-      .number()
-      .int()
-      .min(1, dict.dashboard.programs.errors.goalMin)
-      .max(1000),
-    reward_description: z
-      .string()
-      .min(2, dict.dashboard.programs.errors.rewardRequired)
-      .max(200),
-  });
-
-  const parsed = schema.safeParse({
+  const parsed = programSchema(dict).safeParse({
     name: formData.get("name"),
     type: formData.get("type"),
     goal: formData.get("goal"),

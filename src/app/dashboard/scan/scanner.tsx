@@ -30,6 +30,30 @@ interface ScanResult {
 
 const READER_ID = "stamply-qr-reader";
 
+// Html5QrcodeScannerState (from html5-qrcode): NOT_STARTED=1, SCANNING=2,
+// PAUSED=3. Kept as literals so this module doesn't statically import the
+// camera lib (it's loaded lazily in start()).
+const SCANNER_SCANNING = 2;
+const SCANNER_PAUSED = 3;
+
+/**
+ * Stop the scanner safely. html5-qrcode's stop() THROWS synchronously
+ * ("Cannot stop, scanner is not running or paused.") when the scanner isn't
+ * running/paused — a plain `.stop().catch()` only handles the async rejection,
+ * so that sync throw would escape (e.g. the unmount cleanup firing after a scan
+ * already stopped the camera). Guard on state and swallow both failure modes.
+ */
+async function stopScanner(scanner: Html5Qrcode | null): Promise<void> {
+  if (!scanner) return;
+  const state = scanner.getState();
+  if (state !== SCANNER_SCANNING && state !== SCANNER_PAUSED) return;
+  try {
+    await scanner.stop();
+  } catch {
+    /* already stopped / mid-teardown */
+  }
+}
+
 export function Scanner() {
   const dict = useTranslations();
   const [mode, setMode] = useState<Mode>("stamp");
@@ -46,14 +70,7 @@ export function Scanner() {
   }, [mode]);
 
   async function stop() {
-    const s = scannerRef.current;
-    if (s) {
-      try {
-        await s.stop();
-      } catch {
-        /* already stopped */
-      }
-    }
+    await stopScanner(scannerRef.current);
     setScanning(false);
     busyRef.current = false;
   }
@@ -98,7 +115,7 @@ export function Scanner() {
 
   useEffect(() => {
     return () => {
-      void scannerRef.current?.stop().catch(() => {});
+      void stopScanner(scannerRef.current);
     };
   }, []);
 

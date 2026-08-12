@@ -43,7 +43,10 @@ vi.mock("@/lib/billing/entitlements", async (importOriginal) => {
 });
 
 import { redirect } from "next/navigation";
-import { deleteProgram, updateProgram } from "./actions";
+import { createProgram, deleteProgram, updateProgram } from "./actions";
+
+const STAMP_GOAL_MAX_ES =
+  "Las tarjetas de sellos pueden tener como máximo 10 sellos.";
 
 function business(overrides: Partial<Business> = {}): Business {
   return {
@@ -178,6 +181,95 @@ describe("updateProgram", () => {
       }),
     );
     expect(state.error).toBe("db down");
+    expect(redirect).not.toHaveBeenCalled();
+  });
+});
+
+describe("createProgram — stamp goal cap", () => {
+  it("rejects a stamp program with a goal above 10, without inserting", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+
+    const state = await createProgram(
+      {},
+      form({
+        name: "Coffee card",
+        type: "stamp",
+        goal: "11",
+        reward_description: "Free coffee",
+      }),
+    );
+
+    expect(state.error).toBe(STAMP_GOAL_MAX_ES);
+    expect(mock.from).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("allows a stamp program at exactly 10 and inserts it", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+
+    await expect(
+      createProgram(
+        {},
+        form({
+          name: "Coffee card",
+          type: "stamp",
+          goal: "10",
+          reward_description: "Free coffee",
+        }),
+      ),
+    ).rejects.toThrow("NEXT_REDIRECT:/dashboard/programs");
+
+    expect(mock.builderFor("programs").insert).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "stamp", goal: 10 }),
+    );
+  });
+
+  it("allows a points program with a goal above 10 (cap is stamp-only)", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+
+    await expect(
+      createProgram(
+        {},
+        form({
+          name: "Points club",
+          type: "points",
+          goal: "100",
+          reward_description: "Free drink",
+        }),
+      ),
+    ).rejects.toThrow("NEXT_REDIRECT:/dashboard/programs");
+
+    expect(mock.builderFor("programs").insert).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "points", goal: 100 }),
+    );
+  });
+});
+
+describe("updateProgram — stamp goal cap", () => {
+  it("rejects raising a stamp program's goal above 10, without updating", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+
+    const state = await updateProgram(
+      "prog-1",
+      {},
+      form({
+        name: "Coffee card",
+        type: "stamp",
+        goal: "25",
+        reward_description: "Free coffee",
+      }),
+    );
+
+    expect(state.error).toBe(STAMP_GOAL_MAX_ES);
+    expect(mock.from).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
   });
 });

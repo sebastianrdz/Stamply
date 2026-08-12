@@ -142,6 +142,21 @@ export async function enroll(
     customerId = customer.id;
   }
 
+  // One card per customer per program: if this customer already enrolled in
+  // this program, send them to that existing card instead of creating a
+  // duplicate. (Only reachable when the customer was matched by email above;
+  // a brand-new customer has no prior cards.)
+  const { data: existingCard } = await admin
+    .from("cards")
+    .select("pass_auth_token")
+    .eq("business_id", business.id)
+    .eq("program_id", program.id)
+    .eq("customer_id", customerId)
+    .maybeSingle();
+  if (existingCard) {
+    redirect(`/c/${existingCard.pass_auth_token}`);
+  }
+
   const card = await issueCard(admin, {
     businessId: business.id,
     programId: program.id,

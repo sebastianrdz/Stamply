@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getCardByToken, availableRewardsForCustomer } from "@/lib/cards/queries";
+import { getCardByToken } from "@/lib/cards/queries";
 import { buildApplePass } from "@/lib/wallet/apple/pass";
 import { businessLocations } from "@/lib/wallet/notify";
 
@@ -19,12 +19,7 @@ export async function GET(
 
   try {
     const locations = await businessLocations(admin, card.business_id);
-    const availableRewards = await availableRewardsForCustomer(
-      admin,
-      card.business_id,
-      card.customer_id,
-    );
-    const buffer = await buildApplePass(card, locations, availableRewards);
+    const buffer = await buildApplePass(card, locations, card.rewards);
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
 import {
-  availableRewardsForCustomer,
   cardProgress,
   getCardByBarcode,
   getCardByToken,
@@ -11,14 +10,29 @@ import {
 type AnyClient = any;
 
 describe("cardProgress", () => {
-  it("returns points for a points-type program", () => {
-    expect(cardProgress({ stamps: 3, points: 90 }, { type: "points" })).toBe(
-      90,
-    );
+  it("returns points progress toward the next reward for a points program", () => {
+    expect(
+      cardProgress({ stamps: 3, points: 90 }, { type: "points", goal: 100 }),
+    ).toBe(90);
   });
 
-  it("returns stamps for a stamp-type program", () => {
-    expect(cardProgress({ stamps: 3, points: 90 }, { type: "stamp" })).toBe(3);
+  it("returns stamps progress toward the next reward for a stamp program", () => {
+    expect(
+      cardProgress({ stamps: 3, points: 90 }, { type: "stamp", goal: 10 }),
+    ).toBe(3);
+  });
+
+  it("wraps to the remainder once the lifetime total passes the goal", () => {
+    // 24 lifetime stamps, goal 10 -> 2 rewards banked, 4 toward the next.
+    expect(
+      cardProgress({ stamps: 24, points: 0 }, { type: "stamp", goal: 10 }),
+    ).toBe(4);
+  });
+
+  it("shows 0 at an exact goal boundary (reward just earned)", () => {
+    expect(
+      cardProgress({ stamps: 20, points: 0 }, { type: "stamp", goal: 10 }),
+    ).toBe(0);
   });
 });
 
@@ -57,36 +71,5 @@ describe("getCardByBarcode", () => {
     const mock = makeSupabaseMock({ cards: { data: null } });
     const card = await getCardByBarcode(mock as AnyClient, "stmp_missing");
     expect(card).toBeNull();
-  });
-});
-
-describe("availableRewardsForCustomer", () => {
-  it("counts the customer's completed cards at the business", async () => {
-    const mock = makeSupabaseMock({ cards: { count: 3 } });
-    const n = await availableRewardsForCustomer(
-      mock as AnyClient,
-      "biz-1",
-      "cust-1",
-    );
-    expect(n).toBe(3);
-    expect(mock.from).toHaveBeenCalledWith("cards");
-    const builder = mock.builderFor("cards");
-    expect(builder.select).toHaveBeenCalledWith("id", {
-      count: "exact",
-      head: true,
-    });
-    expect(builder.eq).toHaveBeenCalledWith("business_id", "biz-1");
-    expect(builder.eq).toHaveBeenCalledWith("customer_id", "cust-1");
-    expect(builder.eq).toHaveBeenCalledWith("status", "completed");
-  });
-
-  it("returns 0 when the count is null", async () => {
-    const mock = makeSupabaseMock({ cards: { count: null } });
-    const n = await availableRewardsForCustomer(
-      mock as AnyClient,
-      "biz-1",
-      "cust-2",
-    );
-    expect(n).toBe(0);
   });
 });

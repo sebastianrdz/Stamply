@@ -253,6 +253,7 @@
       "errors": {
         "nameRequired": "Give the program a name.",
         "goalMin": "Goal must be at least 1.",
+        "stampGoalMax": "Stamp cards can have at most 10 stamps.",
         "rewardRequired": "Describe the reward."
       }
     },

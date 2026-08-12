@@ -67,7 +67,9 @@ export function ProgramForm({ program }: { program?: Program }) {
             name="goal"
             type="number"
             min={1}
-            max={1000}
+            // Stamp cards render at most 10 slots, so stamp goals are capped
+            // at 10 (enforced server-side in programSchema too).
+            max={type === "stamp" ? 10 : 1000}
             defaultValue={program?.goal ?? (type === "points" ? 100 : 10)}
             required
           />

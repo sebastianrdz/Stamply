@@ -176,6 +176,26 @@ describe("enroll — existing customer", () => {
     );
     expect(redirect).toHaveBeenCalledWith("/c/tok_123");
   });
+
+  it("redirects to the existing card without issuing a duplicate when already enrolled in this program", async () => {
+    const mock = makeSupabaseMock({
+      programs: { data: { ...program(), business: business() } },
+      customers: [{ data: { id: "existing-cust" } }],
+      cards: { data: { pass_auth_token: "tok_existing" } },
+    });
+    createAdminClientMock.mockReturnValue(mock);
+
+    await expect(enroll({}, form(baseFields))).rejects.toThrow(
+      "NEXT_REDIRECT:/c/tok_existing",
+    );
+
+    // No new card is issued for a duplicate enrollment.
+    expect(issueCardMock).not.toHaveBeenCalled();
+    const cardsBuilder = mock.builderFor("cards");
+    expect(cardsBuilder.eq).toHaveBeenCalledWith("program_id", PROGRAM_ID);
+    expect(cardsBuilder.eq).toHaveBeenCalledWith("customer_id", "existing-cust");
+    expect(redirect).toHaveBeenCalledWith("/c/tok_existing");
+  });
 });
 
 describe("enroll — new customer", () => {
