@@ -56,7 +56,7 @@ export function DeleteProgramDialog({
       <dialog
         ref={dialogRef}
         aria-labelledby={HEADING_ID}
-        className="delete-program-dialog border-border bg-card text-card-foreground w-full max-w-md rounded-xl border p-6 shadow-lg"
+        className="delete-program-dialog border-border bg-card text-card-foreground m-auto w-full max-w-md rounded-xl border p-6 shadow-lg"
         onClose={() => setConfirmValue("")}
       >
         <h2 id={HEADING_ID} className="text-lg font-semibold tracking-tight">
