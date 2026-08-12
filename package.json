@@ -11,9 +11,12 @@
     "test": "pnpm --filter @stamply/app test",
     "test:e2e": "pnpm --filter @stamply/app test:e2e",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "gen:assets": "node scripts/generate-brand-assets.mjs"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "png-to-ico": "^2.1.8",
     "prettier": "^3.9.5",
     "prettier-plugin-tailwindcss": "^0.8.0"
   },
