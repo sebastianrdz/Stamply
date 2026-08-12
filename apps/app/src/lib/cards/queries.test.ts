@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
 import {
   cardProgress,
@@ -49,10 +49,22 @@ describe("getCardByToken", () => {
     expect(mock.builderFor("cards").maybeSingle).toHaveBeenCalled();
   });
 
-  it("returns null when no row matches", async () => {
-    const mock = makeSupabaseMock({ cards: { data: null } });
+  it("returns null when no row matches (genuine not-found: no data, no error)", async () => {
+    const mock = makeSupabaseMock({ cards: { data: null, error: null } });
     const card = await getCardByToken(mock as AnyClient, "missing-tok");
     expect(card).toBeNull();
+  });
+
+  it("throws (and logs) instead of returning null on a real Supabase error", async () => {
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const mock = makeSupabaseMock({
+      cards: { data: null, error: { message: "connection reset" } },
+    });
+    await expect(getCardByToken(mock as AnyClient, "auth-tok")).rejects.toEqual(
+      { message: "connection reset" },
+    );
+    expect(errorSpy).toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });
 

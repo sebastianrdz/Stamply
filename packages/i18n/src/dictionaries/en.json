@@ -457,6 +457,10 @@
       "title": "Invite expired",
       "description": "This invite has expired. Ask for a new one."
     },
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load this invite. Please try again in a moment."
+    },
     "title": "Join {business} on Stamply",
     "invitedAs": "You've been invited as",
     "invitedFor": "for",
@@ -496,6 +500,10 @@
       "programInactive": "This program is not currently accepting new members.",
       "customerLimitReached": "This business has reached its customer limit.",
       "enrollFailed": "Could not enroll."
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load this loyalty program. Please try again in a moment."
     }
   },
   "card": {
@@ -550,6 +558,10 @@
     "footer": {
       "rights": "© 2026 Stamply. All rights reserved."
     }
+  },
+  "seo": {
+    "title": "Stamply — Digital Loyalty Cards",
+    "description": "Bring digital loyalty cards for your café, barbershop, or restaurant to Apple Wallet and Google Wallet — no app required."
   },
   "notFound": {
     "title": "Page not found",

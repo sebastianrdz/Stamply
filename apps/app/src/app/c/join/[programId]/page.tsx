@@ -15,12 +15,35 @@ export default async function JoinPage({
   const { programId } = await params;
   const dict = await getDictionary(await getLocale());
   const admin = createAdminClient();
-  const { data } = await admin
+  const { data, error } = await admin
     .from("programs")
     .select("*, business:businesses(*)")
     .eq("id", programId)
     .single();
 
+  // `.single()` reports PGRST116 ("no rows"/"multiple rows") for the genuine
+  // not-found case — that's the only error code that should route to
+  // `notFound()`. Anything else is a real backend failure, not a missing
+  // program.
+  if (error && error.code !== "PGRST116") {
+    console.error(`[c/join] program lookup failed for programId=${programId}`, error);
+    return (
+      <div className="flex min-h-full flex-col items-center justify-center px-6 py-12">
+        <div className="w-full max-w-sm">
+          <Card>
+            <CardContent className="flex flex-col gap-1 p-6 text-center">
+              <h1 className="text-lg font-semibold">
+                {dict.customerJoin.error.title}
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                {dict.customerJoin.error.description}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
   if (!data) notFound();
   const program = data as unknown as Program & { business: Business };
   const business = program.business;

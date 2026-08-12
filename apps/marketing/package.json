@@ -14,6 +14,7 @@
     "@stamply/i18n": "workspace:*",
     "@stamply/plans": "workspace:*",
     "@stamply/ui": "workspace:*",
+    "@vercel/analytics": "^2.0.1",
     "lucide-react": "^1.24.0",
     "next": "16.2.10",
     "react": "19.2.4",

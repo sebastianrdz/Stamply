@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { LocaleProvider } from "@stamply/i18n/provider";
@@ -44,6 +45,7 @@ export default async function RootLayout({
         <LocaleProvider locale={locale} dict={dict}>
           {children}
         </LocaleProvider>
+        <Analytics />
       </body>
     </html>
   );

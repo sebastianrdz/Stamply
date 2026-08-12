@@ -457,6 +457,10 @@
       "title": "Invitación vencida",
       "description": "Esta invitación venció. Pide una nueva."
     },
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar esta invitación. Intenta de nuevo en unos momentos."
+    },
     "title": "Únete a {business} en Stamply",
     "invitedAs": "Se te invitó como",
     "invitedFor": "para",
@@ -496,6 +500,10 @@
       "programInactive": "Este programa no está aceptando nuevos miembros por ahora.",
       "customerLimitReached": "Este negocio alcanzó su límite de clientes.",
       "enrollFailed": "No se pudo completar la inscripción."
+    },
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar este programa de lealtad. Intenta de nuevo en unos momentos."
     }
   },
   "card": {
@@ -550,6 +558,10 @@
     "footer": {
       "rights": "© 2026 Stamply. Todos los derechos reservados."
     }
+  },
+  "seo": {
+    "title": "Stamply — Tarjetas de lealtad digitales",
+    "description": "Lleva tarjetas de lealtad digitales para tu cafetería, barbería o restaurante a Apple Wallet y Google Wallet, sin apps que instalar."
   },
   "notFound": {
     "title": "Página no encontrada",

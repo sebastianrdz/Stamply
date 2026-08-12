@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Check, ScanLine, Smartphone, Bell, MapPin } from "lucide-react";
 import { Logo } from "@stamply/ui/logo";
@@ -11,6 +12,37 @@ import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const marketingUrl =
+  process.env.NEXT_PUBLIC_MARKETING_URL ?? "http://localhost:3001";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const dict = await getDictionary(await getLocale());
+  const { seo } = dict;
+  return {
+    title: seo.title,
+    description: seo.description,
+    alternates: {
+      canonical: "/",
+      languages: {
+        es: "/",
+        en: "/",
+        "x-default": "/",
+      },
+    },
+    openGraph: {
+      title: seo.title,
+      description: seo.description,
+      url: "/",
+      siteName: "Stamply",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: seo.title,
+      description: seo.description,
+    },
+  };
+}
 
 export default async function Home() {
   const dict = await getDictionary(await getLocale());
@@ -23,8 +55,38 @@ export default async function Home() {
     { icon: MapPin, ...landing.features.nearby },
   ];
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "Stamply",
+        url: marketingUrl.replace(/\/$/, ""),
+      },
+      {
+        "@type": "Product",
+        name: "Stamply",
+        description:
+          "Digital loyalty cards for cafés, barbershops, and restaurants.",
+        offers: PAID_PLANS.map((plan) => ({
+          "@type": "Offer",
+          name: plan.name,
+          price: plan.price,
+          priceCurrency: "USD",
+          url: `${appUrl}/register`,
+        })),
+      },
+    ],
+  };
+
   return (
     <div className="flex min-h-full flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd),
+        }}
+      />
       <header className="flex items-center justify-between gap-4 px-6 py-4">
         <Logo />
         <nav className="flex items-center gap-2">

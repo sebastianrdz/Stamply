@@ -74,7 +74,7 @@ export async function enroll(
   // here is generous enough for a busy counter while still bounding abuse to
   // a single business's program.
   const rateLimitKey = `enroll:${parsed.data.program_id}:${ip ?? "no-ip"}`;
-  if (!rateLimit(rateLimitKey, 20, 5 * 60 * 1000)) {
+  if (!(await rateLimit(rateLimitKey, 20, 5 * 60 * 1000))) {
     return { error: dict.customerJoin.errors.tooManyAttempts };
   }
 

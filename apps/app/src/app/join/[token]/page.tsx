@@ -44,11 +44,25 @@ export default async function JoinPage({ params }: PageProps<"/join/[token]">) {
   const dict = await getDictionary(await getLocale());
 
   const admin = createAdminClient();
-  const { data: invite } = await admin
+  const { data: invite, error: inviteError } = await admin
     .from("invitations")
     .select("*")
     .eq("token", token)
     .maybeSingle();
+
+  if (inviteError) {
+    // Never log `token` — it's the live invite secret that grants business
+    // access. Log only that the lookup failed, plus the Supabase error.
+    console.error("[join] invite lookup failed", inviteError);
+    return (
+      <Shell>
+        <h1 className="text-lg font-semibold">{dict.join.error.title}</h1>
+        <p className="text-muted-foreground text-sm">
+          {dict.join.error.description}
+        </p>
+      </Shell>
+    );
+  }
 
   if (!invite) {
     return (

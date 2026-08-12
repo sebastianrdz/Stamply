@@ -25,11 +25,18 @@ async function fetchOne(
   column: "pass_auth_token" | "barcode_value",
   value: string,
 ): Promise<CardWithRelations | null> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("cards")
     .select(SELECT)
     .eq(column, value)
     .maybeSingle();
+  if (error) {
+    // NEVER log `value`: for the `pass_auth_token` column it's a live Wallet
+    // bearer credential (and `barcode_value` is a scannable secret). Log only
+    // the column being queried, plus the Supabase error, for debugging context.
+    console.error(`[cards/queries] fetchOne(${column}) failed`, error);
+    throw error;
+  }
   return (data as unknown as CardWithRelations) ?? null;
 }
 

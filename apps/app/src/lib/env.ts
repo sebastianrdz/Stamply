@@ -34,6 +34,12 @@ const serverSchema = z.object({
   GOOGLE_WALLET_ISSUER_ID: z.string().optional(),
   GOOGLE_WALLET_SA_EMAIL: z.string().optional(),
   GOOGLE_WALLET_SA_KEY_BASE64: z.string().optional(),
+
+  // Upstash Redis — enables the Redis-backed rate limiter (shared across
+  // instances) when both are set; optional, falls back to an in-memory
+  // limiter when either is unset.
+  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

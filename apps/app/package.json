@@ -19,6 +19,8 @@
     "@stamply/ui": "workspace:*",
     "@supabase/ssr": "^0.12.1",
     "@supabase/supabase-js": "^2.110.3",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.2",
     "apns2": "^12.2.0",
     "google-auth-library": "^10.9.0",
     "html5-qrcode": "^2.3.8",
