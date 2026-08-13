@@ -14,11 +14,11 @@ export function Logo({
         aria-hidden
         className="bg-primary text-primary-foreground grid size-8 place-items-center rounded-lg shadow-sm"
       >
-        <svg viewBox="0 0 24 24" fill="none" className="size-5">
-          <path
-            d="M12 3.5c2.5 0 4 1.6 4 3.6 0 1.3-.7 2.2-1.3 3-.4.6-.7 1-.7 1.6 0 .5.4.8 1 .8h1.5A2.2 2.2 0 0 1 18.7 18v.3c0 1.2-1 2.2-2.2 2.2H7.5a2.2 2.2 0 0 1-2.2-2.2V18a2.2 2.2 0 0 1 2.2-2.2H9c.6 0 1-.3 1-.8 0-.6-.3-1-.7-1.6-.6-.8-1.3-1.7-1.3-3 0-2 1.5-3.6 4-3.6Z"
-            fill="currentColor"
-          />
+        <svg viewBox="0 0 24 24" fill="currentColor" className="size-5">
+          <circle cx="12" cy="6.8" r="3.1" />
+          <path d="M9.3 10.2h5.4l2.7 6.3h-10.8z" />
+          <rect x="5.3" y="15.8" width="13.4" height="3.1" rx="1.55" />
+          <rect x="7.5" y="20.8" width="9" height="1.5" rx="0.75" />
         </svg>
       </span>
       {showText && (

@@ -16,16 +16,20 @@ import { fileURLToPath } from "node:url";
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BRAND = "#7C5CFC";
 
-// The Stamply mark (white "stamp" glyph) on a 48×48 canvas. Shared by every
+// The Stamply mark — a rubber stamp (round knob handle, flared mount, wide base
+// plate, and the impression line it leaves) on a 48×48 canvas. Shared by every
 // asset so the identity stays pixel-consistent across surfaces.
-const MARK_PATH =
-  "M24 11c5 0 8 3.2 8 7.2 0 2.6-1.4 4.4-2.6 6-.8 1.2-1.4 2-1.4 3.2 0 1 .8 1.6 2 1.6h3A4.4 4.4 0 0 1 37.4 36v.6c0 2.4-2 4.4-4.4 4.4H15a4.4 4.4 0 0 1-4.4-4.4V36A4.4 4.4 0 0 1 15 31.6h3c1.2 0 2-.6 2-1.6 0-1.2-.6-2-1.4-3.2C17.4 22.6 16 20.8 16 18.2 16 14.2 19 11 24 11Z";
+const MARK = `
+    <circle cx="24" cy="14.5" r="5"/>
+    <path d="M21.5 18.5h5l4 8h-13z"/>
+    <rect x="13.5" y="25.5" width="21" height="5" rx="2.5"/>
+    <rect x="16" y="35" width="16" height="2.4" rx="1.2"/>`;
 
 // Standard icon: rounded violet tile (used for favicon, app icon, apple-icon,
 // and the non-maskable PWA icons).
 const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
   <rect width="48" height="48" rx="12" fill="${BRAND}"/>
-  <path d="${MARK_PATH}" fill="#fff"/>
+  <g fill="#fff">${MARK}</g>
 </svg>
 `;
 
@@ -34,9 +38,7 @@ const ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
 // safe zone on Android.
 const MASKABLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
   <rect width="48" height="48" fill="${BRAND}"/>
-  <g transform="translate(24 24) scale(0.6) translate(-24 -24)">
-    <path d="${MARK_PATH}" fill="#fff"/>
-  </g>
+  <g fill="#fff" transform="translate(24 24) scale(0.6) translate(-24 -24)">${MARK}</g>
 </svg>
 `;
 
