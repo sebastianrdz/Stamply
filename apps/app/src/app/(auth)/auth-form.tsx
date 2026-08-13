@@ -1,0 +1,87 @@
+"use client";
+
+import { useActionState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { signIn, signUp, type AuthState } from "@/lib/auth/actions";
+import { Button } from "@stamply/ui/button";
+import { Input } from "@stamply/ui/input";
+import { Label } from "@stamply/ui/label";
+import { useTranslations } from "@stamply/i18n/provider";
+
+const initialState: AuthState = {};
+
+export function AuthForm({ mode }: { mode: "login" | "register" }) {
+  const dict = useTranslations();
+  const action = mode === "login" ? signIn : signUp;
+  const [state, formAction, pending] = useActionState(action, initialState);
+  const next = useSearchParams().get("next") ?? "/dashboard";
+
+  return (
+    <form action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="next" value={next} />
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="email">{dict.auth.form.emailLabel}</Label>
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          placeholder={dict.auth.form.emailPlaceholder}
+          required
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="password">{dict.auth.form.passwordLabel}</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      {state.error && (
+        <p className="text-destructive text-sm" role="alert">
+          {state.error}
+        </p>
+      )}
+
+      <Button type="submit" size="lg" disabled={pending} className="mt-2">
+        {pending
+          ? dict.auth.form.pleaseWait
+          : mode === "login"
+            ? dict.auth.form.signIn
+            : dict.auth.form.createAccount}
+      </Button>
+
+      <p className="text-muted-foreground text-center text-sm">
+        {mode === "login" ? (
+          <>
+            {dict.auth.form.newToStamply}{" "}
+            <Link
+              href="/register"
+              className="text-primary font-medium hover:underline"
+            >
+              {dict.auth.form.createAnAccount}
+            </Link>
+          </>
+        ) : (
+          <>
+            {dict.auth.form.alreadyHaveAccount}{" "}
+            <Link
+              href="/login"
+              className="text-primary font-medium hover:underline"
+            >
+              {dict.auth.form.signIn}
+            </Link>
+          </>
+        )}
+      </p>
+    </form>
+  );
+}

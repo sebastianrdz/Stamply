@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@stamply/ui/theme.css";
+
+/*
+ * Tailwind v4 ignores node_modules, so it won't scan classes used inside our
+ * symlinked workspace packages unless we register their source explicitly.
+ */
+@source "../../../../packages/ui/src";
+@source "../../../../packages/i18n/src";

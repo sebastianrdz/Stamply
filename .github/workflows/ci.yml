@@ -56,13 +56,12 @@ jobs:
   # End-to-end tests via Playwright. Kept as a separate job so it runs in its
   # own clean runner with browser binaries, after the fast checks above pass.
   #
-  # NON-BLOCKING (continue-on-error: true) for now: there is no existing
-  # playwright.config.ts in this repo yet (it's landing from a parallel QA
-  # workstream alongside the `test:e2e` script), so the app-boot strategy for
-  # e2e (dev server vs. build+start, ports, baseURL) hasn't been exercised in
-  # CI at all. Rather than block every PR on an untested e2e path, this job
-  # is allowed to fail without failing the run. Flip `continue-on-error` to
-  # `false` once a green run has been observed on `main` a few times.
+  # NON-BLOCKING (continue-on-error: true) for now: both apps have their own
+  # playwright.config.ts (app on :3100 against a non-resolving fake Supabase so
+  # it fails closed; marketing on :3101, backend-free) and pass locally, but the
+  # CI browser-install/boot path hasn't been proven on a runner yet. Rather than
+  # block every PR on it, this job may fail without failing the run. Flip
+  # `continue-on-error` to `false` once a green run has been observed on `main`.
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
@@ -93,13 +92,20 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
+      # Playwright now lives in the app/marketing packages (monorepo), not at the
+      # workspace root, so scope these to a package that has it. Both suites use
+      # the chromium project only, and browsers install to a shared cache that
+      # the marketing run reuses.
       - name: Install Playwright browsers (+ OS deps)
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps
+        run: pnpm --filter @stamply/app exec playwright install --with-deps chromium
 
       - name: Install Playwright OS dependencies only
         if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps
+        run: pnpm --filter @stamply/app exec playwright install-deps chromium
 
-      - name: Run Playwright tests
-        run: pnpm test:e2e
+      - name: Run Playwright tests (app)
+        run: pnpm --filter @stamply/app test:e2e
+
+      - name: Run Playwright tests (marketing)
+        run: pnpm --filter @stamply/marketing test:e2e

@@ -1,0 +1,575 @@
+{
+  "common": {
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Saved.",
+    "cancel": "Cancel",
+    "back": "Back",
+    "backHome": "Back home",
+    "add": "Add",
+    "adding": "Adding…",
+    "creating": "Creating…",
+    "remove": "Remove",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "copy": "Copy",
+    "copyLink": "Copy link",
+    "copied": "Copied",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "createAccount": "Create account",
+    "getStarted": "Get started",
+    "none": "None",
+    "unknownEmail": "Unknown email",
+    "anonymous": "Anonymous",
+    "noAddress": "No address",
+    "active": "Active",
+    "paused": "Paused",
+    "current": "Current",
+    "poweredBy": "Powered by Stamply",
+    "perMonth": "/mo",
+    "billedMonthly": "Billed monthly",
+    "freeTrial": "Free trial",
+    "switchTo": "Switch to {name}",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "employee": "Employee"
+    },
+    "subscriptionStatus": {
+      "trialing": "trialing",
+      "active": "active",
+      "past_due": "past due",
+      "canceled": "canceled",
+      "incomplete": "incomplete",
+      "unpaid": "unpaid"
+    },
+    "validation": {
+      "emailInvalid": "Enter a valid email.",
+      "passwordTooShort": "Password must be at least 8 characters."
+    }
+  },
+  "settings": {
+    "language": {
+      "title": "Language",
+      "description": "Choose the language you want to see Stamply in.",
+      "spanish": "Español",
+      "spanishShort": "ES",
+      "english": "English",
+      "englishShort": "EN"
+    }
+  },
+  "nav": {
+    "overview": "Overview",
+    "scan": "Scan",
+    "programs": "Programs",
+    "customers": "Customers",
+    "locations": "Locations",
+    "analytics": "Analytics",
+    "team": "Team",
+    "billing": "Billing",
+    "settings": "Settings",
+    "userMenu": "User menu",
+    "roleLabel": "Role",
+    "toggleSidebar": "Toggle sidebar",
+    "addBusiness": "Add business",
+    "selectBusiness": "Select business"
+  },
+  "auth": {
+    "login": {
+      "metaTitle": "Sign in",
+      "title": "Welcome back",
+      "subtitle": "Sign in to manage your loyalty programs."
+    },
+    "register": {
+      "metaTitle": "Create account",
+      "title": "Start with Stamply",
+      "subtitle": "Create your account and set up your first loyalty card."
+    },
+    "form": {
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@business.com",
+      "passwordLabel": "Password",
+      "pleaseWait": "Please wait…",
+      "signIn": "Sign in",
+      "createAccount": "Create account",
+      "newToStamply": "New to Stamply?",
+      "createAnAccount": "Create an account",
+      "alreadyHaveAccount": "Already have an account?"
+    }
+  },
+  "onboarding": {
+    "setup": {
+      "metaTitle": "Set up your business",
+      "title": "Set up your business",
+      "subtitle": "This is the name your customers will see on their loyalty card. You can add locations and branding next."
+    },
+    "add": {
+      "title": "Add a business",
+      "subtitle": "Set up a new business — it'll get its own loyalty program, locations, and branding, and becomes your active business."
+    },
+    "form": {
+      "nameLabel": "Business name",
+      "namePlaceholder": "Bean & Brew Coffee",
+      "createBusiness": "Create business",
+      "addBusiness": "Add business",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "nameRequired": "Business name is required.",
+      "createFailed": "Could not create business."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "welcome": "Welcome, {business}",
+      "description": "Here's how your loyalty program is doing.",
+      "stats": {
+        "customers": "Customers",
+        "activeCards": "Active cards",
+        "stampsThisWeek": "Stamps this week",
+        "rewardsRedeemed": "Rewards redeemed"
+      },
+      "scanCard": {
+        "title": "Scan a card",
+        "description": "Add a stamp or redeem a reward.",
+        "cta": "Open scanner"
+      },
+      "newProgramCard": {
+        "title": "New program",
+        "description": "Create a stamp card or points reward.",
+        "cta": "Create program"
+      }
+    },
+    "customers": {
+      "metaTitle": "Customers",
+      "title": "Customers",
+      "description": "Everyone who joined your loyalty program.",
+      "optedIn": "{count} opted in to marketing",
+      "optedInBadge": "Opted in",
+      "noConsentBadge": "No consent",
+      "empty": {
+        "title": "No customers yet",
+        "description": "Share a program's enrollment QR to start collecting members."
+      }
+    },
+    "analytics": {
+      "metaTitle": "Analytics",
+      "title": "Analytics",
+      "description": "How customers are engaging with your loyalty program.",
+      "stats": {
+        "stamps14d": "Stamps (14d)",
+        "cardsIssued": "Cards issued",
+        "redemptions": "Redemptions",
+        "redemptionRate": "Redemption rate"
+      },
+      "stampsPerDay": "Stamps per day",
+      "stampsTooltip": "{count} stamps"
+    },
+    "programs": {
+      "list": {
+        "metaTitle": "Programs",
+        "title": "Loyalty programs",
+        "description": "Create the reward cards your customers collect.",
+        "newProgram": "New program",
+        "manageCta": "Manage & get enrollment QR",
+        "active": "Active",
+        "paused": "Paused",
+        "collectPoints": "Collect {goal} points",
+        "collectStamps": "Collect {goal} stamps",
+        "empty": {
+          "title": "No programs yet",
+          "description": "A program defines how customers earn a reward — like 'buy 9 coffees, get the 10th free'.",
+          "cta": "Create your first program"
+        }
+      },
+      "new": {
+        "metaTitle": "New program",
+        "title": "New program",
+        "description": "Set the goal and the reward customers earn."
+      },
+      "form": {
+        "nameLabel": "Program name",
+        "namePlaceholder": "Coffee lovers card",
+        "typeLabel": "Type",
+        "typeStamp": "Stamp card",
+        "typePoints": "Points",
+        "goalLabelPoints": "Points to reward",
+        "goalLabelStamps": "Stamps to reward",
+        "rewardLabel": "Reward",
+        "rewardPlaceholder": "A free coffee of your choice",
+        "creating": "Creating…",
+        "create": "Create program"
+      },
+      "detail": {
+        "collectPoints": "Collect {goal} points",
+        "collectStamps": "Collect {goal} stamps",
+        "enrollmentQr": "Enrollment QR",
+        "qrAlt": "Enrollment QR code",
+        "printHint": "Print this and place it at your counter. Customers scan it to join and add their card to their wallet.",
+        "downloadQr": "Download QR (PNG)",
+        "cardsIssued": "Cards issued",
+        "reward": "Reward",
+        "editCta": "Edit program",
+        "disableCta": "Disable program",
+        "enableCta": "Enable program",
+        "disableHint": "While disabled, customers can't enroll or stamp/redeem their card.",
+        "deleteSectionTitle": "Danger zone",
+        "deleteSectionDescription": "Deleting a program is permanent. You must disable it first."
+      },
+      "edit": {
+        "metaTitle": "Edit program",
+        "title": "Edit program",
+        "description": "Update the goal and reward for this program.",
+        "goalChangeHint": "Changing the type or goal affects how existing customers' card progress reads — you can still do it, just give your team a heads up."
+      },
+      "delete": {
+        "cta": "Delete program",
+        "disabledHint": "Disable the program before you can delete it.",
+        "title": "Delete \"{name}\" forever?",
+        "warning": "This will permanently delete {count} customer card(s) for this program, along with all of their stamp and redemption history. This can't be undone.",
+        "confirmLabel": "Type \"{name}\" to confirm",
+        "confirmPlaceholder": "Program name",
+        "confirmButton": "Delete forever",
+        "deleting": "Deleting…",
+        "activeError": "Can't delete an active program. Disable it first.",
+        "notFoundError": "Program not found."
+      },
+      "templates": {
+        "sectionTitle": "Printable templates",
+        "sectionDescription": "Fun, on-brand designs to invite your customers to scan and join. Download them in high resolution for printing.",
+        "playfulName": "Playful",
+        "elegantName": "Elegant",
+        "retroName": "Retro",
+        "scanToJoin": "Scan to join",
+        "rewardLabel": "Your reward: {reward}",
+        "download": "Download PNG",
+        "downloading": "Generating…",
+        "downloadError": "Couldn't generate the image. Try again.",
+        "previewAlt": "Preview of the {name} template for {program}",
+        "logoAlt": "{business} logo"
+      },
+      "errors": {
+        "nameRequired": "Give the program a name.",
+        "goalMin": "Goal must be at least 1.",
+        "stampGoalMax": "Stamp cards can have at most 10 stamps.",
+        "rewardRequired": "Describe the reward."
+      }
+    },
+    "locations": {
+      "metaTitle": "Locations",
+      "title": "Locations",
+      "description": "Add store locations so cards surface on the lock screen when customers are nearby.",
+      "addCardTitle": "Add a location",
+      "latLngHint": "Latitude & longitude power proximity relevance in Apple & Google Wallet. Leave blank if you only want it for your records.",
+      "geoEnabled": "Geo enabled",
+      "noCoordinates": "No coordinates",
+      "deleteAria": "Delete location",
+      "form": {
+        "nameLabel": "Name",
+        "namePlaceholder": "Downtown",
+        "addressLabel": "Address",
+        "addressPlaceholder": "123 Main St",
+        "latLabel": "Lat",
+        "lngLabel": "Lng",
+        "adding": "Adding…",
+        "add": "Add"
+      },
+      "errors": {
+        "nameRequired": "Name is required."
+      }
+    },
+    "team": {
+      "metaTitle": "Team",
+      "title": "Team",
+      "description": "Invite staff and manage who can access this business.",
+      "membersBadge": "{count} members",
+      "membersBadgeWithLimit": "{count} / {limit} members",
+      "atLimit": "You've reached your plan's member limit. Upgrade your plan to invite more.",
+      "inviteCardTitle": "Invite a teammate",
+      "membersCardTitle": "Members",
+      "pendingInvitesCardTitle": "Pending invites",
+      "removeAria": "Remove member",
+      "revokeAria": "Revoke invite",
+      "expiredBadge": "Expired",
+      "form": {
+        "emailLabel": "Email",
+        "emailPlaceholder": "teammate@business.com",
+        "roleLabel": "Role",
+        "roleEmployee": "Employee",
+        "roleAdmin": "Admin",
+        "creating": "Creating…",
+        "createInvite": "Create invite",
+        "inviteReadyTitle": "Invite link ready",
+        "inviteReadyHint": "Share this link with your teammate. It expires in 7 days and works once, for the invited email."
+      },
+      "errors": {
+        "emailInvalid": "Enter a valid email."
+      }
+    },
+    "billing": {
+      "metaTitle": "Billing",
+      "title": "Plan & billing",
+      "description": "Manage your subscription and see your usage.",
+      "planSuffix": "plan",
+      "manageSubscription": "Manage subscription",
+      "plansHeading": "Plans",
+      "currentPlan": "Current plan",
+      "limitExceeded": "Your plan allows {limit} {resource}. Upgrade to add more.",
+      "resources": {
+        "locations": "Locations",
+        "employees": "Employees",
+        "customers": "Customers",
+        "programs": "Programs"
+      }
+    },
+    "scan": {
+      "metaTitle": "Scan",
+      "title": "Scan a card",
+      "description": "Add a stamp or redeem a reward from the customer's QR.",
+      "modeStamp": "stamp",
+      "modeRedeem": "redeem",
+      "pointCameraHint": "Point the camera at a customer's loyalty QR to {mode}.",
+      "startScanning": "Start scanning",
+      "cameraError": "Couldn't access the camera. Grant permission and use HTTPS.",
+      "rewardRedeemed": "Reward redeemed",
+      "stampAdded": "Stamp added",
+      "rewardReady": "Reward ready: {reward}",
+      "scanNext": "Scan next",
+      "errors": {
+        "cooldown": "Just scanned — wait {seconds}s before stamping again.",
+        "cooldownFallback": "a few",
+        "cardNotFound": "This card isn't recognized for your business.",
+        "notRedeemable": "This card doesn't have a reward ready yet.",
+        "programDisabled": "This program is disabled and isn't accepting stamps or redemptions.",
+        "unauthorized": "Your session expired. Please sign in again.",
+        "network": "Network error. Try again.",
+        "generic": "Something went wrong. Try again."
+      }
+    },
+    "settings": {
+      "metaTitle": "Settings",
+      "title": "Settings",
+      "description": "Your account, business profile, and card branding.",
+      "descriptionRestricted": "Manage your account.",
+      "userProfileCardTitle": "User profile",
+      "businessProfileCardTitle": "Business profile",
+      "userForm": {
+        "emailLabel": "Email",
+        "emailHint": "Your sign-in email. Contact support to change it.",
+        "nameLabel": "Name",
+        "namePlaceholder": "Your name",
+        "newPasswordLabel": "New password",
+        "newPasswordPlaceholder": "Leave blank to keep current",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter new password"
+      },
+      "businessForm": {
+        "nameLabel": "Business name",
+        "showNameCheckbox": "Show business name on wallet passes",
+        "primaryColorLabel": "Primary color",
+        "accentColorLabel": "Accent color",
+        "logoLabel": "Logo",
+        "logoHint": "Shown in the top-left corner of the wallet pass. Use a square PNG for best results.",
+        "passBgLabel": "Pass background",
+        "passBgHint": "Sits behind the stamps on the wallet pass. Use a wide image (about 3:1); it will be scaled to fit.",
+        "stampIconLabel": "Stamp icon",
+        "stampIconHint": "An SVG shown as each stamp on the card. Use a simple single-color icon — it's tinted automatically.",
+        "timezoneLabel": "Timezone",
+        "timezonePlaceholder": "America/New_York",
+        "removeCurrentImage": "Remove current image",
+        "keepCurrentImage": "Keep current image",
+        "none": "None"
+      },
+      "errors": {
+        "notSignedIn": "You are not signed in.",
+        "nameTooLong": "Name must be 120 characters or fewer.",
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordMismatch": "Passwords do not match.",
+        "businessNameRequired": "Name is required.",
+        "colorFormat": "Use a #RRGGBB color.",
+        "imageType": "Images must be PNG, JPEG, or WebP.",
+        "imageTooLarge": "Images must be under 4 MB.",
+        "stampIconType": "The stamp icon must be an SVG file.",
+        "stampIconTooLarge": "The stamp icon must be under 1 MB.",
+        "uploadFailed": "Upload failed."
+      }
+    }
+  },
+  "billing": {
+    "plans": {
+      "trial": {
+        "name": "Trial",
+        "tagline": "14 days, full features, capped.",
+        "features": ["All features", "1 location", "Up to 50 customers"]
+      },
+      "small": {
+        "name": "Small",
+        "tagline": "For a single location getting started.",
+        "features": [
+          "1 location",
+          "1 employee",
+          "Up to 100 customers",
+          "1 loyalty program",
+          "Apple & Google Wallet",
+          "Basic stats"
+        ]
+      },
+      "medium": {
+        "name": "Medium",
+        "tagline": "For growing businesses with a small team.",
+        "features": [
+          "Up to 3 locations",
+          "5 employees",
+          "Up to 1,000 customers",
+          "3 loyalty programs",
+          "Analytics dashboard",
+          "Custom enrollment fields"
+        ]
+      },
+      "big": {
+        "name": "Big",
+        "tagline": "For multi-location brands.",
+        "features": [
+          "Unlimited locations",
+          "10+ employees",
+          "Up to 10,000 customers",
+          "Unlimited programs",
+          "Priority support",
+          "API access"
+        ]
+      },
+      "mostPopular": "Most popular"
+    }
+  },
+  "join": {
+    "metaTitle": "Join a team",
+    "notFound": {
+      "title": "Invite not found",
+      "description": "This invite link is invalid or has been revoked. Ask whoever invited you for a new one."
+    },
+    "alreadyUsed": {
+      "title": "Invite already used",
+      "description": "This invite has already been accepted."
+    },
+    "expired": {
+      "title": "Invite expired",
+      "description": "This invite has expired. Ask for a new one."
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load this invite. Please try again in a moment."
+    },
+    "title": "Join {business} on Stamply",
+    "invitedAs": "You've been invited as",
+    "invitedFor": "for",
+    "signInOrCreate": "Sign in or create an account with {email} to accept.",
+    "signIn": "Sign in",
+    "createAccount": "Create an account",
+    "signedInAsDifferent": "You're signed in as {email}, but this invite is for {inviteEmail}.",
+    "signInDifferent": "Sign in with a different account",
+    "joinCta": "Join {business}",
+    "joining": "Joining…",
+    "errors": {
+      "invalid": "This invite link is invalid.",
+      "alreadyUsed": "This invite has already been used.",
+      "expired": "This invite has expired. Ask for a new one.",
+      "wrongEmail": "This invite is for {email}. Sign in with that email to accept.",
+      "businessGone": "That business no longer exists.",
+      "teamFull": "This team is full. Ask the owner to upgrade."
+    }
+  },
+  "customerJoin": {
+    "title": "Join the loyalty club",
+    "collectPoints": "Collect {goal} points",
+    "collectStamps": "Collect {goal} stamps",
+    "form": {
+      "nameLabel": "Your name",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone (optional)",
+      "marketingConsent": "Send me offers and updates. You can opt out anytime.",
+      "creating": "Creating your card…",
+      "submit": "Join & get my card"
+    },
+    "errors": {
+      "nameRequired": "Please enter your name.",
+      "emailInvalid": "Enter a valid email.",
+      "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again.",
+      "programNotFound": "This loyalty program was not found.",
+      "programInactive": "This program is not currently accepting new members.",
+      "customerLimitReached": "This business has reached its customer limit.",
+      "enrollFailed": "Could not enroll."
+    },
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load this loyalty program. Please try again in a moment."
+    }
+  },
+  "card": {
+    "error": {
+      "title": "Something went wrong",
+      "description": "We couldn't load your card. Please try again in a moment."
+    },
+    "showAtCheckout": "Show this at checkout",
+    "qrAlt": "Your loyalty QR code",
+    "addAppleWallet": "Add to Apple Wallet",
+    "addGoogleWallet": "Add to Google Wallet",
+    "rewardReady": "Reward ready!",
+    "yourReward": "Your reward",
+    "stamps": "Stamps",
+    "availableRewards": "Available rewards",
+    "customer": "Customer",
+    "guest": "Guest",
+    "name": "Name",
+    "rewards": "Rewards"
+  },
+  "landing": {
+    "nav": {
+      "signIn": "Sign in",
+      "getStarted": "Get started"
+    },
+    "hero": {
+      "badge": "Digital loyalty, done right",
+      "title": "Turn one-time visitors into regulars.",
+      "subtitle": "Stamply gives cafés, barbershops, and restaurants digital loyalty cards in Apple Wallet and Google Wallet — with rewards your customers actually come back for.",
+      "ctaPrimary": "Start free trial",
+      "ctaSecondary": "See pricing"
+    },
+    "features": {
+      "wallet": {
+        "title": "Apple & Google Wallet",
+        "body": "Customers add their card to the wallet they already use. No app to install."
+      },
+      "scan": {
+        "title": "Scan to stamp",
+        "body": "Staff scan the customer's QR from any phone or tablet — right in the browser."
+      },
+      "liveUpdates": {
+        "title": "Live updates",
+        "body": "Stamps and rewards update on the wallet card instantly via push."
+      },
+      "nearby": {
+        "title": "Nearby reminders",
+        "body": "The card surfaces on the lock screen when a customer is near your shop."
+      }
+    },
+    "pricing": {
+      "heading": "Simple, per-location pricing",
+      "subtitle": "Monthly subscriptions, billed monthly — cancel anytime. Start with a 14-day free trial, no card required.",
+      "cta": "Start free trial"
+    },
+    "footer": {
+      "rights": "© 2026 Stamply. All rights reserved."
+    }
+  },
+  "seo": {
+    "title": "Stamply — Digital Loyalty Cards",
+    "description": "Bring digital loyalty cards for your café, barbershop, or restaurant to Apple Wallet and Google Wallet — no app required."
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "This card or page doesn't exist, or the link has expired.",
+    "backHome": "Back home"
+  }
+}

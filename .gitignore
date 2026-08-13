@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# dependencies (any workspace: root, apps/*, packages/*)
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -11,21 +11,21 @@
 !.yarn/versions
 
 # testing
-/coverage
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
 
 # graphify (local knowledge-graph artifacts)
 /graphify-out/
 
-# next.js
-/.next/
-/out/
+# next.js (any app)
+.next/
+out/
 
 # production
-/build
+build/
 
 # misc
 .DS_Store

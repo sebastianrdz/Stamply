@@ -1,0 +1,575 @@
+{
+  "common": {
+    "save": "Guardar",
+    "saving": "Guardando…",
+    "saved": "Guardado.",
+    "cancel": "Cancelar",
+    "back": "Atrás",
+    "backHome": "Volver al inicio",
+    "add": "Agregar",
+    "adding": "Agregando…",
+    "creating": "Creando…",
+    "remove": "Quitar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "copy": "Copiar",
+    "copyLink": "Copiar enlace",
+    "copied": "Copiado",
+    "signIn": "Iniciar sesión",
+    "signOut": "Cerrar sesión",
+    "createAccount": "Crear cuenta",
+    "getStarted": "Comenzar",
+    "none": "Ninguno",
+    "unknownEmail": "Correo desconocido",
+    "anonymous": "Anónimo",
+    "noAddress": "Sin dirección",
+    "active": "Activo",
+    "paused": "Pausado",
+    "current": "Actual",
+    "poweredBy": "Con la tecnología de Stamply",
+    "perMonth": "/mes",
+    "billedMonthly": "Facturación mensual",
+    "freeTrial": "Prueba gratis",
+    "switchTo": "Cambiar a {name}",
+    "roles": {
+      "owner": "Propietario",
+      "admin": "Administrador",
+      "employee": "Empleado"
+    },
+    "subscriptionStatus": {
+      "trialing": "en prueba",
+      "active": "activa",
+      "past_due": "pago vencido",
+      "canceled": "cancelada",
+      "incomplete": "incompleta",
+      "unpaid": "sin pagar"
+    },
+    "validation": {
+      "emailInvalid": "Ingresa un correo válido.",
+      "passwordTooShort": "La contraseña debe tener al menos 8 caracteres."
+    }
+  },
+  "settings": {
+    "language": {
+      "title": "Idioma",
+      "description": "Elige el idioma en el que quieres ver Stamply.",
+      "spanish": "Español",
+      "spanishShort": "ES",
+      "english": "English",
+      "englishShort": "EN"
+    }
+  },
+  "nav": {
+    "overview": "Resumen",
+    "scan": "Escanear",
+    "programs": "Programas",
+    "customers": "Clientes",
+    "locations": "Sucursales",
+    "analytics": "Analítica",
+    "team": "Equipo",
+    "billing": "Facturación",
+    "settings": "Configuración",
+    "userMenu": "Menú de usuario",
+    "roleLabel": "Rol",
+    "toggleSidebar": "Mostrar u ocultar el menú lateral",
+    "addBusiness": "Agregar negocio",
+    "selectBusiness": "Selecciona un negocio"
+  },
+  "auth": {
+    "login": {
+      "metaTitle": "Iniciar sesión",
+      "title": "Bienvenido de nuevo",
+      "subtitle": "Inicia sesión para administrar tus programas de lealtad."
+    },
+    "register": {
+      "metaTitle": "Crear cuenta",
+      "title": "Comienza con Stamply",
+      "subtitle": "Crea tu cuenta y configura tu primera tarjeta de lealtad."
+    },
+    "form": {
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@negocio.com",
+      "passwordLabel": "Contraseña",
+      "pleaseWait": "Espera un momento…",
+      "signIn": "Iniciar sesión",
+      "createAccount": "Crear cuenta",
+      "newToStamply": "¿Nuevo en Stamply?",
+      "createAnAccount": "Crea una cuenta",
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?"
+    }
+  },
+  "onboarding": {
+    "setup": {
+      "metaTitle": "Configura tu negocio",
+      "title": "Configura tu negocio",
+      "subtitle": "Este es el nombre que verán tus clientes en su tarjeta de lealtad. Podrás agregar sucursales y personalizar la marca después."
+    },
+    "add": {
+      "title": "Agregar un negocio",
+      "subtitle": "Configura un nuevo negocio — tendrá su propio programa de lealtad, sucursales y marca, y pasará a ser tu negocio activo."
+    },
+    "form": {
+      "nameLabel": "Nombre del negocio",
+      "namePlaceholder": "Café Bean & Brew",
+      "createBusiness": "Crear negocio",
+      "addBusiness": "Agregar negocio",
+      "cancel": "Cancelar"
+    },
+    "errors": {
+      "nameRequired": "El nombre del negocio es obligatorio.",
+      "createFailed": "No se pudo crear el negocio."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "welcome": "Bienvenido, {business}",
+      "description": "Así va tu programa de lealtad.",
+      "stats": {
+        "customers": "Clientes",
+        "activeCards": "Tarjetas activas",
+        "stampsThisWeek": "Sellos esta semana",
+        "rewardsRedeemed": "Recompensas canjeadas"
+      },
+      "scanCard": {
+        "title": "Escanear una tarjeta",
+        "description": "Agrega un sello o canjea una recompensa.",
+        "cta": "Abrir escáner"
+      },
+      "newProgramCard": {
+        "title": "Nuevo programa",
+        "description": "Crea una tarjeta de sellos o de puntos.",
+        "cta": "Crear programa"
+      }
+    },
+    "customers": {
+      "metaTitle": "Clientes",
+      "title": "Clientes",
+      "description": "Todas las personas que se unieron a tu programa de lealtad.",
+      "optedIn": "{count} aceptaron recibir marketing",
+      "optedInBadge": "Aceptó",
+      "noConsentBadge": "Sin consentimiento",
+      "empty": {
+        "title": "Aún no hay clientes",
+        "description": "Comparte el código QR de inscripción de un programa para empezar a sumar miembros."
+      }
+    },
+    "analytics": {
+      "metaTitle": "Analítica",
+      "title": "Analítica",
+      "description": "Cómo interactúan tus clientes con tu programa de lealtad.",
+      "stats": {
+        "stamps14d": "Sellos (14 días)",
+        "cardsIssued": "Tarjetas emitidas",
+        "redemptions": "Canjes",
+        "redemptionRate": "Tasa de canje"
+      },
+      "stampsPerDay": "Sellos por día",
+      "stampsTooltip": "{count} sellos"
+    },
+    "programs": {
+      "list": {
+        "metaTitle": "Programas",
+        "title": "Programas de lealtad",
+        "description": "Crea las tarjetas de recompensas que tus clientes coleccionan.",
+        "newProgram": "Nuevo programa",
+        "manageCta": "Administrar y obtener QR de inscripción",
+        "active": "Activo",
+        "paused": "Pausado",
+        "collectPoints": "Junta {goal} puntos",
+        "collectStamps": "Junta {goal} sellos",
+        "empty": {
+          "title": "Aún no hay programas",
+          "description": "Un programa define cómo tus clientes ganan una recompensa — por ejemplo, «compra 9 cafés y el 10.º es gratis».",
+          "cta": "Crea tu primer programa"
+        }
+      },
+      "new": {
+        "metaTitle": "Nuevo programa",
+        "title": "Nuevo programa",
+        "description": "Define la meta y la recompensa que ganan tus clientes."
+      },
+      "form": {
+        "nameLabel": "Nombre del programa",
+        "namePlaceholder": "Tarjeta de amantes del café",
+        "typeLabel": "Tipo",
+        "typeStamp": "Tarjeta de sellos",
+        "typePoints": "Puntos",
+        "goalLabelPoints": "Puntos para la recompensa",
+        "goalLabelStamps": "Sellos para la recompensa",
+        "rewardLabel": "Recompensa",
+        "rewardPlaceholder": "Un café gratis a elección",
+        "creating": "Creando…",
+        "create": "Crear programa"
+      },
+      "detail": {
+        "collectPoints": "Junta {goal} puntos",
+        "collectStamps": "Junta {goal} sellos",
+        "enrollmentQr": "QR de inscripción",
+        "qrAlt": "Código QR de inscripción",
+        "printHint": "Imprime esto y colócalo en tu mostrador. Los clientes lo escanean para unirse y agregar su tarjeta a su wallet.",
+        "downloadQr": "Descargar QR (PNG)",
+        "cardsIssued": "Tarjetas emitidas",
+        "reward": "Recompensa",
+        "editCta": "Editar programa",
+        "disableCta": "Desactivar programa",
+        "enableCta": "Activar programa",
+        "disableHint": "Mientras esté desactivado, los clientes no podrán inscribirse ni sellar o canjear su tarjeta.",
+        "deleteSectionTitle": "Zona de peligro",
+        "deleteSectionDescription": "Eliminar un programa es permanente. Primero debes desactivarlo."
+      },
+      "edit": {
+        "metaTitle": "Editar programa",
+        "title": "Editar programa",
+        "description": "Actualiza la meta y la recompensa de este programa.",
+        "goalChangeHint": "Cambiar el tipo o la meta afecta cómo se lee el progreso de las tarjetas de clientes que ya existen — puedes hacerlo, pero avisa a tu equipo."
+      },
+      "delete": {
+        "cta": "Eliminar programa",
+        "disabledHint": "Desactiva el programa antes de poder eliminarlo.",
+        "title": "¿Eliminar «{name}» para siempre?",
+        "warning": "Esto eliminará permanentemente las {count} tarjetas de clientes de este programa, junto con todo su historial de sellos y canjes. No se puede deshacer.",
+        "confirmLabel": "Escribe «{name}» para confirmar",
+        "confirmPlaceholder": "Nombre del programa",
+        "confirmButton": "Eliminar para siempre",
+        "deleting": "Eliminando…",
+        "activeError": "No se puede eliminar un programa activo. Desactívalo primero.",
+        "notFoundError": "No se encontró el programa."
+      },
+      "templates": {
+        "sectionTitle": "Plantillas imprimibles",
+        "sectionDescription": "Diseños divertidos con tu marca para invitar a tus clientes a escanear y unirse. Descárgalos en alta resolución para imprimir.",
+        "playfulName": "Divertida",
+        "elegantName": "Elegante",
+        "retroName": "Retro",
+        "scanToJoin": "Escanea para unirte",
+        "rewardLabel": "Tu recompensa: {reward}",
+        "download": "Descargar PNG",
+        "downloading": "Generando…",
+        "downloadError": "No se pudo generar la imagen. Intenta de nuevo.",
+        "previewAlt": "Vista previa de la plantilla {name} para {program}",
+        "logoAlt": "Logo de {business}"
+      },
+      "errors": {
+        "nameRequired": "Ponle un nombre al programa.",
+        "goalMin": "La meta debe ser al menos 1.",
+        "stampGoalMax": "Las tarjetas de sellos pueden tener como máximo 10 sellos.",
+        "rewardRequired": "Describe la recompensa."
+      }
+    },
+    "locations": {
+      "metaTitle": "Sucursales",
+      "title": "Sucursales",
+      "description": "Agrega tus sucursales para que las tarjetas aparezcan en la pantalla de bloqueo cuando los clientes estén cerca.",
+      "addCardTitle": "Agregar una sucursal",
+      "latLngHint": "La latitud y longitud activan la relevancia por proximidad en Apple y Google Wallet. Déjalo en blanco si solo lo quieres para tus registros.",
+      "geoEnabled": "Geolocalización activa",
+      "noCoordinates": "Sin coordenadas",
+      "deleteAria": "Eliminar sucursal",
+      "form": {
+        "nameLabel": "Nombre",
+        "namePlaceholder": "Centro",
+        "addressLabel": "Dirección",
+        "addressPlaceholder": "Av. Principal 123",
+        "latLabel": "Lat",
+        "lngLabel": "Lng",
+        "adding": "Agregando…",
+        "add": "Agregar"
+      },
+      "errors": {
+        "nameRequired": "El nombre es obligatorio."
+      }
+    },
+    "team": {
+      "metaTitle": "Equipo",
+      "title": "Equipo",
+      "description": "Invita personal y administra quién puede acceder a este negocio.",
+      "membersBadge": "{count} integrantes",
+      "membersBadgeWithLimit": "{count} / {limit} integrantes",
+      "atLimit": "Alcanzaste el límite de integrantes de tu plan. Mejora tu plan para invitar a más personas.",
+      "inviteCardTitle": "Invitar a un integrante",
+      "membersCardTitle": "Integrantes",
+      "pendingInvitesCardTitle": "Invitaciones pendientes",
+      "removeAria": "Quitar integrante",
+      "revokeAria": "Revocar invitación",
+      "expiredBadge": "Vencida",
+      "form": {
+        "emailLabel": "Correo electrónico",
+        "emailPlaceholder": "compañero@negocio.com",
+        "roleLabel": "Rol",
+        "roleEmployee": "Empleado",
+        "roleAdmin": "Administrador",
+        "creating": "Creando…",
+        "createInvite": "Crear invitación",
+        "inviteReadyTitle": "Invitación lista",
+        "inviteReadyHint": "Comparte este enlace con tu compañero. Vence en 7 días y funciona una sola vez, para el correo invitado."
+      },
+      "errors": {
+        "emailInvalid": "Ingresa un correo válido."
+      }
+    },
+    "billing": {
+      "metaTitle": "Facturación",
+      "title": "Plan y facturación",
+      "description": "Administra tu suscripción y consulta tu uso.",
+      "planSuffix": "plan",
+      "manageSubscription": "Administrar suscripción",
+      "plansHeading": "Planes",
+      "currentPlan": "Plan actual",
+      "limitExceeded": "Tu plan permite {limit} {resource}. Mejora tu plan para agregar más.",
+      "resources": {
+        "locations": "Sucursales",
+        "employees": "Empleados",
+        "customers": "Clientes",
+        "programs": "Programas"
+      }
+    },
+    "scan": {
+      "metaTitle": "Escanear",
+      "title": "Escanear una tarjeta",
+      "description": "Agrega un sello o canjea una recompensa desde el QR del cliente.",
+      "modeStamp": "sellar",
+      "modeRedeem": "canjear",
+      "pointCameraHint": "Apunta la cámara al código QR de lealtad del cliente para {mode}.",
+      "startScanning": "Comenzar a escanear",
+      "cameraError": "No se pudo acceder a la cámara. Otorga el permiso y usa HTTPS.",
+      "rewardRedeemed": "Recompensa canjeada",
+      "stampAdded": "Sello agregado",
+      "rewardReady": "Recompensa lista: {reward}",
+      "scanNext": "Escanear siguiente",
+      "errors": {
+        "cooldown": "Se acaba de escanear — espera {seconds}s antes de sellar de nuevo.",
+        "cooldownFallback": "unos segundos",
+        "cardNotFound": "Esta tarjeta no está reconocida para tu negocio.",
+        "notRedeemable": "Esta tarjeta aún no tiene una recompensa lista.",
+        "programDisabled": "Este programa está desactivado y no acepta sellos ni canjes.",
+        "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo.",
+        "network": "Error de red. Intenta de nuevo.",
+        "generic": "Algo salió mal. Intenta de nuevo."
+      }
+    },
+    "settings": {
+      "metaTitle": "Configuración",
+      "title": "Configuración",
+      "description": "Tu cuenta, el perfil del negocio y la marca de las tarjetas.",
+      "descriptionRestricted": "Administra tu cuenta.",
+      "userProfileCardTitle": "Perfil de usuario",
+      "businessProfileCardTitle": "Perfil del negocio",
+      "userForm": {
+        "emailLabel": "Correo electrónico",
+        "emailHint": "Tu correo de acceso. Contacta a soporte para cambiarlo.",
+        "nameLabel": "Nombre",
+        "namePlaceholder": "Tu nombre",
+        "newPasswordLabel": "Nueva contraseña",
+        "newPasswordPlaceholder": "Déjalo en blanco para mantener la actual",
+        "confirmPasswordLabel": "Confirmar contraseña",
+        "confirmPasswordPlaceholder": "Vuelve a escribir la nueva contraseña"
+      },
+      "businessForm": {
+        "nameLabel": "Nombre del negocio",
+        "showNameCheckbox": "Mostrar el nombre del negocio en las tarjetas del wallet",
+        "primaryColorLabel": "Color primario",
+        "accentColorLabel": "Color de acento",
+        "logoLabel": "Logotipo",
+        "logoHint": "Se muestra en la esquina superior izquierda de la tarjeta del wallet. Usa un PNG cuadrado para mejores resultados.",
+        "passBgLabel": "Fondo de la tarjeta",
+        "passBgHint": "Va detrás de los sellos en la tarjeta del wallet. Usa una imagen ancha (más o menos 3:1); se ajustará automáticamente.",
+        "stampIconLabel": "Icono de sello",
+        "stampIconHint": "Un SVG que se muestra como cada sello en la tarjeta. Usa un icono simple de un solo color: se colorea automáticamente.",
+        "timezoneLabel": "Zona horaria",
+        "timezonePlaceholder": "America/Mexico_City",
+        "removeCurrentImage": "Quitar imagen actual",
+        "keepCurrentImage": "Mantener imagen actual",
+        "none": "Ninguna"
+      },
+      "errors": {
+        "notSignedIn": "No has iniciado sesión.",
+        "nameTooLong": "El nombre debe tener 120 caracteres o menos.",
+        "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+        "passwordMismatch": "Las contraseñas no coinciden.",
+        "businessNameRequired": "El nombre es obligatorio.",
+        "colorFormat": "Usa un color #RRGGBB.",
+        "imageType": "Las imágenes deben ser PNG, JPEG o WebP.",
+        "imageTooLarge": "Las imágenes deben pesar menos de 4 MB.",
+        "stampIconType": "El icono de sello debe ser un archivo SVG.",
+        "stampIconTooLarge": "El icono de sello debe pesar menos de 1 MB.",
+        "uploadFailed": "No se pudo subir la imagen."
+      }
+    }
+  },
+  "billing": {
+    "plans": {
+      "trial": {
+        "name": "Prueba",
+        "tagline": "14 días, todas las funciones, con límites.",
+        "features": ["Todas las funciones", "1 sucursal", "Hasta 50 clientes"]
+      },
+      "small": {
+        "name": "Pequeño",
+        "tagline": "Para una sola sucursal que está comenzando.",
+        "features": [
+          "1 sucursal",
+          "1 empleado",
+          "Hasta 100 clientes",
+          "1 programa de lealtad",
+          "Apple & Google Wallet",
+          "Estadísticas básicas"
+        ]
+      },
+      "medium": {
+        "name": "Mediano",
+        "tagline": "Para negocios en crecimiento con un equipo pequeño.",
+        "features": [
+          "Hasta 3 sucursales",
+          "5 empleados",
+          "Hasta 1,000 clientes",
+          "3 programas de lealtad",
+          "Panel de analítica",
+          "Campos de inscripción personalizados"
+        ]
+      },
+      "big": {
+        "name": "Grande",
+        "tagline": "Para marcas con varias sucursales.",
+        "features": [
+          "Sucursales ilimitadas",
+          "10+ empleados",
+          "Hasta 10,000 clientes",
+          "Programas ilimitados",
+          "Soporte prioritario",
+          "Acceso a la API"
+        ]
+      },
+      "mostPopular": "El más popular"
+    }
+  },
+  "join": {
+    "metaTitle": "Únete a un equipo",
+    "notFound": {
+      "title": "Invitación no encontrada",
+      "description": "Este enlace de invitación no es válido o fue revocado. Pide a quien te invitó que te envíe uno nuevo."
+    },
+    "alreadyUsed": {
+      "title": "Invitación ya utilizada",
+      "description": "Esta invitación ya fue aceptada."
+    },
+    "expired": {
+      "title": "Invitación vencida",
+      "description": "Esta invitación venció. Pide una nueva."
+    },
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar esta invitación. Intenta de nuevo en unos momentos."
+    },
+    "title": "Únete a {business} en Stamply",
+    "invitedAs": "Se te invitó como",
+    "invitedFor": "para",
+    "signInOrCreate": "Inicia sesión o crea una cuenta con {email} para aceptar.",
+    "signIn": "Iniciar sesión",
+    "createAccount": "Crear cuenta",
+    "signedInAsDifferent": "Iniciaste sesión como {email}, pero esta invitación es para {inviteEmail}.",
+    "signInDifferent": "Iniciar sesión con otra cuenta",
+    "joinCta": "Unirse a {business}",
+    "joining": "Uniéndose…",
+    "errors": {
+      "invalid": "Este enlace de invitación no es válido.",
+      "alreadyUsed": "Esta invitación ya fue utilizada.",
+      "expired": "Esta invitación venció. Pide una nueva.",
+      "wrongEmail": "Esta invitación es para {email}. Inicia sesión con ese correo para aceptarla.",
+      "businessGone": "Ese negocio ya no existe.",
+      "teamFull": "Este equipo está lleno. Pide al propietario que mejore su plan."
+    }
+  },
+  "customerJoin": {
+    "title": "Únete al club de lealtad",
+    "collectPoints": "Junta {goal} puntos",
+    "collectStamps": "Junta {goal} sellos",
+    "form": {
+      "nameLabel": "Tu nombre",
+      "emailLabel": "Correo electrónico",
+      "phoneLabel": "Teléfono (opcional)",
+      "marketingConsent": "Envíame ofertas y novedades. Puedes darte de baja cuando quieras.",
+      "creating": "Creando tu tarjeta…",
+      "submit": "Unirme y obtener mi tarjeta"
+    },
+    "errors": {
+      "nameRequired": "Ingresa tu nombre.",
+      "emailInvalid": "Ingresa un correo válido.",
+      "tooManyAttempts": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+      "programNotFound": "No se encontró este programa de lealtad.",
+      "programInactive": "Este programa no está aceptando nuevos miembros por ahora.",
+      "customerLimitReached": "Este negocio alcanzó su límite de clientes.",
+      "enrollFailed": "No se pudo completar la inscripción."
+    },
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar este programa de lealtad. Intenta de nuevo en unos momentos."
+    }
+  },
+  "card": {
+    "error": {
+      "title": "Algo salió mal",
+      "description": "No pudimos cargar tu tarjeta. Intenta de nuevo en unos momentos."
+    },
+    "showAtCheckout": "Muestra esto al pagar",
+    "qrAlt": "Tu código QR de lealtad",
+    "addAppleWallet": "Agregar a Apple Wallet",
+    "addGoogleWallet": "Agregar a Google Wallet",
+    "rewardReady": "¡Recompensa lista!",
+    "yourReward": "Tu recompensa",
+    "stamps": "Sellos",
+    "availableRewards": "Recompensas disponibles",
+    "customer": "Cliente",
+    "guest": "Invitado",
+    "name": "Nombre",
+    "rewards": "Recompensas"
+  },
+  "landing": {
+    "nav": {
+      "signIn": "Iniciar sesión",
+      "getStarted": "Comenzar"
+    },
+    "hero": {
+      "badge": "Lealtad digital, bien hecha",
+      "title": "Convierte visitas de una vez en clientes de siempre.",
+      "subtitle": "Stamply le da a cafeterías, barberías y restaurantes tarjetas de lealtad digitales en Apple Wallet y Google Wallet — con recompensas por las que tus clientes sí regresan.",
+      "ctaPrimary": "Prueba gratis",
+      "ctaSecondary": "Ver precios"
+    },
+    "features": {
+      "wallet": {
+        "title": "Apple & Google Wallet",
+        "body": "Los clientes agregan su tarjeta al wallet que ya usan. No necesitan instalar ninguna app."
+      },
+      "scan": {
+        "title": "Escanea para sellar",
+        "body": "El personal escanea el QR del cliente desde cualquier teléfono o tablet — directo desde el navegador."
+      },
+      "liveUpdates": {
+        "title": "Actualizaciones en vivo",
+        "body": "Los sellos y recompensas se actualizan al instante en la tarjeta del wallet, vía notificaciones push."
+      },
+      "nearby": {
+        "title": "Recordatorios de cercanía",
+        "body": "La tarjeta aparece en la pantalla de bloqueo cuando un cliente está cerca de tu negocio."
+      }
+    },
+    "pricing": {
+      "heading": "Precios simples, por sucursal",
+      "subtitle": "Suscripciones mensuales, facturadas cada mes — cancela cuando quieras. Comienza con una prueba gratis de 14 días, sin tarjeta requerida.",
+      "cta": "Prueba gratis"
+    },
+    "footer": {
+      "rights": "© 2026 Stamply. Todos los derechos reservados."
+    }
+  },
+  "seo": {
+    "title": "Stamply — Tarjetas de lealtad digitales",
+    "description": "Lleva tarjetas de lealtad digitales para tu cafetería, barbería o restaurante a Apple Wallet y Google Wallet, sin apps que instalar."
+  },
+  "notFound": {
+    "title": "Página no encontrada",
+    "description": "Esta tarjeta o página no existe, o el enlace venció.",
+    "backHome": "Volver al inicio"
+  }
+}
