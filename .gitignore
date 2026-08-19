@@ -49,3 +49,5 @@ next-env.d.ts
 
 # Certificates
 /certificates
+
+apps/app/supabase/.temp
