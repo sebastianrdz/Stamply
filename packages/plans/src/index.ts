@@ -40,7 +40,7 @@ export const PLANS: Record<PlanTier, PlanDef> = {
   small: {
     tier: "small",
     name: "Small",
-    price: 399,
+    price: 679,
     interval: "month",
     tagline: "For a single location getting started.",
     limits: { locations: 1, employees: 1, customers: 100, programs: 1 },
@@ -57,7 +57,7 @@ export const PLANS: Record<PlanTier, PlanDef> = {
   medium: {
     tier: "medium",
     name: "Medium",
-    price: 699,
+    price: 1279,
     interval: "month",
     tagline: "For growing businesses with a small team.",
     limits: { locations: 3, employees: 5, customers: 1000, programs: 3 },
@@ -74,7 +74,7 @@ export const PLANS: Record<PlanTier, PlanDef> = {
   big: {
     tier: "big",
     name: "Big",
-    price: 1299,
+    price: 1879,
     interval: "month",
     tagline: "For multi-location brands.",
     limits: {

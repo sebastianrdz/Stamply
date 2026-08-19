@@ -19,7 +19,7 @@ Built with **Next.js 16 (App Router) · Supabase (Postgres + RLS) · Stripe · T
 - **In-browser QR scanning** for staff to stamp / redeem, with a double-scan cooldown.
 - **Proximity relevance** — store locations attach to passes so cards surface on the lock
   screen when a customer is nearby (no customer app required).
-- **Tiered billing** with Stripe — Small $399, Medium $699, Big $1299/mo — with per-plan
+- **Tiered billing** with Stripe — Small $679, Medium $1279, Big $1879/mo — with per-plan
   limits (locations, employees, customers, programs) enforced on create.
 - Dashboard with overview, analytics, customers, locations, billing, and branding settings.
 

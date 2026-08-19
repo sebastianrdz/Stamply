@@ -4,9 +4,9 @@ import { PLANS, isWithinLimit, planLimit } from "@stamply/plans";
 describe("PLANS", () => {
   it("prices match the published tiers", () => {
     expect(PLANS.trial.price).toBe(0);
-    expect(PLANS.small.price).toBe(399);
-    expect(PLANS.medium.price).toBe(699);
-    expect(PLANS.big.price).toBe(1299);
+    expect(PLANS.small.price).toBe(679);
+    expect(PLANS.medium.price).toBe(1279);
+    expect(PLANS.big.price).toBe(1879);
   });
 
   it("small plan limits", () => {
