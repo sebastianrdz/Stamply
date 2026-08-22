@@ -25,11 +25,10 @@ const ICON_SIZES: ReadonlyArray<readonly [name: string, size: number]> = [
  * buffer so it's unit-testable without network or the rasterizer (mirrors
  * `buildStampSvg`).
  *
- * - With a logo: white background + the logo contain-fit (`xMidYMid meet`, no
- *   distortion) inset by ~10%. We emit a full square — Apple applies its own
- *   rounded-corner mask.
- * - Without a logo: a solid brand-color square, so logo-less businesses get a
- *   branded icon rather than a blank block.
+ * The background is always the **brand primary color**; the logo is contain-fit
+ * on top (`xMidYMid meet`, no distortion) inset by ~10% when present, otherwise
+ * it's a solid brand-color square. We emit a full square; Apple applies its own
+ * rounded-corner mask.
  */
 export function buildIconSvg(params: {
   logoBuf: Buffer | null;
@@ -38,14 +37,15 @@ export function buildIconSvg(params: {
 }): string {
   const { logoBuf, brandHex, size: S } = params;
   const open = `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}" viewBox="0 0 ${S} ${S}">`;
+  const bg = `<rect width="${S}" height="${S}" fill="${sanitizeHex(brandHex)}" />`;
 
   if (!logoBuf) {
-    return `${open}<rect width="${S}" height="${S}" fill="${sanitizeHex(brandHex)}" /></svg>`;
+    return `${open}${bg}</svg>`;
   }
 
   const pad = Math.round(S * 0.1);
   const inner = S - pad * 2;
-  return `${open}<rect width="${S}" height="${S}" fill="#ffffff" /><image href="${dataUri(logoBuf)}" x="${pad}" y="${pad}" width="${inner}" height="${inner}" preserveAspectRatio="xMidYMid meet" /></svg>`;
+  return `${open}${bg}<image href="${dataUri(logoBuf)}" x="${pad}" y="${pad}" width="${inner}" height="${inner}" preserveAspectRatio="xMidYMid meet" /></svg>`;
 }
 
 /**

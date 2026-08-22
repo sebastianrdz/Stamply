@@ -31,26 +31,27 @@ beforeEach(() => {
 });
 
 describe("buildIconSvg", () => {
-  it("emits a square SVG with a contain-fit <image> when a logo is given", () => {
+  it("emits a square SVG with a brand-color background + contain-fit <image> when a logo is given", () => {
     const svg = buildIconSvg({
       logoBuf: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), // 8-byte PNG signature
-      brandHex: "#7c5cfc",
+      brandHex: "#123456",
       size: 58,
     });
     expect(svg).toContain('width="58"');
     expect(svg).toContain('height="58"');
+    expect(svg).toContain('fill="#123456"');
     expect(svg).toContain("<image");
     expect(svg).toContain('preserveAspectRatio="xMidYMid meet"');
     expect(svg).toContain("data:image/png;base64,");
   });
 
-  it("falls back to a solid brand-color square (no <image>) when no logo", () => {
+  it("falls back to a solid brand-color square (no <image>) when there is no logo", () => {
     const svg = buildIconSvg({ logoBuf: null, brandHex: "#123456", size: 29 });
     expect(svg).not.toContain("<image");
     expect(svg).toContain('fill="#123456"');
   });
 
-  it("sanitizes an invalid brand color in the fallback", () => {
+  it("sanitizes an invalid brand color", () => {
     const svg = buildIconSvg({ logoBuf: null, brandHex: "javascript:x", size: 29 });
     expect(svg).toContain('fill="#7c5cfc"');
     expect(svg).not.toContain("javascript");
