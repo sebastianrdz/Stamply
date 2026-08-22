@@ -274,7 +274,10 @@
         "latLabel": "Lat",
         "lngLabel": "Lng",
         "adding": "Adding…",
-        "add": "Add"
+        "add": "Add",
+        "useCurrentLocation": "Use my current location",
+        "locating": "Locating…",
+        "geoError": "Couldn't get your location. Enter it manually or allow location access."
       },
       "errors": {
         "nameRequired": "Name is required."
