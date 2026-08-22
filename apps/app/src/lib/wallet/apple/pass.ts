@@ -128,7 +128,7 @@ export async function buildApplePass(
 
   const logo = await logoBuffer(card.business.logo_url);
   // The pass icon (shown on the lock screen / notifications) is the business
-  // logo rendered into a square; logo.png (below) is the pass-face logo.
+  // logo on a brand-color square; logo.png (below) is the pass-face logo.
   const iconSet = await renderPassIconSet(
     card.business.logo_url,
     card.business.brand_primary_color,
