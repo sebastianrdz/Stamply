@@ -2,6 +2,7 @@ import "server-only";
 
 import { Resvg } from "@resvg/resvg-js";
 import { imageBuffer } from "@/lib/wallet/apple/assets";
+import { dataUri } from "@/lib/wallet/image-data";
 import { computeStampGrid, type StampGridLayout } from "./stamp-layout";
 
 /**
@@ -65,26 +66,6 @@ export async function renderStampStrip(input: StampImageInput): Promise<Buffer> 
 
   const resvg = new Resvg(svg, { fitTo: { mode: "width", value: width } });
   return Buffer.from(resvg.render().asPng());
-}
-
-/** Sniff enough of an image buffer to build a correct data: URI mime type. */
-function sniffMime(buf: Buffer): string {
-  if (buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50) return "image/png";
-  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8) return "image/jpeg";
-  if (
-    buf.length >= 12 &&
-    buf.toString("ascii", 0, 4) === "RIFF" &&
-    buf.toString("ascii", 8, 12) === "WEBP"
-  )
-    return "image/webp";
-  if (buf.length >= 6 && buf.toString("ascii", 0, 3) === "GIF") return "image/gif";
-  // Business "stamp" assets are only ever uploaded as SVG; anything else
-  // unrecognized falls back to SVG since it's the only text-based type we serve.
-  return "image/svg+xml";
-}
-
-function dataUri(buf: Buffer): string {
-  return `data:${sniffMime(buf)};base64,${buf.toString("base64")}`;
 }
 
 /**

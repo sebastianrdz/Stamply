@@ -40,6 +40,16 @@ vi.mock("./assets", () => ({
   placeholderIcon: vi.fn(() => Buffer.from("icon")),
 }));
 
+// Mocked so pass tests stay hermetic (no native rasterizer); the icon renderer
+// has its own unit tests in icon.test.ts.
+vi.mock("./icon", () => ({
+  renderPassIconSet: vi.fn(async () => ({
+    "icon.png": Buffer.from("icon"),
+    "icon@2x.png": Buffer.from("icon2x"),
+    "icon@3x.png": Buffer.from("icon3x"),
+  })),
+}));
+
 // Mocked so tests stay hermetic and don't hit the native rasterizer; returns
 // a buffer tagged with the requested width so callers can tell scales apart.
 const renderStampStripMock = vi.fn(
@@ -207,7 +217,7 @@ describe("buildApplePass", () => {
     const json = await buildPassJson(
       cardWithRelations({ pass_auth_token: "secret-token" }),
     );
-    expect(json.webServiceURL).toBe("https://stamply.example/api/apple/v1");
+    expect(json.webServiceURL).toBe("https://stamply.example/api/apple");
     expect(json.authenticationToken).toBe("secret-token");
   });
 
