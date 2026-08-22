@@ -4,7 +4,8 @@ import { PKPass } from "passkit-generator";
 import { appUrlBase } from "@/lib/wallet/shared";
 import { hexToRgbString, readableForeground } from "@/lib/colors";
 import { appleCertificates, applePassConfig } from "./certificates";
-import { imageBuffer, logoBuffer, placeholderIcon } from "./assets";
+import { imageBuffer, logoBuffer } from "./assets";
+import { renderPassIconSet } from "./icon";
 import type { CardWithRelations } from "@/lib/cards/queries";
 import { cardProgress } from "@/lib/cards/queries";
 import { renderStampStrip } from "@/lib/wallet/stamp-image";
@@ -126,7 +127,12 @@ export async function buildApplePass(
   };
 
   const logo = await logoBuffer(card.business.logo_url);
-  const icon = placeholderIcon();
+  // The pass icon (shown on the lock screen / notifications) is the business
+  // logo rendered into a square; logo.png (below) is the pass-face logo.
+  const iconSet = await renderPassIconSet(
+    card.business.logo_url,
+    card.business.brand_primary_color,
+  );
   // On a storeCard the strip image spans the top of the pass, sitting behind
   // the header/primary fields — this is the "background behind the stamps".
   // Stamp programs get the rendered stamp-grid strip; points programs keep
@@ -138,8 +144,7 @@ export async function buildApplePass(
   const pass = new PKPass(
     {
       "pass.json": Buffer.from(JSON.stringify(passJson)),
-      "icon.png": icon,
-      "icon@2x.png": icon,
+      ...iconSet,
       "logo.png": logo,
       "logo@2x.png": logo,
       ...strip,
