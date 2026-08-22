@@ -55,7 +55,7 @@ export async function buildApplePass(
     foregroundColor: readableForeground(bg),
     labelColor: readableForeground(bg),
     ...(updatable && {
-      webServiceURL: `${base}/api/apple/v1`,
+      webServiceURL: `${base}/api/apple`,
       authenticationToken: card.pass_auth_token,
     }),
     barcodes: [
