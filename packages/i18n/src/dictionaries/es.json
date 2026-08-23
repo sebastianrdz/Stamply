@@ -49,6 +49,10 @@
     "poweredBy": "Con la tecnología de Stamply",
     "perMonth": "/mes",
     "billedMonthly": "Facturación mensual",
+    "monthly": "Mensual",
+    "annual": "Anual",
+    "billedAnnually": "Facturación anual",
+    "annualSave": "Ahorra {pct}%",
     "freeTrial": "Prueba gratis",
     "switchTo": "Cambiar a {name}",
     "roles": {

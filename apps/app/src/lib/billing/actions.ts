@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { appUrlBase } from "@/lib/wallet/shared";
 import { stripe, priceIdForPlan } from "./stripe";
+import type { BillingInterval } from "@stamply/plans";
 import type { Business, PlanTier } from "@/types/database";
 
 /**
@@ -125,7 +126,10 @@ async function findLiveSubscription(
  *    can't be updated by the Portal, so this is also the correct path for
  *    reactivation.
  */
-export async function changePlan(tier: PlanTier) {
+export async function changePlan(
+  tier: PlanTier,
+  interval: BillingInterval = "month",
+) {
   const { user, membership } = await requireRole(["owner"]);
   const business = membership.business;
 
@@ -149,7 +153,7 @@ export async function changePlan(tier: PlanTier) {
       );
     }
 
-    const targetPrice = priceIdForPlan(tier);
+    const targetPrice = priceIdForPlan(tier, interval);
 
     // The billing page disables the current tier, but `businesses.plan` is
     // updated only asynchronously by the webhook — so right after a switch an
@@ -179,7 +183,7 @@ export async function changePlan(tier: PlanTier) {
   const session = await client.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
-    line_items: [{ price: priceIdForPlan(tier), quantity: 1 }],
+    line_items: [{ price: priceIdForPlan(tier, interval), quantity: 1 }],
     // Show the "Add promotion code" field on the Checkout page (Stripe hides it
     // by default). Codes must also exist as live Promotion Codes in Stripe.
     allow_promotion_codes: true,

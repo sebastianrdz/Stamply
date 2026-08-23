@@ -31,7 +31,8 @@ const priceIdForPlanMock = vi.fn(
 );
 vi.mock("./stripe", () => ({
   stripe: () => stripeMock(),
-  priceIdForPlan: (tier: string) => priceIdForPlanMock(tier),
+  priceIdForPlan: (tier: string, interval?: string) =>
+    priceIdForPlanMock(tier, interval),
 }));
 
 import { redirect } from "next/navigation";
@@ -164,6 +165,8 @@ describe("changePlan", () => {
           allow_promotion_codes: true,
         }),
       );
+      // Defaults to monthly billing when no interval is passed.
+      expect(priceIdForPlanMock).toHaveBeenCalledWith("medium", "month");
       expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
     });
 

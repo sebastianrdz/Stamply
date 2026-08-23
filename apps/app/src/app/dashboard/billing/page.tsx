@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import { Check } from "lucide-react";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { currentCount } from "@/lib/billing/entitlements";
-import { PLANS, PAID_PLANS, type LimitedResource } from "@stamply/plans";
-import { changePlan, openBillingPortal } from "@/lib/billing/actions";
+import { PLANS, annualMonthly, type LimitedResource } from "@stamply/plans";
+import { openBillingPortal } from "@/lib/billing/actions";
+import { currentBillingInterval } from "@/lib/billing/stripe";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@stamply/ui/card";
-import { Badge } from "@stamply/ui/badge";
 import { Button } from "@stamply/ui/button";
 import { cn } from "@stamply/ui/utils";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
-import { interpolate } from "@stamply/i18n/format";
+import { PlanSelector } from "./plan-selector";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary(await getLocale());
@@ -32,6 +31,11 @@ export default async function BillingPage() {
   const plan = PLANS[business.plan];
   const supabase = await createClient();
   const dict = await getDictionary(await getLocale());
+  // Best-effort: which cadence the live subscription is on (for the summary +
+  // to mark the exact current plan). Null when unknown / no subscription.
+  const currentInterval = business.stripe_customer_id
+    ? await currentBillingInterval(business.stripe_customer_id)
+    : null;
 
   const usage = await Promise.all(
     RESOURCE_KEYS.map(async (key) => ({
@@ -58,7 +62,9 @@ export default async function BillingPage() {
             </CardTitle>
             <p className="text-muted-foreground text-sm">
               {plan.price > 0
-                ? `$${plan.price}${dict.common.perMonth} · ${dict.common.billedMonthly}`
+                ? currentInterval === "year"
+                  ? `$${annualMonthly(business.plan) ?? plan.price}${dict.common.perMonth} · ${dict.common.billedAnnually}`
+                  : `$${plan.price}${dict.common.perMonth} · ${dict.common.billedMonthly}`
                 : dict.common.freeTrial}{" "}
               · {dict.common.subscriptionStatus[business.subscription_status]}
             </p>
@@ -104,63 +110,10 @@ export default async function BillingPage() {
       <h2 className="mb-4 text-lg font-semibold">
         {dict.dashboard.billing.plansHeading}
       </h2>
-      <div className="grid gap-6 md:grid-cols-3">
-        {PAID_PLANS.map((p) => {
-          const current = p.tier === business.plan;
-          const planCopy = dict.billing.plans[p.tier];
-          return (
-            <Card
-              key={p.tier}
-              className={cn(current && "border-primary ring-primary ring-1")}
-            >
-              <CardContent className="flex h-full flex-col gap-5 p-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">{planCopy.name}</h3>
-                  {current && (
-                    <Badge>{dict.dashboard.billing.currentPlan}</Badge>
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-3xl font-bold">${p.price}</span>
-                    <span className="text-muted-foreground">
-                      {dict.common.perMonth}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    {dict.common.billedMonthly}
-                  </p>
-                </div>
-                <ul className="flex flex-col gap-2 text-sm">
-                  {planCopy.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2">
-                      <Check className="text-success size-4 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-                <form
-                  action={changePlan.bind(null, p.tier)}
-                  className="mt-auto"
-                >
-                  <Button
-                    type="submit"
-                    variant={current ? "outline" : "primary"}
-                    className="w-full"
-                    disabled={current}
-                  >
-                    {current
-                      ? dict.dashboard.billing.currentPlan
-                      : interpolate(dict.common.switchTo, {
-                          name: planCopy.name,
-                        })}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <PlanSelector
+        currentTier={business.plan}
+        currentInterval={currentInterval}
+      />
     </>
   );
 }

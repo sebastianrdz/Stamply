@@ -12,6 +12,7 @@
     "./label": "./src/components/label.tsx",
     "./select": "./src/components/select.tsx",
     "./skeleton": "./src/components/skeleton.tsx",
+    "./interval-toggle": "./src/components/interval-toggle.tsx",
     "./textarea": "./src/components/textarea.tsx",
     "./theme.css": "./src/theme.css"
   },

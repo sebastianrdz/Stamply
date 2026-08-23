@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { PAID_PLANS } from "@stamply/plans";
+import { PAID_PLANS, annualMonthly } from "@stamply/plans";
 import esDict from "@stamply/i18n/dictionaries/es.json";
 import { APP_URL } from "../playwright.config";
 
@@ -53,15 +53,20 @@ test.describe("Landing page (/)", () => {
 
     const pricing = page.locator("#pricing");
 
+    // Default toggle is Annual, so cards show the per-month-equivalent annual
+    // price and the "billed annually" note.
     for (const plan of PAID_PLANS) {
       const planCopy = esDict.billing.plans[plan.tier];
       await expect(
         pricing.getByRole("heading", { name: planCopy.name, exact: true }),
       ).toBeVisible();
       await expect(
-        pricing.getByText(`$${plan.price}`, { exact: false }),
+        pricing.getByText(`$${annualMonthly(plan.tier)}`, { exact: false }),
       ).toBeVisible();
     }
+    await expect(
+      pricing.getByText(esDict.common.billedAnnually).first(),
+    ).toBeVisible();
 
     // Every paid-plan CTA points at the app's register page.
     const registerLinksInPricing = pricing.getByRole("link", {
@@ -71,6 +76,23 @@ test.describe("Landing page (/)", () => {
     for (const link of await registerLinksInPricing.all()) {
       await expect(link).toHaveAttribute("href", `${APP_URL}/register`);
     }
+  });
+
+  test("toggling to Monthly shows the monthly prices", async ({ page }) => {
+    await page.goto("/");
+    const pricing = page.locator("#pricing");
+    await pricing.scrollIntoViewIfNeeded();
+
+    await pricing.getByRole("button", { name: esDict.common.monthly }).click();
+
+    for (const plan of PAID_PLANS) {
+      await expect(
+        pricing.getByText(`$${plan.price}`, { exact: false }),
+      ).toBeVisible();
+    }
+    await expect(
+      pricing.getByText(esDict.common.billedMonthly).first(),
+    ).toBeVisible();
   });
 
   test("footer renders", async ({ page }) => {

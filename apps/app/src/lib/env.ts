@@ -19,6 +19,10 @@ const serverSchema = z.object({
   STRIPE_PRICE_SMALL: z.string().optional(),
   STRIPE_PRICE_MEDIUM: z.string().optional(),
   STRIPE_PRICE_BIG: z.string().optional(),
+  // Annual (yearly recurring) Stripe price ids — 2 months free vs monthly.
+  STRIPE_PRICE_SMALL_ANNUAL: z.string().optional(),
+  STRIPE_PRICE_MEDIUM_ANNUAL: z.string().optional(),
+  STRIPE_PRICE_BIG_ANNUAL: z.string().optional(),
 
   // Apple Wallet (PassKit) — certs/keys stored base64-encoded.
   APPLE_PASS_TYPE_ID: z.string().optional(),

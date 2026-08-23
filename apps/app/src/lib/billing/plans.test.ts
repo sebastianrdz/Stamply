@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { PLANS, isWithinLimit, planLimit } from "@stamply/plans";
+import {
+  PLANS,
+  isWithinLimit,
+  planLimit,
+  annualMonthly,
+  annualSavingsPct,
+} from "@stamply/plans";
 
 describe("PLANS", () => {
   it("prices match the published tiers", () => {
@@ -38,6 +44,34 @@ describe("PLANS", () => {
 
   it("trial has no stripePriceEnv", () => {
     expect(PLANS.trial.stripePriceEnv).toBeUndefined();
+  });
+
+  it("annual totals are 2 months free (10x monthly)", () => {
+    expect(PLANS.small.annualTotal).toBe(6790);
+    expect(PLANS.medium.annualTotal).toBe(12790);
+    expect(PLANS.big.annualTotal).toBe(18790);
+  });
+});
+
+describe("annual pricing helpers", () => {
+  it("annualMonthly is the rounded per-month equivalent", () => {
+    expect(annualMonthly("small")).toBe(566); // 6790/12 = 565.83
+    expect(annualMonthly("medium")).toBe(1066); // 12790/12 = 1065.83
+    expect(annualMonthly("big")).toBe(1566); // 18790/12 = 1565.83
+  });
+
+  it("annualMonthly is null for a plan with no annual option", () => {
+    expect(annualMonthly("trial")).toBeNull();
+  });
+
+  it("annualSavingsPct is ~17% (2 months free) for every paid tier", () => {
+    expect(annualSavingsPct("small")).toBe(17);
+    expect(annualSavingsPct("medium")).toBe(17);
+    expect(annualSavingsPct("big")).toBe(17);
+  });
+
+  it("annualSavingsPct is 0 for a plan with no annual option", () => {
+    expect(annualSavingsPct("trial")).toBe(0);
   });
 });
 

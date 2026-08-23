@@ -49,6 +49,10 @@
     "poweredBy": "Powered by Stamply",
     "perMonth": "/mo",
     "billedMonthly": "Billed monthly",
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "billedAnnually": "Billed annually",
+    "annualSave": "Save {pct}%",
     "freeTrial": "Free trial",
     "switchTo": "Switch to {name}",
     "roles": {
