@@ -127,10 +127,9 @@ export function LocationForm() {
           </Button>
         </div>
       </form>
-      {!(state.error || geoError) && (
+      {(state.error || geoError) && (
         <p className="text-destructive w-full text-sm" role="alert">
           {state.error ?? geoError}
-          test
         </p>
       )}
     </>

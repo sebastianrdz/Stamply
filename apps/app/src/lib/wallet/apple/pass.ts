@@ -9,6 +9,9 @@ import { renderPassIconSet } from "./icon";
 import type { CardWithRelations } from "@/lib/cards/queries";
 import { cardProgress } from "@/lib/cards/queries";
 import { renderStampStrip } from "@/lib/wallet/stamp-image";
+import { cardUrl } from "@/lib/urls";
+import esDict from "@stamply/i18n/dictionaries/es.json";
+import { interpolate } from "@stamply/i18n/format";
 
 // Apple's storeCard strip display size is 375x123pt; provide @1x/@2x/@3x.
 const STRIP_WIDTH_1X = 375;
@@ -34,7 +37,17 @@ export async function buildApplePass(
   const progress = cardProgress(card, card.program);
   const goal = card.program.goal;
   const isStampProgram = card.program.type === "stamp";
-  const unit = card.program.type === "points" ? "points" : "stamps";
+  // The wallet pass is always shown in Spanish (the product's market), and the
+  // APNs refetch path has no request locale, so load es directly.
+  const w = esDict.wallet;
+  const serialNumber = card.apple_serial ?? card.id;
+  const unitWord = isStampProgram ? w.stampsWord : w.pointsWord;
+  const webUrl = cardUrl(card.pass_auth_token);
+  const lastSync = new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: card.business.timezone,
+  }).format(new Date(card.updated_at));
 
   // Apple Wallet silently refuses to add a pass whose webServiceURL is not
   // HTTPS. Locally (http://localhost) we omit it and the auth token: the pass
@@ -47,8 +60,8 @@ export async function buildApplePass(
     passTypeIdentifier,
     teamIdentifier,
     organizationName: card.business.name,
-    description: `${card.business.name} loyalty card`,
-    serialNumber: card.apple_serial ?? card.id,
+    description: interpolate(w.description, { business: card.business.name }),
+    serialNumber,
     // logoText is the business name shown beside the logo on the pass face;
     // omit it when the business opts to show the logo alone.
     ...(card.business.show_business_name && { logoText: card.business.name }),
@@ -70,13 +83,13 @@ export async function buildApplePass(
     locations: locations.slice(0, 10).map((l) => ({
       latitude: l.lat,
       longitude: l.lng,
-      relevantText: l.name ? `You're near ${l.name}` : undefined,
+      relevantText: l.name ? interpolate(w.nearby, { name: l.name }) : undefined,
     })),
     storeCard: {
       headerFields: [
         {
           key: "progress",
-          label: unit.toUpperCase(),
+          label: isStampProgram ? w.stampsLabel : w.pointsLabel,
           value: `${progress}/${goal}`,
         },
       ],
@@ -91,7 +104,7 @@ export async function buildApplePass(
         primaryFields: [
           {
             key: "reward",
-            label: "REWARD",
+            label: w.reward,
             value: card.program.reward_description,
           },
         ],
@@ -106,12 +119,12 @@ export async function buildApplePass(
       secondaryFields: [
         {
           key: "name",
-          label: "NAME",
-          value: card.customer.full_name ?? "Member",
+          label: w.name,
+          value: card.customer.full_name ?? w.member,
         },
         {
           key: "rewards",
-          label: "REWARDS",
+          label: w.rewards,
           value: String(availableRewards),
           textAlignment: "PKTextAlignmentRight" as const,
         },
@@ -119,8 +132,34 @@ export async function buildApplePass(
       backFields: [
         {
           key: "howto",
-          label: "How it works",
-          value: `Show this card at ${card.business.name} to collect ${unit}. Reach ${goal} to earn: ${card.program.reward_description}.`,
+          label: w.howToLabel,
+          value: interpolate(w.howTo, {
+            business: card.business.name,
+            unit: unitWord,
+            goal,
+            reward: card.program.reward_description,
+          }),
+        },
+        {
+          key: "web",
+          label: w.webLinkLabel,
+          value: webUrl,
+          attributedValue: `<a href="${webUrl}">${w.webLinkText}</a>`,
+        },
+        {
+          key: "createdBy",
+          label: w.createdByLabel,
+          value: card.business.name,
+        },
+        {
+          key: "passId",
+          label: w.passIdLabel,
+          value: serialNumber,
+        },
+        {
+          key: "lastSync",
+          label: w.lastSyncLabel,
+          value: lastSync,
         },
       ],
     },

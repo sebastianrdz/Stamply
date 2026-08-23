@@ -1,4 +1,23 @@
 {
+  "wallet": {
+    "stampsLabel": "SELLOS",
+    "pointsLabel": "PUNTOS",
+    "reward": "PREMIO",
+    "name": "NOMBRE",
+    "rewards": "PREMIOS",
+    "member": "Miembro",
+    "howToLabel": "Cómo funciona",
+    "howTo": "Muestra esta tarjeta en {business} para acumular {unit}. Llega a {goal} para ganar: {reward}.",
+    "stampsWord": "sellos",
+    "pointsWord": "puntos",
+    "nearby": "Estás cerca de {name}",
+    "description": "Tarjeta de lealtad de {business}",
+    "passIdLabel": "ID del pase",
+    "webLinkLabel": "Ver en la web",
+    "webLinkText": "Abrir mi tarjeta",
+    "createdByLabel": "Creado por",
+    "lastSyncLabel": "Última actualización"
+  },
   "common": {
     "save": "Guardar",
     "saving": "Guardando…",
