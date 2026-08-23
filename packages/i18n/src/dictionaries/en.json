@@ -1,4 +1,23 @@
 {
+  "wallet": {
+    "stampsLabel": "STAMPS",
+    "pointsLabel": "POINTS",
+    "reward": "REWARD",
+    "name": "NAME",
+    "rewards": "REWARDS",
+    "member": "Member",
+    "howToLabel": "How it works",
+    "howTo": "Show this card at {business} to collect {unit}. Reach {goal} to earn: {reward}.",
+    "stampsWord": "stamps",
+    "pointsWord": "points",
+    "nearby": "You're near {name}",
+    "description": "{business} loyalty card",
+    "passIdLabel": "Pass ID",
+    "webLinkLabel": "View on the web",
+    "webLinkText": "Open my card",
+    "createdByLabel": "Created by",
+    "lastSyncLabel": "Last updated"
+  },
   "common": {
     "save": "Save",
     "saving": "Saving…",

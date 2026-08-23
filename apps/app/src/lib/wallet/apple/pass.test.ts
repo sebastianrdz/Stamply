@@ -235,7 +235,7 @@ describe("buildApplePass", () => {
       cardWithRelations({ stamps: 4 }, {}, { type: "stamp", goal: 10 }),
     );
     const storeCard = json.storeCard as { headerFields: Array<Record<string, unknown>> };
-    expect(storeCard.headerFields[0].label).toBe("STAMPS");
+    expect(storeCard.headerFields[0].label).toBe("SELLOS");
     expect(storeCard.headerFields[0].value).toBe("4/10");
   });
 
@@ -244,7 +244,7 @@ describe("buildApplePass", () => {
       cardWithRelations({ points: 250 }, {}, { type: "points", goal: 500 }),
     );
     const storeCard = json.storeCard as { headerFields: Array<Record<string, unknown>> };
-    expect(storeCard.headerFields[0].label).toBe("POINTS");
+    expect(storeCard.headerFields[0].label).toBe("PUNTOS");
     expect(storeCard.headerFields[0].value).toBe("250/500");
   });
 
@@ -264,7 +264,7 @@ describe("buildApplePass", () => {
     ];
     const json = await buildPassJson(cardWithRelations(), locations);
     const jsonLocations = json.locations as Array<Record<string, unknown>>;
-    expect(jsonLocations[0].relevantText).toBe("You're near Downtown");
+    expect(jsonLocations[0].relevantText).toBe("Estás cerca de Downtown");
     expect(jsonLocations[1].relevantText).toBeUndefined();
   });
 
@@ -328,10 +328,10 @@ describe("buildApplePass", () => {
     const storeCard = json.storeCard as Record<string, unknown>;
     expect(storeCard.primaryFields).toBeUndefined();
     expect(storeCard.secondaryFields).toEqual([
-      { key: "name", label: "NAME", value: "Jane Doe" },
+      { key: "name", label: "NOMBRE", value: "Jane Doe" },
       {
         key: "rewards",
-        label: "REWARDS",
+        label: "PREMIOS",
         value: "0",
         textAlignment: "PKTextAlignmentRight",
       },
@@ -352,10 +352,10 @@ describe("buildApplePass", () => {
     for (const json of [stampJson, pointsJson]) {
       const storeCard = json.storeCard as { secondaryFields: Array<Record<string, unknown>> };
       expect(storeCard.secondaryFields).toEqual([
-        { key: "name", label: "NAME", value: "Jane Doe" },
+        { key: "name", label: "NOMBRE", value: "Jane Doe" },
         {
           key: "rewards",
-          label: "REWARDS",
+          label: "PREMIOS",
           value: "3",
           textAlignment: "PKTextAlignmentRight",
         },
@@ -370,9 +370,39 @@ describe("buildApplePass", () => {
     const storeCard = json.storeCard as { secondaryFields: Array<Record<string, unknown>> };
     expect(storeCard.secondaryFields[0]).toEqual({
       key: "name",
-      label: "NAME",
-      value: "Member",
+      label: "NOMBRE",
+      value: "Miembro",
     });
+  });
+
+  it("includes localized detail back fields (web link, created by, pass id, last sync)", async () => {
+    const json = await buildPassJson(
+      cardWithRelations(
+        { apple_serial: "serial-xyz", pass_auth_token: "tok_xyz" },
+        { name: "The Coffee Spot" },
+      ),
+    );
+    const backFields = (
+      json.storeCard as { backFields: Array<Record<string, unknown>> }
+    ).backFields;
+    const byKey = Object.fromEntries(backFields.map((f) => [f.key, f]));
+
+    expect(byKey.howto.label).toBe("Cómo funciona");
+    expect(byKey.web.label).toBe("Ver en la web");
+    expect(byKey.web.value).toContain("/c/tok_xyz");
+    expect(byKey.web.attributedValue).toContain("<a href=");
+    expect(byKey.createdBy).toEqual({
+      key: "createdBy",
+      label: "Creado por",
+      value: "The Coffee Spot",
+    });
+    expect(byKey.passId).toEqual({
+      key: "passId",
+      label: "ID del pase",
+      value: "serial-xyz",
+    });
+    expect(byKey.lastSync.label).toBe("Última actualización");
+    expect(typeof byKey.lastSync.value).toBe("string");
   });
 
   it("keeps the raw background strip and primaryFields for a points program", async () => {
@@ -388,7 +418,7 @@ describe("buildApplePass", () => {
     expect(buffers["strip.png"]).toEqual(Buffer.from("strip"));
     expect(buffers["strip@3x.png"]).toBeUndefined();
     expect(json.storeCard.primaryFields).toEqual([
-      { key: "reward", label: "REWARD", value: "A free coffee" },
+      { key: "reward", label: "PREMIO", value: "A free coffee" },
     ]);
   });
 });
