@@ -359,6 +359,9 @@
       "stampAdded": "Sello agregado",
       "rewardReady": "Recompensa lista: {reward}",
       "scanNext": "Escanear siguiente",
+      "quantityLabel": "Sellos a agregar",
+      "quantityDecrease": "Quitar un sello",
+      "quantityIncrease": "Agregar un sello",
       "errors": {
         "cooldown": "Se acaba de escanear — espera {seconds}s antes de sellar de nuevo.",
         "cooldownFallback": "unos segundos",

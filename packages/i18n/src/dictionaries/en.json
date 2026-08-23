@@ -359,6 +359,9 @@
       "stampAdded": "Stamp added",
       "rewardReady": "Reward ready: {reward}",
       "scanNext": "Scan next",
+      "quantityLabel": "Stamps to add",
+      "quantityDecrease": "Remove one stamp",
+      "quantityIncrease": "Add one stamp",
       "errors": {
         "cooldown": "Just scanned — wait {seconds}s before stamping again.",
         "cooldownFallback": "a few",

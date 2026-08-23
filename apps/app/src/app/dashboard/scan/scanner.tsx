@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Gift, XCircle, RotateCcw, Stamp } from "lucide-react";
+import {
+  Check,
+  Gift,
+  XCircle,
+  RotateCcw,
+  Stamp,
+  Minus,
+  Plus,
+} from "lucide-react";
 import type { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@stamply/ui/button";
 import { Card, CardContent } from "@stamply/ui/card";
@@ -60,14 +68,22 @@ export function Scanner() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  // How many stamps to apply in a single scan (stamp mode only). The /api/scan
+  // route accepts a `delta` (1–50), so one scan can add several stamps at once.
+  const [quantity, setQuantity] = useState(1);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const busyRef = useRef(false);
   const modeRef = useRef<Mode>(mode);
+  const quantityRef = useRef(quantity);
 
-  // Keep the latest mode readable inside the scan callback without re-creating it.
+  // Keep the latest mode/quantity readable inside the scan callback without
+  // re-creating it.
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
+  useEffect(() => {
+    quantityRef.current = quantity;
+  }, [quantity]);
 
   async function stop() {
     await stopScanner(scannerRef.current);
@@ -82,7 +98,11 @@ export function Scanner() {
       const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode, action: modeRef.current }),
+        body: JSON.stringify({
+          barcode,
+          action: modeRef.current,
+          delta: modeRef.current === "stamp" ? quantityRef.current : 1,
+        }),
       });
       const data = (await res.json()) as ScanResult;
       setResult({ ...data, ok: res.ok && data.ok !== false });
@@ -90,6 +110,9 @@ export function Scanner() {
       setResult({ ok: false, error: "network" });
     } finally {
       await stop();
+      // Reset to a single stamp so the count can't accidentally carry over to
+      // the next customer.
+      setQuantity(1);
     }
   }
 
@@ -145,6 +168,40 @@ export function Scanner() {
           </button>
         ))}
       </div>
+
+      {/* Stamp quantity — one scan can add several stamps at once */}
+      {mode === "stamp" && (
+        <div className="border-border flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
+          <span className="text-sm font-medium">
+            {dict.dashboard.scan.quantityLabel}
+          </span>
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+              disabled={quantity <= 1}
+              aria-label={dict.dashboard.scan.quantityDecrease}
+            >
+              <Minus className="size-4" />
+            </Button>
+            <span className="w-6 text-center text-lg font-semibold tabular-nums">
+              {quantity}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={() => setQuantity((q) => Math.min(50, q + 1))}
+              disabled={quantity >= 50}
+              aria-label={dict.dashboard.scan.quantityIncrease}
+            >
+              <Plus className="size-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Camera / result */}
       <Card className="overflow-hidden">
