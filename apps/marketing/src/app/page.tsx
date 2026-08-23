@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, ScanLine, Smartphone, Bell, MapPin } from "lucide-react";
+import { ScanLine, Smartphone, Bell, MapPin } from "lucide-react";
 import { Logo } from "@stamply/ui/logo";
 import { buttonVariants } from "@stamply/ui/button";
 import { Card, CardContent } from "@stamply/ui/card";
@@ -10,6 +10,7 @@ import { cn } from "@stamply/ui/utils";
 import { PAID_PLANS } from "@stamply/plans";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
+import { PricingPlans } from "./pricing-plans";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 const marketingUrl =
@@ -158,69 +159,7 @@ export default async function Home() {
               {landing.pricing.subtitle}
             </p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {PAID_PLANS.map((plan) => {
-              const planCopy = dict.billing.plans[plan.tier];
-              return (
-                <Card
-                  key={plan.tier}
-                  className={cn(
-                    plan.tier === "medium" &&
-                      "border-primary ring-primary shadow-md ring-1",
-                  )}
-                >
-                  <CardContent className="flex h-full flex-col gap-5 p-6">
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">
-                          {planCopy.name}
-                        </h3>
-                        {plan.tier === "medium" && (
-                          <Badge>{dict.billing.plans.mostPopular}</Badge>
-                        )}
-                      </div>
-                      <p className="text-muted-foreground mt-1 text-sm">
-                        {planCopy.tagline}
-                      </p>
-                    </div>
-                    <div>
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-4xl font-bold tracking-tight">
-                          ${plan.price}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {dict.common.perMonth}
-                        </span>
-                      </div>
-                      <p className="text-muted-foreground mt-0.5 text-xs">
-                        {dict.common.billedMonthly}
-                      </p>
-                    </div>
-                    <ul className="flex flex-col gap-2 text-sm">
-                      {planCopy.features.map((f) => (
-                        <li key={f} className="flex items-center gap-2">
-                          <Check className="text-success size-4 shrink-0" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
-                    <Link
-                      href={`${appUrl}/register`}
-                      className={cn(
-                        buttonVariants({
-                          variant:
-                            plan.tier === "medium" ? "primary" : "outline",
-                        }),
-                        "mt-auto w-full",
-                      )}
-                    >
-                      {landing.pricing.cta}
-                    </Link>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <PricingPlans appUrl={appUrl} />
         </section>
       </main>
 

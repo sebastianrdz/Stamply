@@ -8,14 +8,16 @@ export interface PlanLimits {
   programs: number | null;
 }
 
-/** All paid plans bill on a recurring monthly cycle. */
-export type BillingInterval = "month";
+/** Paid plans can be billed monthly or yearly. */
+export type BillingInterval = "month" | "year";
 
 export interface PlanDef {
   tier: PlanTier;
   name: string;
-  /** Recurring price in USD per {@link interval}. */
+  /** Recurring monthly price in USD. */
   price: number;
+  /** Total yearly price in USD when billed annually (paid plans only). */
+  annualTotal?: number;
   /** Billing cadence for paid plans; undefined for the free trial. */
   interval?: BillingInterval;
   tagline: string;
@@ -26,6 +28,11 @@ export interface PlanDef {
     | "STRIPE_PRICE_SMALL"
     | "STRIPE_PRICE_MEDIUM"
     | "STRIPE_PRICE_BIG";
+  /** Env var holding the Stripe (recurring, yearly) price id. */
+  stripePriceEnvAnnual?:
+    | "STRIPE_PRICE_SMALL_ANNUAL"
+    | "STRIPE_PRICE_MEDIUM_ANNUAL"
+    | "STRIPE_PRICE_BIG_ANNUAL";
 }
 
 export const PLANS: Record<PlanTier, PlanDef> = {
@@ -41,6 +48,7 @@ export const PLANS: Record<PlanTier, PlanDef> = {
     tier: "small",
     name: "Small",
     price: 679,
+    annualTotal: 6790,
     interval: "month",
     tagline: "For a single location getting started.",
     limits: { locations: 1, employees: 1, customers: 100, programs: 1 },
@@ -53,11 +61,13 @@ export const PLANS: Record<PlanTier, PlanDef> = {
       "Basic stats",
     ],
     stripePriceEnv: "STRIPE_PRICE_SMALL",
+    stripePriceEnvAnnual: "STRIPE_PRICE_SMALL_ANNUAL",
   },
   medium: {
     tier: "medium",
     name: "Medium",
     price: 1279,
+    annualTotal: 12790,
     interval: "month",
     tagline: "For growing businesses with a small team.",
     limits: { locations: 3, employees: 5, customers: 1000, programs: 3 },
@@ -70,11 +80,13 @@ export const PLANS: Record<PlanTier, PlanDef> = {
       "Custom enrollment fields",
     ],
     stripePriceEnv: "STRIPE_PRICE_MEDIUM",
+    stripePriceEnvAnnual: "STRIPE_PRICE_MEDIUM_ANNUAL",
   },
   big: {
     tier: "big",
     name: "Big",
     price: 1879,
+    annualTotal: 18790,
     interval: "month",
     tagline: "For multi-location brands.",
     limits: {
@@ -92,6 +104,7 @@ export const PLANS: Record<PlanTier, PlanDef> = {
       "API access",
     ],
     stripePriceEnv: "STRIPE_PRICE_BIG",
+    stripePriceEnvAnnual: "STRIPE_PRICE_BIG_ANNUAL",
   },
 };
 
@@ -116,4 +129,19 @@ export function planLimit(
   resource: LimitedResource,
 ): number | null {
   return PLANS[plan].limits[resource];
+}
+
+/** Per-month-equivalent price when billed annually (rounded), or null if the
+ *  plan has no annual option. */
+export function annualMonthly(tier: PlanTier): number | null {
+  const { annualTotal } = PLANS[tier];
+  return annualTotal == null ? null : Math.round(annualTotal / 12);
+}
+
+/** Whole-percent savings of the annual plan vs. paying month-to-month for a
+ *  year, or 0 if the plan has no annual option. */
+export function annualSavingsPct(tier: PlanTier): number {
+  const { price, annualTotal } = PLANS[tier];
+  if (!annualTotal || !price) return 0;
+  return Math.round((1 - annualTotal / (price * 12)) * 100);
 }
