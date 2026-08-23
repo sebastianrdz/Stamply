@@ -180,6 +180,9 @@ export async function changePlan(tier: PlanTier) {
     mode: "subscription",
     customer: customerId,
     line_items: [{ price: priceIdForPlan(tier), quantity: 1 }],
+    // Show the "Add promotion code" field on the Checkout page (Stripe hides it
+    // by default). Codes must also exist as live Promotion Codes in Stripe.
+    allow_promotion_codes: true,
     success_url: `${appUrlBase()}/dashboard/billing?status=success`,
     cancel_url: `${appUrlBase()}/dashboard/billing?status=cancelled`,
     subscription_data: { metadata: { business_id: business.id } },
