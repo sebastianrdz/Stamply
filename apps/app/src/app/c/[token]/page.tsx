@@ -10,7 +10,8 @@ import { WalletButtons } from "./wallet-buttons";
 
 export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   const { token } = await params;
-  const dict = await getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
   const admin = createAdminClient();
   let card: Awaited<ReturnType<typeof getCardByToken>>;
   try {
@@ -64,6 +65,7 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
 
         <WalletButtons
           token={token}
+          locale={locale}
           appleLabel={dict.card.addAppleWallet}
           googleLabel={dict.card.addGoogleWallet}
         />
