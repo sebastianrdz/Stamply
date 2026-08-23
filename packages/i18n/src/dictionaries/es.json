@@ -572,11 +572,11 @@
       },
       "liveUpdates": {
         "title": "Actualizaciones en vivo",
-        "body": "Los sellos y recompensas se actualizan al instante en la tarjeta del wallet, vía notificaciones push."
+        "body": "Los sellos y recompensas se actualizan al instante en la tarjeta del wallet"
       },
       "nearby": {
         "title": "Recordatorios de cercanía",
-        "body": "La tarjeta aparece en la pantalla de bloqueo cuando un cliente está cerca de tu negocio."
+        "body": "Notificación aparece en la pantalla de bloqueo cuando un cliente está cerca de tu negocio."
       }
     },
     "pricing": {

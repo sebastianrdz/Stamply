@@ -572,11 +572,11 @@
       },
       "liveUpdates": {
         "title": "Live updates",
-        "body": "Stamps and rewards update on the wallet card instantly via push."
+        "body": "Stamps and rewards update on the wallet card instantly."
       },
       "nearby": {
         "title": "Nearby reminders",
-        "body": "The card surfaces on the lock screen when a customer is near your shop."
+        "body": "Notification surfaces on the lock screen when a customer is near your shop."
       }
     },
     "pricing": {
