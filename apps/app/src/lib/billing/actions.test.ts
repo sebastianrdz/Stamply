@@ -161,6 +161,7 @@ describe("changePlan", () => {
           mode: "subscription",
           customer: "cus_new",
           line_items: [{ price: "price_medium_123", quantity: 1 }],
+          allow_promotion_codes: true,
         }),
       );
       expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
