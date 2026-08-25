@@ -44,6 +44,10 @@ const serverSchema = z.object({
   // limiter when either is unset.
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+
+  // Resend — transactional email (team invites, verification, password reset).
+  RESEND_API_KEY: z.string().optional(),
+  EMAIL_FROM_ADDRESS: z.string().email().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

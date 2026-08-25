@@ -119,7 +119,56 @@
       "createAccount": "Crear cuenta",
       "newToStamply": "¿Nuevo en Stamply?",
       "createAnAccount": "Crea una cuenta",
-      "alreadyHaveAccount": "¿Ya tienes una cuenta?"
+      "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+      "forgotPassword": "¿Olvidaste tu contraseña?"
+    },
+    "checkEmail": {
+      "title": "Revisa tu correo",
+      "description": "Te enviamos un enlace para confirmar tu cuenta. Ábrelo para activarla e iniciar sesión."
+    },
+    "errors": {
+      "invalidLink": "Este enlace no es válido o venció. Intenta de nuevo.",
+      "emailSendFailed": "Creamos tu cuenta, pero no pudimos enviar el correo de confirmación. Intenta iniciar sesión en unos minutos o contacta a soporte."
+    },
+    "forgotPassword": {
+      "metaTitle": "Recuperar contraseña",
+      "title": "Recupera tu contraseña",
+      "subtitle": "Ingresa tu correo y te enviaremos un enlace para restablecerla.",
+      "form": {
+        "emailLabel": "Correo electrónico",
+        "emailPlaceholder": "tu@negocio.com",
+        "submit": "Enviar enlace",
+        "sending": "Enviando…",
+        "backToLogin": "Volver a iniciar sesión"
+      },
+      "checkEmail": {
+        "title": "Revisa tu correo",
+        "description": "Si existe una cuenta con ese correo, te enviamos un enlace para restablecer tu contraseña."
+      },
+      "errors": {
+        "tooManyAttempts": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."
+      }
+    },
+    "resetPassword": {
+      "metaTitle": "Restablecer contraseña",
+      "title": "Elige una nueva contraseña",
+      "subtitle": "Ingresa tu nueva contraseña para tu cuenta.",
+      "form": {
+        "passwordLabel": "Nueva contraseña",
+        "confirmPasswordLabel": "Confirmar contraseña",
+        "submit": "Guardar contraseña",
+        "saving": "Guardando…"
+      },
+      "success": {
+        "title": "Contraseña actualizada",
+        "description": "Tu contraseña se actualizó correctamente.",
+        "cta": "Ir al panel"
+      },
+      "errors": {
+        "passwordTooShort": "La contraseña debe tener al menos 8 caracteres.",
+        "passwordMismatch": "Las contraseñas no coinciden.",
+        "noSession": "Este enlace venció o ya se usó. Solicita uno nuevo."
+      }
     }
   },
   "onboarding": {
@@ -600,5 +649,31 @@
     "title": "Página no encontrada",
     "description": "Esta tarjeta o página no existe, o el enlace venció.",
     "backHome": "Volver al inicio"
+  },
+  "email": {
+    "teamInvite": {
+      "subject": "Te invitaron a unirte a {business} en Stamply",
+      "preview": "Únete a {business} en Stamply",
+      "heading": "Te invitaron a unirte a {business}",
+      "body": "Te invitaron a unirte a {business} como {role} en Stamply. Haz clic en el botón para aceptar la invitación.",
+      "cta": "Aceptar invitación",
+      "footer": "Si no esperabas este correo, puedes ignorarlo con confianza."
+    },
+    "verify": {
+      "subject": "Confirma tu correo en Stamply",
+      "preview": "Confirma tu correo para activar tu cuenta",
+      "heading": "Confirma tu correo",
+      "body": "Gracias por registrarte en Stamply. Confirma tu correo para activar tu cuenta y empezar a usarla.",
+      "cta": "Confirmar correo",
+      "footer": "Si no creaste esta cuenta, puedes ignorar este correo."
+    },
+    "passwordReset": {
+      "subject": "Restablece tu contraseña de Stamply",
+      "preview": "Restablece tu contraseña",
+      "heading": "Restablece tu contraseña",
+      "body": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de Stamply. Este enlace vence en 1 hora.",
+      "cta": "Restablecer contraseña",
+      "footer": "Si no solicitaste esto, puedes ignorar este correo — tu contraseña seguirá siendo la misma."
+    }
   }
 }

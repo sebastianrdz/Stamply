@@ -19,6 +19,8 @@ import {
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
+import { sendTeamInviteEmail } from "@/lib/email/send";
+import { joinUrl } from "@/lib/urls";
 import { isInviteExpired } from "./shared";
 
 const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -34,7 +36,8 @@ export async function createInvitation(
   _prev: InviteState,
   formData: FormData,
 ): Promise<InviteState> {
-  const dict = await getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
   const { user, membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
 
@@ -75,6 +78,20 @@ export async function createInvitation(
     expires_at: new Date(Date.now() + INVITE_TTL_MS).toISOString(),
   });
   if (error) return { error: error.message };
+
+  // Best-effort: the copy-link UI is the reliable fallback, so a failed send
+  // must never block invite creation. Never log the token — it's the live
+  // invite secret.
+  const result = await sendTeamInviteEmail({
+    to: parsed.data.email.toLowerCase(),
+    businessName: business.name,
+    role: parsed.data.role,
+    url: joinUrl(token),
+    locale,
+  });
+  if (!result.ok) {
+    console.error("[team] failed to send invite email", result.error);
+  }
 
   revalidatePath("/dashboard/team");
   return { path: `/join/${token}` };

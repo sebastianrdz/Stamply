@@ -55,6 +55,15 @@ vi.mock("@/lib/billing/entitlements", async (importOriginal) => {
   };
 });
 
+const sendTeamInviteEmailMock = vi.fn(
+  async (..._args: unknown[]): Promise<{ ok: boolean; error?: string }> => ({
+    ok: true,
+  }),
+);
+vi.mock("@/lib/email/send", () => ({
+  sendTeamInviteEmail: (...args: unknown[]) => sendTeamInviteEmailMock(...args),
+}));
+
 import { redirect } from "next/navigation";
 import { ACTIVE_BUSINESS_COOKIE } from "@/lib/auth/session";
 import { LimitExceededError } from "@/lib/billing/entitlements";
@@ -102,6 +111,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   nanoidMock.mockReturnValue("generated-invite-token");
   assertWithinLimitMock.mockResolvedValue(undefined);
+  sendTeamInviteEmailMock.mockResolvedValue({ ok: true });
 });
 
 describe("createInvitation", () => {
@@ -140,7 +150,7 @@ describe("createInvitation", () => {
     );
   });
 
-  it("creates the invite and returns the join path on success", async () => {
+  it("creates the invite, sends the invite email, and returns the join path on success", async () => {
     requireRoleMock.mockResolvedValue(ctx("owner"));
     const mock = makeSupabaseMock({
       invitations: { data: null, error: null },
@@ -160,6 +170,54 @@ describe("createInvitation", () => {
     expect(insertArg.business_id).toBe("biz-1");
     expect(insertArg.token).toBe("tok-xyz-123");
     expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/team");
+
+    expect(sendTeamInviteEmailMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: "new@example.com",
+        businessName: "The Coffee Spot",
+        role: "employee",
+        url: expect.stringContaining("/join/tok-xyz-123"),
+      }),
+    );
+  });
+
+  it("still returns the join path when the invite email fails to send (non-blocking)", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      invitations: { data: null, error: null },
+    });
+    createClientMock.mockResolvedValue(mock);
+    nanoidMock.mockReturnValue("tok-xyz-123");
+    sendTeamInviteEmailMock.mockResolvedValue({
+      ok: false,
+      error: "Resend down",
+    });
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const state = await createInvitation(
+      {},
+      form({ email: "new@example.com", role: "employee" }),
+    );
+
+    expect(state).toEqual({ path: "/join/tok-xyz-123" });
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
+  });
+
+  it("still returns the join path when the invite email send throws (non-blocking)", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      invitations: { data: null, error: null },
+    });
+    createClientMock.mockResolvedValue(mock);
+    nanoidMock.mockReturnValue("tok-xyz-123");
+    sendTeamInviteEmailMock.mockRejectedValue(new Error("boom"));
+
+    await expect(
+      createInvitation({}, form({ email: "new@example.com", role: "employee" })),
+    ).rejects.toThrow("boom");
   });
 
   it("returns the db error message when the insert fails", async () => {

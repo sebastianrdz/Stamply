@@ -119,7 +119,56 @@
       "createAccount": "Create account",
       "newToStamply": "New to Stamply?",
       "createAnAccount": "Create an account",
-      "alreadyHaveAccount": "Already have an account?"
+      "alreadyHaveAccount": "Already have an account?",
+      "forgotPassword": "Forgot your password?"
+    },
+    "checkEmail": {
+      "title": "Check your email",
+      "description": "We sent you a link to confirm your account. Open it to activate your account and sign in."
+    },
+    "errors": {
+      "invalidLink": "This link is invalid or has expired. Please try again.",
+      "emailSendFailed": "Your account was created, but we couldn't send the confirmation email. Try signing in in a few minutes or contact support."
+    },
+    "forgotPassword": {
+      "metaTitle": "Reset password",
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send you a link to reset it.",
+      "form": {
+        "emailLabel": "Email",
+        "emailPlaceholder": "you@business.com",
+        "submit": "Send link",
+        "sending": "Sending…",
+        "backToLogin": "Back to sign in"
+      },
+      "checkEmail": {
+        "title": "Check your email",
+        "description": "If an account exists for that email, we sent a link to reset your password."
+      },
+      "errors": {
+        "tooManyAttempts": "Too many attempts. Please wait a few minutes and try again."
+      }
+    },
+    "resetPassword": {
+      "metaTitle": "Reset password",
+      "title": "Choose a new password",
+      "subtitle": "Enter a new password for your account.",
+      "form": {
+        "passwordLabel": "New password",
+        "confirmPasswordLabel": "Confirm password",
+        "submit": "Save password",
+        "saving": "Saving…"
+      },
+      "success": {
+        "title": "Password updated",
+        "description": "Your password has been updated successfully.",
+        "cta": "Go to dashboard"
+      },
+      "errors": {
+        "passwordTooShort": "Password must be at least 8 characters.",
+        "passwordMismatch": "Passwords do not match.",
+        "noSession": "This link has expired or was already used. Request a new one."
+      }
     }
   },
   "onboarding": {
@@ -600,5 +649,31 @@
     "title": "Page not found",
     "description": "This card or page doesn't exist, or the link has expired.",
     "backHome": "Back home"
+  },
+  "email": {
+    "teamInvite": {
+      "subject": "You've been invited to join {business} on Stamply",
+      "preview": "Join {business} on Stamply",
+      "heading": "You've been invited to join {business}",
+      "body": "You've been invited to join {business} as {role} on Stamply. Click the button below to accept the invite.",
+      "cta": "Accept invite",
+      "footer": "If you weren't expecting this email, you can safely ignore it."
+    },
+    "verify": {
+      "subject": "Confirm your email for Stamply",
+      "preview": "Confirm your email to activate your account",
+      "heading": "Confirm your email",
+      "body": "Thanks for signing up for Stamply. Confirm your email to activate your account and start using it.",
+      "cta": "Confirm email",
+      "footer": "If you didn't create this account, you can ignore this email."
+    },
+    "passwordReset": {
+      "subject": "Reset your Stamply password",
+      "preview": "Reset your password",
+      "heading": "Reset your password",
+      "body": "We received a request to reset the password for your Stamply account. This link expires in 1 hour.",
+      "cta": "Reset password",
+      "footer": "If you didn't request this, you can ignore this email — your password will stay the same."
+    }
   }
 }

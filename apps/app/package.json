@@ -13,6 +13,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@react-email/components": "^1.0.12",
     "@resvg/resvg-js": "^2.6.2",
     "@stamply/i18n": "workspace:*",
     "@stamply/plans": "workspace:*",
@@ -32,6 +33,7 @@
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "resend": "^6.22.1",
     "server-only": "^0.0.1",
     "stripe": "^22.3.1",
     "zod": "^4.4.3"
@@ -54,6 +56,7 @@
     "eslint-config-next": "16.2.10",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^25.0.1",
+    "react-email": "^6.9.2",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vite-tsconfig-paths": "^5.1.4",

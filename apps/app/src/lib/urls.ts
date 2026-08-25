@@ -6,6 +6,12 @@ function base(): string {
   );
 }
 
+/** Absolute base URL of this app itself. Used to build links this app owns
+ *  (e.g. the `/auth/confirm` link embedded in transactional email). */
+export function appUrl(): string {
+  return base();
+}
+
 /** Absolute base URL of the marketing site (apex domain). Used for links that
  *  leave the app subdomain and go back to the public marketing home. */
 export function marketingUrl(): string {
@@ -23,4 +29,9 @@ export function enrollUrl(programId: string): string {
 /** Public web view of a single loyalty card. */
 export function cardUrl(token: string): string {
   return `${base()}/c/${token}`;
+}
+
+/** Team-invite accept link, shared via the copy-link UI and email. */
+export function joinUrl(token: string): string {
+  return `${base()}/join/${token}`;
 }
