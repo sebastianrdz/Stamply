@@ -17,6 +17,19 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [state, formAction, pending] = useActionState(action, initialState);
   const next = useSearchParams().get("next") ?? "/dashboard";
 
+  if (state.checkEmail) {
+    return (
+      <div className="flex flex-col gap-2 text-center">
+        <h2 className="text-lg font-semibold">
+          {dict.auth.checkEmail.title}
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          {dict.auth.checkEmail.description}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="next" value={next} />
@@ -34,7 +47,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="password">{dict.auth.form.passwordLabel}</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="password">{dict.auth.form.passwordLabel}</Label>
+          {mode === "login" && (
+            <Link
+              href="/forgot-password"
+              className="text-muted-foreground text-xs hover:underline"
+            >
+              {dict.auth.form.forgotPassword}
+            </Link>
+          )}
+        </div>
         <Input
           id="password"
           name="password"

@@ -57,7 +57,7 @@ Do this for **`stamply-prod`** first (repeat the DB steps for `stamply-staging`)
 4. **Authentication → URL Configuration**:
    - prod: Site URL `https://app.stamplycards.com`, add redirect `https://app.stamplycards.com/**`
    - staging: Site URL = the app's staging URL (its `*.vercel.app` or a `staging.` subdomain), redirect `<that>/**`
-   - Auth is email/password only — leave email confirmation **off** for v1.0 (there's no `/auth/callback` route yet).
+   - Auth is email/password only. **Turn "Confirm email" ON** for both projects — the app now sends its own branded confirmation email via Resend (Stage 4.5) and handles the click-through at `/auth/confirm`, so there's no need to leave confirmation off anymore.
 5. `pg_cron` (for migration `0014`'s prune job) is available on free Supabase; the migration self-enables it and no-ops safely if it's ever missing. Verify under *Database → Extensions* that `pg_cron` is enabled.
 
 ---
@@ -90,6 +90,20 @@ The app reads certs from env (never the filesystem). Base64-encode each and past
 
 ---
 
+## Stage 4.5 — Email (Resend + `mail.stamplycards.com`)
+
+Transactional email (team invites, signup confirmation, password reset) is sent via [Resend](https://resend.com), fully custom-built with React Email templates — not Supabase's built-in SMTP/template system. Do this once; both prod and staging share the same Resend domain/key (Preview scope just points at the same sending domain).
+
+1. **Resend dashboard** → Domains → Add `mail.stamplycards.com` — an isolated subdomain, so email infrastructure never risks the apex/app domains' deliverability or DNS. Resend generates MX / SPF (TXT) / DKIM (CNAME) records (and optionally a DMARC TXT at `_dmarc.mail.stamplycards.com`, starting with `v=DMARC1; p=none;`).
+2. **Vercel dashboard** → `stamplycards.com` project → Domains → DNS Records → add each record exactly as Resend shows it. Vercel is registrar + DNS host already (Stage 6), so this is the only place records need to go — no external nameservers.
+3. Back in Resend, click **Verify** — wait for all records to go green before sending real mail.
+4. Resend → API Keys → create a **sending-only** scoped key → this is `RESEND_API_KEY`.
+5. Pick a from-address once the domain is verified, e.g. `notifications@mail.stamplycards.com` → this is `EMAIL_FROM_ADDRESS`. Set the **bare address only** (no display name) — the app validates it as an email and adds the "Stamply <...>" display name itself when sending.
+6. Add both vars to Vercel (Stage 5) and redeploy `stamply-app`.
+7. Confirm Stage 2.4's "Confirm email" is **ON** in Supabase — required for the new `/auth/confirm` verification flow to have something to verify.
+
+---
+
 ## Stage 5 — Environment variables (per project)
 
 Set in *Settings → Environment Variables*. Use the **Production** scope for prod values and the **Preview** scope for staging values (Preview = every non-main branch, your free staging).
@@ -107,6 +121,7 @@ STRIPE_PRICE_SMALL / STRIPE_PRICE_MEDIUM / STRIPE_PRICE_BIG
 APPLE_PASS_TYPE_ID / APPLE_TEAM_ID / APPLE_PASS_CERT_BASE64 / APPLE_PASS_KEY_BASE64
 APPLE_PASS_CERT_PASSWORD / APPLE_WWDR_CERT_BASE64 / APPLE_APNS_KEY_BASE64 / APPLE_APNS_KEY_ID
 GOOGLE_WALLET_ISSUER_ID / GOOGLE_WALLET_SA_EMAIL / GOOGLE_WALLET_SA_KEY_BASE64
+RESEND_API_KEY / EMAIL_FROM_ADDRESS                        # Stage 4.5
 # optional — shared rate limiting; without it, falls back to in-memory:
 UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN
 ```
@@ -130,7 +145,7 @@ Redeploy both projects after setting env (env changes don't auto-redeploy).
 2. *stamply-marketing* → Domains → add **`stamplycards.com`** and **`www.stamplycards.com`** (www = redirect to apex).
 3. *stamply-app* → Domains → add **`app.stamplycards.com`**. Vercel auto-creates the DNS records + TLS for both.
 4. Confirm `NEXT_PUBLIC_APP_URL=https://app.stamplycards.com` in prod (Stage 5) and redeploy. **App host is now locked.**
-5. Future subdomains (e.g. `mail.` for email/DKIM) are one record each in the same Vercel DNS zone.
+5. Future subdomains (e.g. `mail.` for email/DKIM, added in Stage 4.5) are one record each in the same Vercel DNS zone.
 
 ---
 

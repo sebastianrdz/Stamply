@@ -1,37 +1,26 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
-import { AuthForm } from "../auth-form";
+import { ForgotPasswordForm } from "./forgot-password-form";
 
 export async function generateMetadata(): Promise<Metadata> {
   const dict = await getDictionary(await getLocale());
-  return { title: dict.auth.login.metaTitle };
+  return { title: dict.auth.forgotPassword.metaTitle };
 }
 
-export default async function LoginPage({
-  searchParams,
-}: PageProps<"/login">) {
+export default async function ForgotPasswordPage() {
   const dict = await getDictionary(await getLocale());
-  const params = await searchParams;
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1.5 text-center">
         <h1 className="text-2xl font-bold tracking-tight">
-          {dict.auth.login.title}
+          {dict.auth.forgotPassword.title}
         </h1>
         <p className="text-muted-foreground text-sm">
-          {dict.auth.login.subtitle}
+          {dict.auth.forgotPassword.subtitle}
         </p>
       </div>
-      {params.error === "invalid_link" && (
-        <p className="text-destructive text-center text-sm" role="alert">
-          {dict.auth.errors.invalidLink}
-        </p>
-      )}
-      <Suspense>
-        <AuthForm mode="login" />
-      </Suspense>
+      <ForgotPasswordForm />
     </div>
   );
 }

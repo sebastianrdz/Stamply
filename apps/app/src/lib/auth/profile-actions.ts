@@ -14,8 +14,9 @@ export interface ProfileState {
 /**
  * Update the signed-in user's own profile: display name (stored in auth
  * user_metadata) and, optionally, their password. Email changes are omitted —
- * Supabase requires an email-confirmation round-trip, which needs SMTP the app
- * doesn't have configured yet.
+ * Supabase requires an email-confirmation round-trip, which needs a
+ * dedicated confirm-and-swap flow (not just SMTP, which is now configured via
+ * Resend — see `@/lib/email`). Left as a future feature, not in scope here.
  */
 export async function updateProfile(
   _prev: ProfileState,
