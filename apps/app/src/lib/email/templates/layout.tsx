@@ -74,7 +74,7 @@ export function EmailLayout({
       <Head />
       <Preview>{previewText}</Preview>
       <Tailwind>
-        <Body className="m-0 bg-[#f4f4f5] p-0 font-sans">
+        <Body className="m-0 bg-[#f4f4f5] p-4 font-sans">
           <Container className="mx-auto my-10 max-w-[480px] rounded-2xl bg-white p-8 shadow-sm">
             <Section className="mb-6">
               <EmailLogoMark />
