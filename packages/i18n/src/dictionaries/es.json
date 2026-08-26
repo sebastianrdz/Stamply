@@ -471,7 +471,34 @@
         "imageTooLarge": "Las imágenes deben pesar menos de 4 MB.",
         "stampIconType": "El icono de sello debe ser un archivo SVG.",
         "stampIconTooLarge": "El icono de sello debe pesar menos de 1 MB.",
-        "uploadFailed": "No se pudo subir la imagen."
+        "uploadFailed": "No se pudo subir la imagen.",
+        "stripeCancelFailed": "No pudimos detener la facturación de este negocio. Inténtalo de nuevo o contacta a soporte antes de eliminarlo.",
+        "storageCleanupFailed": "No pudimos eliminar los archivos subidos de este negocio. Inténtalo de nuevo.",
+        "deleteBusinessFailed": "No se pudo eliminar el negocio. Inténtalo de nuevo.",
+        "ownsBusinessCantDelete": "Debes eliminar o transferir la propiedad de {businesses} antes de eliminar tu cuenta.",
+        "deleteAccountFailed": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+      },
+      "dangerZone": {
+        "title": "Zona de peligro",
+        "business": {
+          "heading": "Eliminar este negocio",
+          "cta": "Eliminar negocio",
+          "warning": "Esto eliminará permanentemente el negocio, todos sus programas, tarjetas, clientes e historial de sellos, cancelará su suscripción y quitará el acceso a todo el equipo. Esta acción no se puede deshacer.",
+          "confirmLabel": "Escribe «{name}» para confirmar",
+          "confirmPlaceholder": "Nombre del negocio",
+          "confirmButton": "Eliminar para siempre",
+          "deleting": "Eliminando…"
+        },
+        "account": {
+          "heading": "Eliminar tu cuenta",
+          "cta": "Eliminar mi cuenta",
+          "warning": "Esto eliminará permanentemente tu cuenta y todo tu acceso a Stamply. Esta acción no se puede deshacer.",
+          "ownsBusinessHint": "Todavía eres propietario de un negocio. Elimínalo o transfiérelo antes de eliminar tu cuenta.",
+          "confirmLabel": "Escribe DELETE para confirmar",
+          "confirmPlaceholder": "DELETE",
+          "confirmButton": "Eliminar mi cuenta",
+          "deleting": "Eliminando…"
+        }
       }
     }
   },
