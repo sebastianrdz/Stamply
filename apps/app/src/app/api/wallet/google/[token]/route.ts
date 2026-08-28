@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByToken } from "@/lib/cards/queries";
 import { googleSaveUrl, objectId } from "@/lib/wallet/google/wallet";
 import { businessLocations } from "@/lib/wallet/notify";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 export const runtime = "nodejs";
 
@@ -39,6 +40,13 @@ export async function GET(
         .from("cards")
         .update({ google_object_id: objectId(card.id) })
         .eq("id", card.id);
+
+      captureServerEvent({
+        distinctId: card.customer_id,
+        event: "wallet_pass_generated",
+        properties: { platform: "google", program_id: card.program_id },
+        groups: { business: card.business_id },
+      });
     }
 
     return NextResponse.redirect(url);

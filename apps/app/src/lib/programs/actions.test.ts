@@ -42,8 +42,18 @@ vi.mock("@/lib/billing/entitlements", async (importOriginal) => {
   };
 });
 
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
+}));
+
 import { redirect } from "next/navigation";
-import { createProgram, deleteProgram, updateProgram } from "./actions";
+import {
+  createProgram,
+  deleteProgram,
+  toggleProgramActive,
+  updateProgram,
+} from "./actions";
 
 const STAMP_GOAL_MAX_ES =
   "Las tarjetas de sellos pueden tener como máximo 10 sellos.";
@@ -161,6 +171,12 @@ describe("updateProgram", () => {
       "/dashboard/programs/prog-1",
     );
     expect(redirect).toHaveBeenCalledWith("/dashboard/programs/prog-1");
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "program_updated",
+      properties: { program_id: "prog-1", program_type: "points", goal: 100 },
+      groups: { business: "biz-1" },
+    });
   });
 
   it("returns the db error message when the update fails", async () => {
@@ -182,6 +198,7 @@ describe("updateProgram", () => {
     );
     expect(state.error).toBe("db down");
     expect(redirect).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });
 
@@ -226,6 +243,12 @@ describe("createProgram — stamp goal cap", () => {
     expect(mock.builderFor("programs").insert).toHaveBeenCalledWith(
       expect.objectContaining({ type: "stamp", goal: 10 }),
     );
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "program_created",
+      properties: { program_type: "stamp", goal: 10 },
+      groups: { business: "biz-1" },
+    });
   });
 
   it("allows a points program with a goal above 10 (cap is stamp-only)", async () => {
@@ -334,6 +357,12 @@ describe("deleteProgram", () => {
     expect(deleteBuilder.eq).toHaveBeenCalledWith("active", false);
     expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/programs");
     expect(redirect).toHaveBeenCalledWith("/dashboard/programs");
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "program_deleted",
+      properties: { program_id: "prog-1" },
+      groups: { business: "biz-1" },
+    });
   });
 
   it("returns the db error message when the delete fails", async () => {
@@ -370,5 +399,52 @@ describe("deleteProgram", () => {
     expect(deleteBuilder.eq).toHaveBeenCalledWith("active", false);
     expect(revalidatePathMock).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("toggleProgramActive", () => {
+  it("fires program_activated when turning a program on", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      programs: { data: null, error: null },
+    });
+    createClientMock.mockResolvedValue(mock);
+
+    await toggleProgramActive("prog-1", true);
+
+    expect(mock.builderFor("programs").update).toHaveBeenCalledWith({
+      active: true,
+    });
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "program_activated",
+      properties: { program_id: "prog-1" },
+      groups: { business: "biz-1" },
+    });
+  });
+
+  it("does not fire an analytics event when turning a program off", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      programs: { data: null, error: null },
+    });
+    createClientMock.mockResolvedValue(mock);
+
+    await toggleProgramActive("prog-1", false);
+
+    expect(captureServerEventMock).not.toHaveBeenCalled();
+  });
+
+  it("does not fire program_activated when the update errors", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      programs: { data: null, error: { message: "db down" } },
+    });
+    createClientMock.mockResolvedValue(mock);
+
+    await toggleProgramActive("prog-1", true);
+
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });

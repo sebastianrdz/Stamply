@@ -64,6 +64,11 @@ vi.mock("@/lib/email/send", () => ({
   sendTeamInviteEmail: (...args: unknown[]) => sendTeamInviteEmailMock(...args),
 }));
 
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
+}));
+
 import { redirect } from "next/navigation";
 import { ACTIVE_BUSINESS_COOKIE } from "@/lib/auth/session";
 import { LimitExceededError } from "@/lib/billing/entitlements";
@@ -179,6 +184,15 @@ describe("createInvitation", () => {
         url: expect.stringContaining("/join/tok-xyz-123"),
       }),
     );
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "team_invite_sent",
+      properties: { role: "employee" },
+      groups: { business: "biz-1" },
+    });
+    // Never include the invitee's email in the analytics event.
+    const captureArg = captureServerEventMock.mock.calls[0][0];
+    expect(JSON.stringify(captureArg)).not.toContain("new@example.com");
   });
 
   it("still returns the join path when the invite email fails to send (non-blocking)", async () => {
@@ -216,7 +230,10 @@ describe("createInvitation", () => {
     sendTeamInviteEmailMock.mockRejectedValue(new Error("boom"));
 
     await expect(
-      createInvitation({}, form({ email: "new@example.com", role: "employee" })),
+      createInvitation(
+        {},
+        form({ email: "new@example.com", role: "employee" }),
+      ),
     ).rejects.toThrow("boom");
   });
 
@@ -232,6 +249,7 @@ describe("createInvitation", () => {
       form({ email: "new@example.com", role: "employee" }),
     );
     expect(state.error).toBe("db down");
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });
 
@@ -452,6 +470,12 @@ describe("acceptInvitation", () => {
         role: "employee",
       }),
     );
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "u1",
+      event: "team_invite_accepted",
+      properties: { role: "employee" },
+      groups: { business: "biz-1" },
+    });
   });
 
   it("skips the insert/limit-check when a membership already exists, but still accepts + redirects", async () => {
@@ -479,5 +503,12 @@ describe("acceptInvitation", () => {
     expect(assertWithinLimitMock).not.toHaveBeenCalled();
     expect(mock.callCounts.memberships).toBe(1); // only the existence check
     expect(redirect).toHaveBeenCalledWith("/dashboard");
+    // Already-a-member path still fires the acceptance event.
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "u1",
+      event: "team_invite_accepted",
+      properties: { role: "employee" },
+      groups: { business: "biz-1" },
+    });
   });
 });

@@ -10,6 +10,7 @@ import {
 } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
@@ -91,9 +92,12 @@ export async function deleteAccount(
   const owned = memberships.filter((m) => m.business.owner_user_id === user.id);
   if (owned.length > 0) {
     return {
-      error: interpolate(dict.dashboard.settings.errors.ownsBusinessCantDelete, {
-        businesses: owned.map((m) => m.business.name).join(", "),
-      }),
+      error: interpolate(
+        dict.dashboard.settings.errors.ownsBusinessCantDelete,
+        {
+          businesses: owned.map((m) => m.business.name).join(", "),
+        },
+      ),
     };
   }
 
@@ -101,8 +105,11 @@ export async function deleteAccount(
   const { error } = await admin.auth.admin.deleteUser(user.id);
   if (error)
     return {
-      error: error.message || dict.dashboard.settings.errors.deleteAccountFailed,
+      error:
+        error.message || dict.dashboard.settings.errors.deleteAccountFailed,
     };
+
+  captureServerEvent({ distinctId: user.id, event: "account_deleted" });
 
   const cookieStore = await cookies();
   cookieStore.delete(ACTIVE_BUSINESS_COOKIE);

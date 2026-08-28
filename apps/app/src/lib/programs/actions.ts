@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary, type Dictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
@@ -56,7 +57,7 @@ export async function createProgram(
   _prev: ProgramFormState,
   formData: FormData,
 ): Promise<ProgramFormState> {
-  const { membership } = await requireRole(["owner", "admin"]);
+  const { user, membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
 
@@ -93,18 +94,35 @@ export async function createProgram(
   });
   if (error) return { error: error.message };
 
+  captureServerEvent({
+    distinctId: user.id,
+    event: "program_created",
+    properties: { program_type: parsed.data.type, goal: parsed.data.goal },
+    groups: { business: business.id },
+  });
+
   revalidatePath("/dashboard/programs");
   redirect("/dashboard/programs");
 }
 
 export async function toggleProgramActive(programId: string, active: boolean) {
-  const { membership } = await requireRole(["owner", "admin"]);
+  const { user, membership } = await requireRole(["owner", "admin"]);
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("programs")
     .update({ active })
     .eq("id", programId)
     .eq("business_id", membership.business.id);
+
+  if (!error && active) {
+    captureServerEvent({
+      distinctId: user.id,
+      event: "program_activated",
+      properties: { program_id: programId },
+      groups: { business: membership.business.id },
+    });
+  }
+
   revalidatePath("/dashboard/programs");
   revalidatePath(`/dashboard/programs/${programId}`);
 }
@@ -114,7 +132,7 @@ export async function updateProgram(
   _prev: ProgramFormState,
   formData: FormData,
 ): Promise<ProgramFormState> {
-  const { membership } = await requireRole(["owner", "admin"]);
+  const { user, membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
 
@@ -139,6 +157,17 @@ export async function updateProgram(
     .eq("business_id", business.id);
   if (error) return { error: error.message };
 
+  captureServerEvent({
+    distinctId: user.id,
+    event: "program_updated",
+    properties: {
+      program_id: programId,
+      program_type: parsed.data.type,
+      goal: parsed.data.goal,
+    },
+    groups: { business: business.id },
+  });
+
   revalidatePath("/dashboard/programs");
   revalidatePath(`/dashboard/programs/${programId}`);
   redirect(`/dashboard/programs/${programId}`);
@@ -158,7 +187,7 @@ export async function deleteProgram(
   _prev: ProgramFormState,
   _formData: FormData,
 ): Promise<ProgramFormState> {
-  const { membership } = await requireRole(["owner", "admin"]);
+  const { user, membership } = await requireRole(["owner", "admin"]);
   const dict = await getDictionary(await getLocale());
   const supabase = await createClient();
 
@@ -195,6 +224,13 @@ export async function deleteProgram(
     // delete. `activeError` is the accurate message for the common cause.
     return { error: dict.dashboard.programs.delete.activeError };
   }
+
+  captureServerEvent({
+    distinctId: user.id,
+    event: "program_deleted",
+    properties: { program_id: programId },
+    groups: { business: membership.business.id },
+  });
 
   revalidatePath("/dashboard/programs");
   redirect("/dashboard/programs");

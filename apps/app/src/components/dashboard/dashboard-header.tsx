@@ -6,6 +6,7 @@ import { Logo } from "@stamply/ui/logo";
 import { Badge } from "@stamply/ui/badge";
 import { useSidebar } from "./dashboard-shell";
 import { signOut } from "@/lib/auth/actions";
+import { posthog } from "@/lib/posthog/client";
 import { cn } from "@stamply/ui/utils";
 import { useTranslations } from "@stamply/i18n/provider";
 import type { MembershipRole } from "@/types/database";
@@ -69,6 +70,8 @@ function UserMenu({ role }: { role: MembershipRole }) {
           <form
             action={async () => {
               setOpen(false);
+              posthog.capture("logged_out");
+              posthog.reset();
               await signOut();
             }}
           >

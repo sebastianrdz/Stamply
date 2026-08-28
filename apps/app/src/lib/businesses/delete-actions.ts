@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type Stripe from "stripe";
 import { ACTIVE_BUSINESS_COOKIE, requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { stripe } from "@/lib/billing/stripe";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
@@ -115,12 +116,23 @@ export async function deleteBusiness(
   // from client-submitted formData. Cascades memberships/locations/programs/
   // customers/cards/stamp_events/redemptions/apple_registrations/
   // subscriptions/invitations via FK.
-  const { error } = await admin.from("businesses").delete().eq("id", business.id);
+  const { error } = await admin
+    .from("businesses")
+    .delete()
+    .eq("id", business.id);
   if (error) {
     return {
-      error: error.message || dict.dashboard.settings.errors.deleteBusinessFailed,
+      error:
+        error.message || dict.dashboard.settings.errors.deleteBusinessFailed,
     };
   }
+
+  captureServerEvent({
+    distinctId: user.id,
+    event: "business_deleted",
+    properties: { plan: business.plan },
+    groups: { business: business.id },
+  });
 
   // 4. Send the user to another business they belong to, or onboarding.
   //

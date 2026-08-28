@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { LocaleProvider } from "@stamply/i18n/provider";
+import { PostHogProvider } from "@/components/analytics/posthog-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -42,7 +43,7 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <LocaleProvider locale={locale} dict={dict}>
-          {children}
+          <PostHogProvider>{children}</PostHogProvider>
         </LocaleProvider>
       </body>
     </html>

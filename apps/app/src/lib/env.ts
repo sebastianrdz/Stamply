@@ -48,6 +48,14 @@ const serverSchema = z.object({
   // Resend — transactional email (team invites, verification, password reset).
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM_ADDRESS: z.string().email().optional(),
+
+  // PostHog (US Cloud). Same public project key serves posthog-js and
+  // posthog-node. NEXT_PUBLIC_POSTHOG_HOST is a relative path proxied through
+  // this app's own domain (see next.config.ts); POSTHOG_HOST is the real US
+  // ingestion endpoint used for direct server-to-server capture.
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().default("/ingest"), // relative — no .url()
+  POSTHOG_HOST: z.string().url().default("https://us.i.posthog.com"),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

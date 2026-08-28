@@ -35,6 +35,11 @@ vi.mock("./stripe", () => ({
     priceIdForPlanMock(tier, interval),
 }));
 
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
+}));
+
 import { redirect } from "next/navigation";
 import { changePlan, openBillingPortal } from "./actions";
 
@@ -168,6 +173,12 @@ describe("changePlan", () => {
       // Defaults to monthly billing when no interval is passed.
       expect(priceIdForPlanMock).toHaveBeenCalledWith("medium", "month");
       expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
+      expect(captureServerEventMock).toHaveBeenCalledWith({
+        distinctId: "user-1",
+        event: "checkout_started",
+        properties: { tier: "medium", interval: "month" },
+        groups: { business: "biz-1" },
+      });
     });
 
     it("creates a Checkout session when the customer's only subscriptions are canceled (reactivation)", async () => {
@@ -242,6 +253,9 @@ describe("changePlan", () => {
           }),
         );
         expect(fakeStripe.checkout.sessions.create).not.toHaveBeenCalled();
+        // Portal-based plan changes are not a new Checkout, so no
+        // checkout_started event.
+        expect(captureServerEventMock).not.toHaveBeenCalled();
       },
     );
 
@@ -306,6 +320,7 @@ describe("changePlan", () => {
 
       expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
       expect(fakeStripe.checkout.sessions.create).not.toHaveBeenCalled();
+      expect(captureServerEventMock).not.toHaveBeenCalled();
     });
 
     it("fails safe: if listing subscriptions throws, no Checkout session is created (never opens a double-charge path)", async () => {

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 export const runtime = "nodejs";
 
@@ -107,7 +108,7 @@ export async function POST(req: NextRequest) {
           p_location_id: location_id ?? null,
         });
 
-  const { error: rpcError } = await rpc;
+  const { data: mutated, error: rpcError } = await rpc;
   if (rpcError) {
     // Instrumentation: surface the real Postgres/RPC failure instead of hiding
     // it behind the client's generic fallback. PostgREST errors carry
@@ -128,6 +129,43 @@ export async function POST(req: NextRequest) {
       { error: "rpc_failed", detail: rpcError.message, code: rpcError.code },
       { status: 400 },
     );
+  }
+
+  // Capture analytics now, right off the RPC's own returned row: apply_stamp/
+  // redeem_card both `returning * into v_card` (see
+  // supabase/migrations/0012_accumulating_rewards.sql), so `mutated` already
+  // reflects the committed mutation. Firing here — rather than inside the
+  // `if (updated)` block below — means the event fires on every successful
+  // stamp/redeem regardless of whether the best-effort reload/notify that
+  // follows succeeds; `card` (the pre-mutation load) still supplies
+  // program_id/program_type/business_id since both loads reference the same
+  // card/program.
+  if (mutated) {
+    if (action === "stamp") {
+      captureServerEvent({
+        distinctId: user.id,
+        event: "stamp_added",
+        properties: {
+          program_id: card.program_id,
+          program_type: card.program.type,
+          progress: cardProgress(mutated, card.program),
+          goal: card.program.goal,
+          location_id: location_id ?? null,
+        },
+        groups: { business: card.business_id },
+      });
+    } else {
+      captureServerEvent({
+        distinctId: user.id,
+        event: "reward_redeemed",
+        properties: {
+          program_id: card.program_id,
+          program_type: card.program.type,
+          location_id: location_id ?? null,
+        },
+        groups: { business: card.business_id },
+      });
+    }
   }
 
   // Reload with relations and push the update to both wallets (best-effort).

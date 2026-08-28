@@ -3,7 +3,12 @@ import type Stripe from "stripe";
 import { stripe, planForPriceId } from "@/lib/billing/stripe";
 import { requireEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import type { PlanTier, SubscriptionStatus } from "@/types/database";
+
+/** Which Stripe event triggered `syncSubscription`, so it can decide the
+ *  right PostHog subscription-lifecycle event to fire. */
+type SyncSource = "created" | "updated" | "deleted" | "checkout_completed";
 
 export const runtime = "nodejs";
 
@@ -27,6 +32,7 @@ function mapStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
 async function syncSubscription(
   subscription: Stripe.Subscription,
   eventCreatedAt: Date,
+  source: SyncSource,
 ) {
   const admin = createAdminClient();
   const businessId = subscription.metadata.business_id;
@@ -67,6 +73,58 @@ async function syncSubscription(
     console.log(
       `[stripe webhook] skipped stale/out-of-order event for ${subscription.id}`,
     );
+    return;
+  }
+
+  // Instrumentation only — must never break the webhook's actual sync
+  // behavior (recording the dedupe row / returning 200), so the owner lookup
+  // and capture are isolated in their own try/catch that logs and swallows.
+  try {
+    const { data: biz } = await admin
+      .from("businesses")
+      .select("owner_user_id")
+      .eq("id", businessId)
+      .single();
+    const ownerUserId = biz?.owner_user_id;
+    if (ownerUserId) {
+      if (source === "created") {
+        captureServerEvent({
+          distinctId: ownerUserId,
+          event: "subscription_activated",
+          properties: { plan, status },
+          groups: { business: businessId },
+        });
+      } else if (source === "updated") {
+        if (status === "canceled") {
+          captureServerEvent({
+            distinctId: ownerUserId,
+            event: "subscription_canceled",
+            properties: { plan },
+            groups: { business: businessId },
+          });
+        } else {
+          captureServerEvent({
+            distinctId: ownerUserId,
+            event: "subscription_changed",
+            properties: { plan, status },
+            groups: { business: businessId },
+          });
+        }
+      } else if (source === "deleted") {
+        captureServerEvent({
+          distinctId: ownerUserId,
+          event: "subscription_canceled",
+          properties: { plan },
+          groups: { business: businessId },
+        });
+      }
+    } else {
+      console.error(
+        `[stripe webhook] could not resolve owner_user_id for business ${businessId}; skipping subscription analytics event`,
+      );
+    }
+  } catch (e) {
+    console.error("[stripe webhook] subscription analytics capture failed", e);
   }
 }
 
@@ -104,9 +162,13 @@ export async function POST(req: NextRequest) {
   try {
     switch (event.type) {
       case "customer.subscription.created":
+        await syncSubscription(event.data.object, eventCreatedAt, "created");
+        break;
       case "customer.subscription.updated":
+        await syncSubscription(event.data.object, eventCreatedAt, "updated");
+        break;
       case "customer.subscription.deleted":
-        await syncSubscription(event.data.object, eventCreatedAt);
+        await syncSubscription(event.data.object, eventCreatedAt, "deleted");
         break;
       case "checkout.session.completed": {
         const session = event.data.object;
@@ -114,7 +176,7 @@ export async function POST(req: NextRequest) {
           const sub = await stripe().subscriptions.retrieve(
             session.subscription as string,
           );
-          await syncSubscription(sub, eventCreatedAt);
+          await syncSubscription(sub, eventCreatedAt, "checkout_completed");
         }
         break;
       }

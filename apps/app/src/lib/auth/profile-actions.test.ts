@@ -4,7 +4,10 @@ import type { Business } from "@/types/database";
 const cookieDeleteMock = vi.fn();
 const cookieGetMock = vi.fn(() => undefined);
 vi.mock("next/headers", () => ({
-  cookies: vi.fn(async () => ({ delete: cookieDeleteMock, get: cookieGetMock })),
+  cookies: vi.fn(async () => ({
+    delete: cookieDeleteMock,
+    get: cookieGetMock,
+  })),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -25,6 +28,11 @@ const deleteUserMock = vi.fn();
 const createAdminClientMock = vi.fn();
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => createAdminClientMock(),
+}));
+
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
 }));
 
 import { redirect } from "next/navigation";
@@ -80,7 +88,10 @@ describe("deleteAccount", () => {
           owner_user_id: "user-1",
         }),
       },
-      { role: "employee", business: business({ id: "biz-2", name: "Other Shop" }) },
+      {
+        role: "employee",
+        business: business({ id: "biz-2", name: "Other Shop" }),
+      },
     ]);
 
     const state = await deleteAccount({}, new FormData());
@@ -128,8 +139,14 @@ describe("deleteAccount", () => {
     // defaults to "owner-1" in the fixture) -- the check must key off
     // owner_user_id, not role, or this would wrongly block deletion.
     getMembershipsMock.mockResolvedValue([
-      { role: "owner", business: business({ id: "biz-3", name: "Someone Else's Shop" }) },
-      { role: "employee", business: business({ id: "biz-2", name: "Other Shop" }) },
+      {
+        role: "owner",
+        business: business({ id: "biz-3", name: "Someone Else's Shop" }),
+      },
+      {
+        role: "employee",
+        business: business({ id: "biz-2", name: "Other Shop" }),
+      },
     ]);
 
     await expect(deleteAccount({}, new FormData())).rejects.toThrow(
@@ -139,6 +156,21 @@ describe("deleteAccount", () => {
     expect(deleteUserMock).toHaveBeenCalledWith("user-1");
     expect(cookieDeleteMock).toHaveBeenCalledWith(ACTIVE_BUSINESS_COOKIE);
     expect(redirect).toHaveBeenCalledWith("/login");
+  });
+
+  it("captures account_deleted only after deleteUser succeeds", async () => {
+    getUserMock.mockResolvedValue({ id: "user-1", email: "owner@example.com" });
+    getMembershipsMock.mockResolvedValue([]);
+
+    await expect(deleteAccount({}, new FormData())).rejects.toThrow(
+      "NEXT_REDIRECT:/login",
+    );
+
+    expect(captureServerEventMock).toHaveBeenCalledTimes(1);
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "account_deleted",
+    });
   });
 
   it("also succeeds and redirects when the user has no memberships at all", async () => {
@@ -154,12 +186,15 @@ describe("deleteAccount", () => {
   it("returns the error when deleteUser fails, without redirecting", async () => {
     getUserMock.mockResolvedValue({ id: "user-1", email: "owner@example.com" });
     getMembershipsMock.mockResolvedValue([]);
-    deleteUserMock.mockResolvedValue({ error: { message: "auth service down" } });
+    deleteUserMock.mockResolvedValue({
+      error: { message: "auth service down" },
+    });
 
     const state = await deleteAccount({}, new FormData());
 
     expect(state.error).toBe("auth service down");
     expect(redirect).not.toHaveBeenCalled();
     expect(cookieDeleteMock).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });

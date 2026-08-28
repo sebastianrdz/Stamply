@@ -4,9 +4,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { customAlphabet } from "nanoid";
-import { getUser } from "@/lib/auth/session";
+import { getMemberships, getUser } from "@/lib/auth/session";
 import { ACTIVE_BUSINESS_COOKIE } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 
@@ -42,6 +43,8 @@ export async function createBusiness(
   const base = slugify(parsed.data.name) || "biz";
   const slug = `${base}-${slugSuffix()}`;
 
+  const isFirstBusiness = (await getMemberships()).length === 0;
+
   const { data: business, error } = await admin
     .from("businesses")
     .insert({ name: parsed.data.name, slug, owner_user_id: user.id })
@@ -68,6 +71,13 @@ export async function createBusiness(
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
     sameSite: "lax",
+  });
+
+  captureServerEvent({
+    distinctId: user.id,
+    event: "business_created",
+    properties: { is_first_business: isFirstBusiness },
+    groups: { business: business.id },
   });
 
   redirect("/dashboard");

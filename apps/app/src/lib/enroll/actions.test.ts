@@ -40,6 +40,11 @@ vi.mock("@/lib/cards/issue", () => ({
   issueCard: (...args: unknown[]) => issueCardMock(...args),
 }));
 
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
+}));
+
 import { redirect } from "next/navigation";
 import { LimitExceededError } from "@/lib/billing/entitlements";
 import { enroll } from "./actions";
@@ -175,6 +180,16 @@ describe("enroll — existing customer", () => {
       expect.objectContaining({ customerId: "existing-cust" }),
     );
     expect(redirect).toHaveBeenCalledWith("/c/tok_123");
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "existing-cust",
+      event: "customer_enrolled",
+      properties: {
+        program_id: PROGRAM_ID,
+        program_type: "stamp",
+        is_new_customer: false,
+      },
+      groups: { business: "biz-1" },
+    });
   });
 
   it("redirects to the existing card without issuing a duplicate when already enrolled in this program", async () => {
@@ -193,8 +208,13 @@ describe("enroll — existing customer", () => {
     expect(issueCardMock).not.toHaveBeenCalled();
     const cardsBuilder = mock.builderFor("cards");
     expect(cardsBuilder.eq).toHaveBeenCalledWith("program_id", PROGRAM_ID);
-    expect(cardsBuilder.eq).toHaveBeenCalledWith("customer_id", "existing-cust");
+    expect(cardsBuilder.eq).toHaveBeenCalledWith(
+      "customer_id",
+      "existing-cust",
+    );
     expect(redirect).toHaveBeenCalledWith("/c/tok_existing");
+    // Already had a card in this program — not a (re-)enrollment.
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });
 
@@ -250,6 +270,16 @@ describe("enroll — new customer", () => {
       expect.objectContaining({ customerId: "new-cust" }),
     );
     expect(redirect).toHaveBeenCalledWith("/c/tok_new");
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "new-cust",
+      event: "customer_enrolled",
+      properties: {
+        program_id: PROGRAM_ID,
+        program_type: "stamp",
+        is_new_customer: true,
+      },
+      groups: { business: "biz-1" },
+    });
   });
 
   it("returns the db error message when the customer insert fails", async () => {
@@ -265,5 +295,6 @@ describe("enroll — new customer", () => {
     const state = await enroll({}, form(baseFields));
     expect(state.error).toBe("insert boom");
     expect(issueCardMock).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });

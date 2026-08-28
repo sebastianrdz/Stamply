@@ -38,6 +38,11 @@ vi.mock("@/lib/billing/stripe", () => ({
   stripe: () => stripeMock(),
 }));
 
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
+}));
+
 import { redirect } from "next/navigation";
 import { ACTIVE_BUSINESS_COOKIE } from "@/lib/auth/session";
 import { deleteBusiness } from "./delete-actions";
@@ -292,10 +297,9 @@ describe("deleteBusiness", () => {
     requireRoleMock.mockResolvedValue(
       ctx("owner", business({ stripe_customer_id: null })),
     );
-    const admin = makeAdminMock(
-      { businesses: { data: null, error: null } },
-      [[{ name: "logo-abc.png" }]],
-    );
+    const admin = makeAdminMock({ businesses: { data: null, error: null } }, [
+      [{ name: "logo-abc.png" }],
+    ]);
     fakeStorage.remove.mockResolvedValue({
       data: null,
       error: { message: "storage down" },
@@ -309,6 +313,7 @@ describe("deleteBusiness", () => {
     );
     expect(admin.from).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 
   it("deletes the business row via the admin client", async () => {
@@ -332,6 +337,29 @@ describe("deleteBusiness", () => {
     );
   });
 
+  it("captures business_deleted once the business row delete succeeds", async () => {
+    requireRoleMock.mockResolvedValue(
+      ctx("owner", business({ stripe_customer_id: null, plan: "small" })),
+    );
+    const admin = makeAdminMock({
+      businesses: { data: null, error: null },
+      memberships: { data: [], error: null },
+    });
+    createAdminClientMock.mockReturnValue(admin);
+
+    await expect(deleteBusiness({}, new FormData())).rejects.toThrow(
+      "NEXT_REDIRECT:/onboarding",
+    );
+
+    expect(captureServerEventMock).toHaveBeenCalledTimes(1);
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "business_deleted",
+      properties: { plan: "small" },
+      groups: { business: "biz-1" },
+    });
+  });
+
   it("propagates a business-delete DB error as {error} rather than throwing", async () => {
     requireRoleMock.mockResolvedValue(
       ctx("owner", business({ stripe_customer_id: null })),
@@ -345,6 +373,7 @@ describe("deleteBusiness", () => {
 
     expect(state.error).toBe("db down");
     expect(redirect).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 
   it("sets the cookie to another membership and redirects to /dashboard when the user has other businesses", async () => {
