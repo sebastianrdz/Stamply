@@ -12,6 +12,7 @@ import {
 } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import {
   assertWithinLimit,
   LimitExceededError,
@@ -78,6 +79,13 @@ export async function createInvitation(
     expires_at: new Date(Date.now() + INVITE_TTL_MS).toISOString(),
   });
   if (error) return { error: error.message };
+
+  captureServerEvent({
+    distinctId: user.id,
+    event: "team_invite_sent",
+    properties: { role: parsed.data.role },
+    groups: { business: business.id },
+  });
 
   // Best-effort: the copy-link UI is the reliable fallback, so a failed send
   // must never block invite creation. Never log the token — it's the live
@@ -181,6 +189,13 @@ export async function acceptInvitation(
     });
     if (error) return { error: error.message };
   }
+
+  captureServerEvent({
+    distinctId: user.id,
+    event: "team_invite_accepted",
+    properties: { role: invite.role },
+    groups: { business: invite.business_id },
+  });
 
   await admin
     .from("invitations")

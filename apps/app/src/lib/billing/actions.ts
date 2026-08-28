@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type Stripe from "stripe";
 import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { appUrlBase } from "@/lib/wallet/shared";
 import { stripe, priceIdForPlan } from "./stripe";
 import type { BillingInterval } from "@stamply/plans";
@@ -191,6 +192,13 @@ export async function changePlan(
     cancel_url: `${appUrlBase()}/dashboard/billing?status=cancelled`,
     subscription_data: { metadata: { business_id: business.id } },
     metadata: { business_id: business.id, plan: tier },
+  });
+
+  captureServerEvent({
+    distinctId: user.id,
+    event: "checkout_started",
+    properties: { tier, interval },
+    groups: { business: business.id },
   });
 
   if (session.url) redirect(session.url);

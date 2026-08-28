@@ -116,6 +116,7 @@ export type Card = Timestamped & {
   barcode_value: string;
   pass_auth_token: string;
   apple_serial: string | null;
+  apple_pass_generated_at: string | null;
   google_object_id: string | null;
   updated_at: string;
 };
@@ -230,6 +231,7 @@ export interface Database {
         | "rewards"
         | "status"
         | "apple_serial"
+        | "apple_pass_generated_at"
         | "google_object_id"
       >;
       stamp_events: TableDef<

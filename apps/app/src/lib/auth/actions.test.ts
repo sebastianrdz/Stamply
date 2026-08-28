@@ -32,7 +32,9 @@ vi.mock("@/lib/supabase/server", () => ({
 
 const generateLinkMock = vi.fn();
 const createAdminClientMock = vi.fn(() => ({
-  auth: { admin: { generateLink: (...args: unknown[]) => generateLinkMock(...args) } },
+  auth: {
+    admin: { generateLink: (...args: unknown[]) => generateLinkMock(...args) },
+  },
 }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => createAdminClientMock(),
@@ -58,6 +60,11 @@ vi.mock("@/lib/email/send", () => ({
 const rateLimitMock = vi.fn(async (..._args: unknown[]) => true);
 vi.mock("@/lib/rate-limit", () => ({
   rateLimit: (...args: unknown[]) => rateLimitMock(...args),
+}));
+
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
 }));
 
 import { redirect } from "next/navigation";
@@ -110,10 +117,35 @@ describe("signIn", () => {
   });
 
   it("redirects to `next` (default /dashboard) on success", async () => {
-    signInWithPasswordMock.mockResolvedValue({ error: null });
+    signInWithPasswordMock.mockResolvedValue({
+      data: { user: { id: "user-1" } },
+      error: null,
+    });
     await expect(
       signIn({}, form({ email: "a@b.com", password: "password123" })),
     ).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+  });
+
+  it("captures a logged_in event with the signed-in user's id", async () => {
+    signInWithPasswordMock.mockResolvedValue({
+      data: { user: { id: "user-1" } },
+      error: null,
+    });
+    await expect(
+      signIn({}, form({ email: "a@b.com", password: "password123" })),
+    ).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "logged_in",
+    });
+  });
+
+  it("does not capture an event when sign-in fails", async () => {
+    signInWithPasswordMock.mockResolvedValue({
+      error: { message: "Invalid login credentials" },
+    });
+    await signIn({}, form({ email: "a@b.com", password: "password123" }));
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 });
 
@@ -251,7 +283,10 @@ describe("signOut", () => {
 
 describe("requestPasswordReset", () => {
   it("surfaces a validation error for a bad email", async () => {
-    const state = await requestPasswordReset({}, form({ email: "not-an-email" }));
+    const state = await requestPasswordReset(
+      {},
+      form({ email: "not-an-email" }),
+    );
     expect(state.error).toBe("Ingresa un correo válido.");
     expect(rateLimitMock).not.toHaveBeenCalled();
   });

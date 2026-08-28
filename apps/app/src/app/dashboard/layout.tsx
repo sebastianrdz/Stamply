@@ -3,13 +3,14 @@ import { DashboardNav } from "@/components/dashboard/nav";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { BusinessSwitcher } from "@/components/dashboard/business-switcher";
+import { PostHogIdentifyBridge } from "@/components/analytics/posthog-identify-bridge";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { membership } = await requireBusiness();
+  const { user, membership } = await requireBusiness();
   const memberships = await getMemberships();
 
   const options = memberships.map((m) => ({
@@ -33,11 +34,19 @@ export default async function DashboardLayout({
   );
 
   return (
-    <DashboardShell
-      header={<DashboardHeader role={membership.role} />}
-      sidebar={sidebar}
-    >
-      {children}
-    </DashboardShell>
+    <>
+      <PostHogIdentifyBridge
+        userId={user.id}
+        businessId={membership.business.id}
+        role={membership.role}
+        plan={membership.business.plan}
+      />
+      <DashboardShell
+        header={<DashboardHeader role={membership.role} />}
+        sidebar={sidebar}
+      >
+        {children}
+      </DashboardShell>
+    </>
   );
 }

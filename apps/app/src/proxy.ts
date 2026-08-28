@@ -56,8 +56,10 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Run on everything except static assets and Next internals.
+  // Run on everything except static assets, Next internals, and the
+  // PostHog ingest rewrite (see next.config.ts) — the auth guard above must
+  // not intercept that proxied analytics traffic.
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|ingest(?:/|$)|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

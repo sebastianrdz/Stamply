@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary, type Dictionary } from "@stamply/i18n/dictionaries";
 import {
@@ -48,8 +49,10 @@ export async function signIn(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { error: error.message };
+
+  captureServerEvent({ distinctId: data.user.id, event: "logged_in" });
 
   const next = (formData.get("next") as string) || "/dashboard";
   redirect(next);

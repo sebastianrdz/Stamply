@@ -28,6 +28,22 @@ const nextConfig: NextConfig = {
       static: 180,
     },
   },
+  // Proxy posthog-js's browser traffic through this app's own domain so ad
+  // blockers are less likely to strip it. posthog-node talks directly to
+  // POSTHOG_HOST server-to-server and never goes through this rewrite.
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+  },
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;

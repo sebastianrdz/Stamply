@@ -153,6 +153,7 @@ function card(overrides: Partial<Card> = {}): Card {
     barcode_value: "stmp_abc123",
     pass_auth_token: "tok_abc123",
     apple_serial: "serial-abc",
+    apple_pass_generated_at: null,
     google_object_id: null,
     updated_at: new Date().toISOString(),
     created_at: new Date().toISOString(),

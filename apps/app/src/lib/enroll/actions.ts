@@ -10,6 +10,7 @@ import {
 } from "@/lib/billing/entitlements";
 import { issueCard } from "@/lib/cards/issue";
 import { rateLimit } from "@/lib/rate-limit";
+import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import type { Business, Program } from "@/types/database";
@@ -100,6 +101,7 @@ export async function enroll(
 
   // Reuse an existing customer for this business by email, if provided.
   let customerId: string | null = null;
+  let isNewCustomer = false;
   if (email) {
     const { data: existing } = await admin
       .from("customers")
@@ -140,6 +142,7 @@ export async function enroll(
       };
     }
     customerId = customer.id;
+    isNewCustomer = true;
   }
 
   // One card per customer per program: if this customer already enrolled in
@@ -161,6 +164,17 @@ export async function enroll(
     businessId: business.id,
     programId: program.id,
     customerId,
+  });
+
+  captureServerEvent({
+    distinctId: customerId,
+    event: "customer_enrolled",
+    properties: {
+      program_id: program.id,
+      program_type: program.type,
+      is_new_customer: isNewCustomer,
+    },
+    groups: { business: business.id },
   });
 
   redirect(`/c/${card.pass_auth_token}`);

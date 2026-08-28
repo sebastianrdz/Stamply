@@ -25,17 +25,24 @@ vi.mock("nanoid", () => ({
 }));
 
 const getUserMock = vi.fn();
+const getMembershipsMock = vi.fn();
 vi.mock("@/lib/auth/session", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/auth/session")>();
   return {
     ...actual,
     getUser: (...args: unknown[]) => getUserMock(...args),
+    getMemberships: (...args: unknown[]) => getMembershipsMock(...args),
   };
 });
 
 const createAdminClientMock = vi.fn();
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: (...args: unknown[]) => createAdminClientMock(...args),
+}));
+
+const captureServerEventMock = vi.fn();
+vi.mock("@/lib/posthog/server", () => ({
+  captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
 }));
 
 import { redirect } from "next/navigation";
@@ -51,6 +58,7 @@ function form(fields: Record<string, string>): FormData {
 beforeEach(() => {
   vi.clearAllMocks();
   slugSuffixMock.mockReturnValue("abcde");
+  getMembershipsMock.mockResolvedValue([]);
 });
 
 describe("createBusiness", () => {
@@ -97,6 +105,7 @@ describe("createBusiness", () => {
     expect(state.error).toBe("insert failed");
     expect(redirect).not.toHaveBeenCalled();
     expect(cookieSetMock).not.toHaveBeenCalled();
+    expect(captureServerEventMock).not.toHaveBeenCalled();
   });
 
   it("on success: inserts the business, inserts the owner membership, sets the active-business cookie, and redirects", async () => {
@@ -148,5 +157,45 @@ describe("createBusiness", () => {
       expect.objectContaining({ path: "/" }),
     );
     expect(redirect).toHaveBeenCalledWith("/dashboard");
+
+    expect(captureServerEventMock).toHaveBeenCalledWith({
+      distinctId: "user-1",
+      event: "business_created",
+      properties: { is_first_business: true },
+      groups: { business: "biz-1" },
+    });
+  });
+
+  it("reports is_first_business: false when the user already belongs to a business", async () => {
+    getUserMock.mockResolvedValue({
+      id: "user-1",
+      email: "owner@example.com",
+    });
+    getMembershipsMock.mockResolvedValue([
+      { role: "owner", business: { id: "other-biz" } },
+    ]);
+    const mock = makeSupabaseMock({
+      businesses: {
+        data: {
+          id: "biz-1",
+          name: "Bean & Brew",
+          slug: "bean-brew-abcde",
+          owner_user_id: "user-1",
+        },
+        error: null,
+      },
+      memberships: { data: null, error: null },
+    });
+    createAdminClientMock.mockReturnValue(mock);
+
+    await expect(
+      createBusiness({}, form({ name: "Bean & Brew" })),
+    ).rejects.toThrow("NEXT_REDIRECT:/dashboard");
+
+    expect(captureServerEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        properties: { is_first_business: false },
+      }),
+    );
   });
 });

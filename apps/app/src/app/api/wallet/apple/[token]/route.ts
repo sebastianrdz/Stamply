@@ -3,6 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByToken } from "@/lib/cards/queries";
 import { buildApplePass } from "@/lib/wallet/apple/pass";
 import { businessLocations } from "@/lib/wallet/notify";
+import { captureServerEvent } from "@/lib/posthog/server";
 
 export const runtime = "nodejs";
 
@@ -32,6 +33,21 @@ export async function GET(
   try {
     const locations = await businessLocations(admin, card.business_id);
     const buffer = await buildApplePass(card, locations, card.rewards);
+
+    if (!card.apple_pass_generated_at) {
+      await admin
+        .from("cards")
+        .update({ apple_pass_generated_at: new Date().toISOString() })
+        .eq("id", card.id);
+
+      captureServerEvent({
+        distinctId: card.customer_id,
+        event: "wallet_pass_generated",
+        properties: { platform: "apple", program_id: card.program_id },
+        groups: { business: card.business_id },
+      });
+    }
+
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
