@@ -23,7 +23,7 @@ export async function GET(
   }
 
   const locations = await businessLocations(admin, card.business_id);
-  const buffer = await buildApplePass(card, locations, card.rewards);
+  const buffer = await buildApplePass(card, locations, card.rewards, admin);
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {

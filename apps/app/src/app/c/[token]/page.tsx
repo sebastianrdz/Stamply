@@ -1,12 +1,18 @@
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getCardByToken, cardProgress } from "@/lib/cards/queries";
+import {
+  getCardByToken,
+  cardProgress,
+  getOtherActiveCardsForCustomer,
+} from "@/lib/cards/queries";
+import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { brandStyle } from "@/lib/brand";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { LoyaltyCard } from "@/components/loyalty-card";
 import { WalletButtons } from "./wallet-buttons";
+import { NotificationsSection } from "./notifications-section";
 
 export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   const { token } = await params;
@@ -33,7 +39,32 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
 
   const progress = cardProgress(card, card.program);
   const completed = card.status === "completed";
-  const qr = await qrDataUrl(card.barcode_value, { width: 260 });
+  // Standalone rewards and other-programs are supplementary "what's new"
+  // info for the notifications section below — best-effort, matching
+  // src/app/api/scan/route.ts's precedent for this same lookup: a DB failure
+  // here shouldn't 500 the whole card page (via the nearest error boundary)
+  // over what's ultimately a secondary block, so degrade to an empty list
+  // and let the rest of the page render normally.
+  const [qr, standaloneRewards, otherPrograms] = await Promise.all([
+    qrDataUrl(card.barcode_value, { width: 260 }),
+    getAvailableStandaloneRewardsForCustomer(
+      admin,
+      card.business_id,
+      card.customer_id,
+    ).catch((e) => {
+      console.error("[card] standalone rewards lookup failed", e);
+      return [];
+    }),
+    getOtherActiveCardsForCustomer(
+      admin,
+      card.business_id,
+      card.customer_id,
+      card.id,
+    ).catch((e) => {
+      console.error("[card] other active cards lookup failed", e);
+      return [];
+    }),
+  ]);
   // Rewards are per-program: this card's own banked count, not a sum across the
   // customer's cards in other programs.
   const availableRewards = card.rewards;
@@ -68,6 +99,13 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           locale={locale}
           appleLabel={dict.card.addAppleWallet}
           googleLabel={dict.card.addGoogleWallet}
+        />
+
+        <NotificationsSection
+          dict={dict}
+          locale={locale}
+          standaloneRewards={standaloneRewards}
+          otherPrograms={otherPrograms}
         />
 
         <p className="text-muted-foreground text-center text-xs">

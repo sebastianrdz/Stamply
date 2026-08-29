@@ -56,6 +56,9 @@ const serverSchema = z.object({
   NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
   NEXT_PUBLIC_POSTHOG_HOST: z.string().default("/ingest"), // relative — no .url()
   POSTHOG_HOST: z.string().url().default("https://us.i.posthog.com"),
+
+  // Cron auth — protects internal cron-triggered routes from public invocation.
+  CRON_SECRET: z.string().optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;

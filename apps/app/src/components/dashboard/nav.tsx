@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   ScanLine,
   CreditCard,
+  Gift,
   Users,
   UserCog,
   MapPin,
@@ -21,6 +22,7 @@ type NavKey =
   | "overview"
   | "scan"
   | "programs"
+  | "rewards"
   | "customers"
   | "locations"
   | "analytics"
@@ -42,6 +44,12 @@ const items: {
     href: "/dashboard/programs",
     key: "programs",
     icon: CreditCard,
+    allow: ["owner", "admin"],
+  },
+  {
+    href: "/dashboard/rewards",
+    key: "rewards",
+    icon: Gift,
     allow: ["owner", "admin"],
   },
   { href: "/dashboard/customers", key: "customers", icon: Users },
@@ -104,6 +112,7 @@ export function DashboardNav({
     overview: dict.nav.overview,
     scan: dict.nav.scan,
     programs: dict.nav.programs,
+    rewards: dict.nav.rewards,
     customers: dict.nav.customers,
     locations: dict.nav.locations,
     analytics: dict.nav.analytics,

@@ -7,6 +7,8 @@ import type {
   Program,
   Business,
   Customer,
+  ProgramType,
+  CardStatus,
 } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
@@ -64,4 +66,66 @@ export function cardProgress(
   const total = program.type === "points" ? card.points : card.stamps;
   const goal = program.goal > 0 ? program.goal : 1;
   return total % goal;
+}
+
+export interface ActiveProgramSummary {
+  cardId: string;
+  token: string;
+  programName: string;
+  programType: ProgramType;
+  goal: number;
+  progress: number;
+  rewardsAvailable: number;
+  status: CardStatus;
+}
+
+/**
+ * A customer's OTHER cards at this business (excluding `excludeCardId`, e.g.
+ * the card the caller is currently looking at). Used to surface a
+ * customer's other programs alongside a standalone reward.
+ *
+ * NOTE: despite the name, this does NOT filter by `card.status` or
+ * `program.active` — it returns every other card regardless of state, and
+ * `status` is included in the result so callers can decide how to present
+ * completed/inactive ones. The current caller renders these under a
+ * "your other programs" heading (not "active programs"), so keep that
+ * framing in mind before reusing this for anything that implies filtering.
+ */
+export async function getOtherActiveCardsForCustomer(
+  supabase: Client,
+  businessId: string,
+  customerId: string,
+  excludeCardId: string,
+): Promise<ActiveProgramSummary[]> {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("*, program:programs(name, type, goal)")
+    .eq("business_id", businessId)
+    .eq("customer_id", customerId)
+    .neq("id", excludeCardId);
+  if (error) {
+    console.error("[cards/queries] getOtherActiveCardsForCustomer failed", {
+      businessId,
+      customerId,
+      error,
+    });
+    throw error;
+  }
+
+  type RowWithProgram = Card & {
+    program: Pick<Program, "name" | "type" | "goal"> | null;
+  };
+
+  return ((data ?? []) as unknown as RowWithProgram[])
+    .filter((row) => row.program !== null)
+    .map((row) => ({
+      cardId: row.id,
+      token: row.pass_auth_token,
+      programName: row.program!.name,
+      programType: row.program!.type,
+      goal: row.program!.goal,
+      progress: cardProgress(row, row.program!),
+      rewardsAvailable: row.rewards,
+      status: row.status,
+    }));
 }

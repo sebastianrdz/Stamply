@@ -97,6 +97,7 @@ const baseFields = {
   full_name: "Jane Doe",
   email: "jane@example.com",
   phone: "",
+  birthday: "1990-05-15",
 };
 
 beforeEach(() => {
@@ -118,6 +119,11 @@ describe("enroll — validation", () => {
   it("surfaces the zod message for a missing name", async () => {
     const state = await enroll({}, form({ ...baseFields, full_name: "" }));
     expect(state.error).toBe("Ingresa tu nombre.");
+  });
+
+  it("surfaces the zod message for a missing birthday", async () => {
+    const state = await enroll({}, form({ ...baseFields, birthday: "" }));
+    expect(state.error).toBe("Ingresa tu fecha de nacimiento.");
   });
 });
 
@@ -173,8 +179,9 @@ describe("enroll — existing customer", () => {
     );
 
     expect(assertWithinLimitMock).not.toHaveBeenCalled();
-    // Only the existence lookup should have touched "customers" — no insert.
-    expect(mock.callCounts.customers).toBe(1);
+    // The existence lookup plus the best-effort birthday backfill touch
+    // "customers" — no insert.
+    expect(mock.callCounts.customers).toBe(2);
     expect(issueCardMock).toHaveBeenCalledWith(
       mock,
       expect.objectContaining({ customerId: "existing-cust" }),

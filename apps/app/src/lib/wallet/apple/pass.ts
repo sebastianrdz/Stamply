@@ -12,6 +12,14 @@ import { renderStampStrip } from "@/lib/wallet/stamp-image";
 import { cardUrl } from "@/lib/urls";
 import esDict from "@stamply/i18n/dictionaries/es.json";
 import { interpolate } from "@stamply/i18n/format";
+import {
+  isBirthdayMonth,
+  birthdayMonthWindow,
+} from "@/lib/customers/birthday";
+import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
+import type { createAdminClient } from "@/lib/supabase/admin";
+
+type AdminClient = ReturnType<typeof createAdminClient>;
 
 // Apple's storeCard strip display size is 375x123pt; provide @1x/@2x/@3x.
 const STRIP_WIDTH_1X = 375;
@@ -31,6 +39,7 @@ export async function buildApplePass(
   card: CardWithRelations,
   locations: PassLocation[] = [],
   availableRewards = 0,
+  admin?: AdminClient,
 ): Promise<Buffer> {
   const { passTypeIdentifier, teamIdentifier } = applePassConfig();
   const bg = card.business.brand_primary_color;
@@ -54,6 +63,47 @@ export async function buildApplePass(
   // is still valid, it just won't auto-update over APNs until deployed.
   const base = appUrlBase();
   const updatable = base.startsWith("https://");
+
+  // Birthday reward lock-screen relevance: best-effort only, and only
+  // attempted when an admin (service-role) client is supplied — callers that
+  // don't pass one (e.g. tests) simply skip this. Never let a failure here
+  // break ordinary pass generation (mirrors buildStampStripSet's try/catch
+  // precedent below): a bad/missing reward-definitions row, an invalid
+  // business timezone, or a transient DB error should just omit the birthday
+  // fields, not fail the whole pass. Relevant for the customer's ENTIRE
+  // birthday month, not just the exact day.
+  let relevantDates: { startDate: string; endDate: string }[] | undefined;
+  let birthdayBackField:
+    | { key: string; label: string; value: string }
+    | undefined;
+  if (admin) {
+    try {
+      if (
+        isBirthdayMonth(card.customer.birthday ?? null, card.business.timezone)
+      ) {
+        const definition = await getBirthdayRewardDefinition(
+          admin,
+          card.business_id,
+        );
+        if (definition) {
+          const window = birthdayMonthWindow(card.business.timezone);
+          relevantDates = [
+            {
+              startDate: window.start.toISOString(),
+              endDate: window.end.toISOString(),
+            },
+          ];
+          birthdayBackField = {
+            key: "birthdayReward",
+            label: w.birthdayRewardLabel,
+            value: definition.rewardDescription,
+          };
+        }
+      }
+    } catch (e) {
+      console.error("[apple wallet] birthday reward check failed", e);
+    }
+  }
 
   const passJson = {
     formatVersion: 1,
@@ -85,6 +135,9 @@ export async function buildApplePass(
       longitude: l.lng,
       relevantText: l.name ? interpolate(w.nearby, { name: l.name }) : undefined,
     })),
+    // Lock-screen relevance: pass surfaces on the customer's birthday, for the
+    // 24h window computed in the business's own timezone.
+    ...(relevantDates && { relevantDates }),
     storeCard: {
       headerFields: [
         {
@@ -161,6 +214,7 @@ export async function buildApplePass(
           label: w.lastSyncLabel,
           value: lastSync,
         },
+        ...(birthdayBackField ? [birthdayBackField] : []),
       ],
     },
   };

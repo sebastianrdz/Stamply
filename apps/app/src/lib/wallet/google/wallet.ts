@@ -9,6 +9,9 @@ import { cardProgress } from "@/lib/cards/queries";
 import type { PassLocation } from "@/lib/wallet/apple/pass";
 import { renderStampStrip } from "@/lib/wallet/stamp-image";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isBirthdayMonth } from "@/lib/customers/birthday";
+import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
+import esDict from "@stamply/i18n/dictionaries/es.json";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -222,6 +225,37 @@ export async function patchLoyaltyObject(
   // sent, silently dropping the wallet update. Awaiting trades latency for
   // delivery guarantees; revisit only if that tradeoff becomes a problem.
   const heroUri = await heroImageUri(admin, card, progress);
+
+  // Birthday reward message: best-effort only, never lets a failure here
+  // break an ordinary progress patch (mirrors the try/catch-log-continue
+  // shape used for the Apple pass's equivalent birthday check). Shown for
+  // the customer's ENTIRE birthday month, not just the exact day.
+  let birthdayMessages:
+    | { id: string; header: string; body: string; messageType: "TEXT" }[]
+    | undefined;
+  try {
+    if (
+      isBirthdayMonth(card.customer.birthday ?? null, card.business.timezone)
+    ) {
+      const definition = await getBirthdayRewardDefinition(
+        admin,
+        card.business_id,
+      );
+      if (definition) {
+        birthdayMessages = [
+          {
+            id: "birthday-reward",
+            header: esDict.wallet.birthdayMessageHeader,
+            body: definition.rewardDescription,
+            messageType: "TEXT",
+          },
+        ];
+      }
+    }
+  } catch (e) {
+    console.error("[google wallet] birthday reward check failed", e);
+  }
+
   await client.request({
     url: `${BASE}/loyaltyObject/${id}`,
     method: "PATCH",
@@ -229,6 +263,7 @@ export async function patchLoyaltyObject(
       loyaltyPoints: { balance: { int: progress } },
       secondaryLoyaltyPoints: { label: "Rewards", balance: { int: rewards } },
       ...(heroUri && { heroImage: { sourceUri: { uri: heroUri } } }),
+      ...(birthdayMessages && { messages: birthdayMessages }),
     },
   });
 }

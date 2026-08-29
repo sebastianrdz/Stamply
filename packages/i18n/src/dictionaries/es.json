@@ -5,6 +5,8 @@
     "reward": "PREMIO",
     "name": "NOMBRE",
     "rewards": "PREMIOS",
+    "birthdayRewardLabel": "Premio de cumpleaños",
+    "birthdayMessageHeader": "¡Feliz cumpleaños!",
     "member": "Miembro",
     "howToLabel": "Cómo funciona",
     "howTo": "Muestra esta tarjeta en {business} para acumular {unit}. Llega a {goal} para ganar: {reward}.",
@@ -93,6 +95,7 @@
     "team": "Equipo",
     "billing": "Facturación",
     "settings": "Configuración",
+    "rewards": "Recompensas",
     "userMenu": "Menú de usuario",
     "roleLabel": "Rol",
     "toggleSidebar": "Mostrar u ocultar el menú lateral",
@@ -329,6 +332,24 @@
         "rewardRequired": "Describe la recompensa."
       }
     },
+    "rewards": {
+      "metaTitle": "Recompensas",
+      "title": "Recompensas",
+      "description": "Configura recompensas independientes de tus programas, como una recompensa de cumpleaños para tus clientes.",
+      "birthday": {
+        "title": "Recompensa de cumpleaños",
+        "description": "Otorga automáticamente esta recompensa a tus clientes durante todo su mes de cumpleaños.",
+        "activeLabel": "Activar recompensa de cumpleaños",
+        "rewardLabel": "Recompensa",
+        "rewardPlaceholder": "Café gratis durante tu mes de cumpleaños",
+        "save": "Guardar",
+        "saving": "Guardando…",
+        "saved": "Cambios guardados."
+      },
+      "errors": {
+        "rewardRequired": "Describe la recompensa."
+      }
+    },
     "locations": {
       "metaTitle": "Sucursales",
       "title": "Sucursales",
@@ -420,6 +441,7 @@
         "cooldownFallback": "unos segundos",
         "cardNotFound": "Esta tarjeta no está reconocida para tu negocio.",
         "notRedeemable": "Esta tarjeta aún no tiene una recompensa lista.",
+        "rewardNotRedeemable": "Esta recompensa ya no está disponible — puede que se haya canjeado en otro lugar.",
         "programDisabled": "Este programa está desactivado y no acepta sellos ni canjes.",
         "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo.",
         "network": "Error de red. Intenta de nuevo.",
@@ -593,6 +615,8 @@
       "nameLabel": "Tu nombre",
       "emailLabel": "Correo electrónico",
       "phoneLabel": "Teléfono (opcional)",
+      "birthdayLabel": "Tu fecha de nacimiento",
+      "birthdayHint": "Te sorprenderemos en tu cumpleaños.",
       "marketingConsent": "Envíame ofertas y novedades. Puedes darte de baja cuando quieras.",
       "creating": "Creando tu tarjeta…",
       "submit": "Unirme y obtener mi tarjeta"
@@ -600,6 +624,8 @@
     "errors": {
       "nameRequired": "Ingresa tu nombre.",
       "emailInvalid": "Ingresa un correo válido.",
+      "birthdayRequired": "Ingresa tu fecha de nacimiento.",
+      "birthdayInvalid": "Ingresa una fecha de nacimiento válida.",
       "tooManyAttempts": "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
       "programNotFound": "No se encontró este programa de lealtad.",
       "programInactive": "Este programa no está aceptando nuevos miembros por ahora.",
@@ -627,7 +653,21 @@
     "customer": "Cliente",
     "guest": "Invitado",
     "name": "Nombre",
-    "rewards": "Recompensas"
+    "rewards": "Recompensas",
+    "notifications": {
+      "title": "Novedades",
+      "availableRewards": {
+        "title": "Recompensas disponibles",
+        "empty": "No tienes recompensas disponibles por ahora.",
+        "validUntil": "Válida hasta {date}"
+      },
+      "activePrograms": {
+        "title": "Tus otros programas",
+        "empty": "No estás inscrito en otros programas de este negocio.",
+        "rewardReady": "¡Recompensa lista!",
+        "viewCard": "Ver tarjeta"
+      }
+    }
   },
   "landing": {
     "nav": {

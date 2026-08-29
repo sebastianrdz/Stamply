@@ -44,6 +44,29 @@ export async function enroll(
     marketing_consent: z
       .union([z.literal("on"), z.null()])
       .transform((v) => v === "on"),
+    birthday: z
+      .string()
+      .min(1, dict.customerJoin.errors.birthdayRequired)
+      .superRefine((v, ctx) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: dict.customerJoin.errors.birthdayInvalid,
+          });
+          return;
+        }
+        const d = new Date(v);
+        if (
+          Number.isNaN(d.getTime()) ||
+          d > new Date() ||
+          d.getFullYear() <= 1900
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: dict.customerJoin.errors.birthdayInvalid,
+          });
+        }
+      }),
   });
   const parsed = schema.safeParse({
     program_id: formData.get("program_id"),
@@ -51,6 +74,7 @@ export async function enroll(
     email: formData.get("email"),
     phone: formData.get("phone"),
     marketing_consent: formData.get("marketing_consent"),
+    birthday: formData.get("birthday"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -110,6 +134,21 @@ export async function enroll(
       .ilike("email", email)
       .maybeSingle();
     customerId = existing?.id ?? null;
+
+    // Best-effort birthday backfill for a returning customer. The `birthday`
+    // field is required on submission, so this only fills in customers who
+    // don't already have one on file (see the `.is("birthday", null)` guard
+    // below). Never fails the enrollment over this.
+    if (customerId) {
+      const { error: backfillError } = await admin
+        .from("customers")
+        .update({ birthday: parsed.data.birthday })
+        .eq("id", customerId)
+        .is("birthday", null);
+      if (backfillError) {
+        console.error("[enroll] birthday backfill failed", backfillError);
+      }
+    }
   }
 
   if (!customerId) {
@@ -129,6 +168,7 @@ export async function enroll(
         full_name: parsed.data.full_name,
         email,
         phone: parsed.data.phone || null,
+        birthday: parsed.data.birthday,
         marketing_consent: parsed.data.marketing_consent,
         consent_at: parsed.data.marketing_consent
           ? new Date().toISOString()
