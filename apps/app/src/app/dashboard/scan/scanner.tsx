@@ -20,6 +20,16 @@ import type { Dictionary } from "@stamply/i18n/dictionaries";
 
 type Mode = "stamp" | "redeem";
 
+// Mirrors the fields scanner.tsx needs from the `StandaloneReward` shape in
+// src/lib/rewards/queries.ts (only that file imports "server-only", so we
+// duplicate the shape here rather than import it into this client component).
+interface StandaloneRewardItem {
+  id: string;
+  title: string;
+  status: "available" | "redeemed" | "expired";
+  isAvailableNow: boolean;
+}
+
 interface ScanResult {
   ok: boolean;
   action?: Mode;
@@ -34,6 +44,7 @@ interface ScanResult {
   detail?: string;
   code?: string;
   retryInSeconds?: number;
+  standaloneRewards?: StandaloneRewardItem[];
 }
 
 const READER_ID = "stamply-qr-reader";
@@ -68,6 +79,10 @@ export function Scanner() {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<ScanResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  // The barcode from the scan that produced the current `result` — threaded
+  // down to ResultView so it can POST /api/scan again for a standalone reward
+  // redeem without re-scanning.
+  const [lastBarcode, setLastBarcode] = useState<string | null>(null);
   // How many stamps to apply in a single scan (stamp mode only). The /api/scan
   // route accepts a `delta` (1–50), so one scan can add several stamps at once.
   const [quantity, setQuantity] = useState(1);
@@ -94,6 +109,7 @@ export function Scanner() {
   async function submit(barcode: string) {
     if (busyRef.current) return;
     busyRef.current = true;
+    setLastBarcode(barcode);
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
@@ -233,7 +249,14 @@ export function Scanner() {
             </div>
           )}
 
-          {result && <ResultView result={result} dict={dict} onNext={start} />}
+          {result && (
+            <ResultView
+              result={result}
+              dict={dict}
+              onNext={start}
+              barcode={lastBarcode}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
@@ -244,13 +267,70 @@ function ResultView({
   result,
   dict,
   onNext,
+  barcode,
 }: {
   result: ScanResult;
   dict: Dictionary;
   onNext: () => void;
+  barcode: string | null;
 }) {
   const success = result.ok;
   const rewardReady = result.status === "completed";
+
+  // Seeded once from the scan result — ResultView unmounts (result briefly
+  // goes null while the camera restarts) and remounts fresh for every new
+  // scan, so this initializer always reflects the current result, and
+  // redeeming a reward below can remove it from this local list without
+  // needing a re-scan.
+  const [rewards, setRewards] = useState<StandaloneRewardItem[]>(() =>
+    (result.standaloneRewards ?? []).filter((r) => r.isAvailableNow),
+  );
+  const [redeemingId, setRedeemingId] = useState<string | null>(null);
+  const [rewardErrors, setRewardErrors] = useState<Record<string, string>>({});
+
+  async function redeemStandaloneReward(rewardId: string) {
+    if (!barcode || redeemingId) return;
+    setRedeemingId(rewardId);
+    setRewardErrors((prev) => {
+      if (!(rewardId in prev)) return prev;
+      const next = { ...prev };
+      delete next[rewardId];
+      return next;
+    });
+    try {
+      const res = await fetch("/api/scan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          barcode,
+          action: "redeem_standalone_reward",
+          grant_id: rewardId,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        ok?: boolean;
+        error?: string;
+      };
+      if (res.ok && data.ok !== false) {
+        setRewards((prev) => prev.filter((r) => r.id !== rewardId));
+      } else {
+        setRewardErrors((prev) => ({
+          ...prev,
+          [rewardId]:
+            data.error === "not_redeemable"
+              ? dict.dashboard.scan.errors.rewardNotRedeemable
+              : dict.dashboard.scan.errors.generic,
+        }));
+      }
+    } catch {
+      setRewardErrors((prev) => ({
+        ...prev,
+        [rewardId]: dict.dashboard.scan.errors.generic,
+      }));
+    } finally {
+      setRedeemingId(null);
+    }
+  }
 
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
@@ -296,6 +376,41 @@ function ResultView({
               {interpolate(dict.dashboard.scan.rewardReady, {
                 reward: result.reward ?? "",
               })}
+            </div>
+          )}
+          {rewards.length > 0 && (
+            <div className="flex w-full flex-col gap-2 text-left">
+              <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                {dict.card.availableRewards}
+              </p>
+              {rewards.map((reward) => (
+                <div
+                  key={reward.id}
+                  className="border-border flex flex-col gap-1 rounded-lg border px-3 py-2"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <Gift className="text-accent-foreground size-4 shrink-0" />
+                      {reward.title}
+                    </span>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="capitalize"
+                      disabled={redeemingId === reward.id}
+                      onClick={() => redeemStandaloneReward(reward.id)}
+                    >
+                      {dict.dashboard.scan.modeRedeem}
+                    </Button>
+                  </div>
+                  {rewardErrors[reward.id] && (
+                    <p className="text-destructive text-xs">
+                      {rewardErrors[reward.id]}
+                    </p>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </>

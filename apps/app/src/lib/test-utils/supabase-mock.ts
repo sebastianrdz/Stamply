@@ -20,6 +20,7 @@ export interface FakeQueryBuilder<T = unknown> {
   delete: ReturnType<typeof vi.fn>;
   eq: ReturnType<typeof vi.fn>;
   neq: ReturnType<typeof vi.fn>;
+  is: ReturnType<typeof vi.fn>;
   ilike: ReturnType<typeof vi.fn>;
   in: ReturnType<typeof vi.fn>;
   gte: ReturnType<typeof vi.fn>;
@@ -44,6 +45,7 @@ export function makeQueryBuilder<T = unknown>(
   builder.delete = vi.fn(self);
   builder.eq = vi.fn(self);
   builder.neq = vi.fn(self);
+  builder.is = vi.fn(self);
   builder.ilike = vi.fn(self);
   builder.in = vi.fn(self);
   builder.gte = vi.fn(self);

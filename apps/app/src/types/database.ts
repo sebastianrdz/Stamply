@@ -10,6 +10,8 @@ export type SubscriptionStatus =
 export type ProgramType = "stamp" | "points";
 export type CardStatus = "active" | "completed" | "redeemed";
 export type StampKind = "stamp" | "redeem" | "adjust";
+export type RewardType = "birthday";
+export type StandaloneRewardStatus = "available" | "redeemed" | "expired";
 
 // NOTE: these MUST be `type` aliases, not `interface`s. Supabase's Database
 // generic requires each Row to satisfy `Record<string, unknown>`; TS interfaces
@@ -101,6 +103,15 @@ export type Customer = Timestamped & {
   consent_at: string | null;
   source_location_id: string | null;
   extra: Record<string, unknown>;
+  // Optional (not just nullable) unlike this file's usual convention, same
+  // reason as `Business.stamp_icon_url`/`Business.last_billing_event_at`
+  // above: test fixtures (src/lib/wallet/apple/pass.test.ts,
+  // src/lib/wallet/google/wallet.test.ts — both off-limits to edit here)
+  // build full `Customer` literals predating this column and can't be
+  // updated as part of this change, so the key itself must be optional to
+  // stay assignable. Runtime rows always have the key (value is `null`
+  // until a birthday is collected); treat a missing key the same as `null`.
+  birthday?: string | null;
 };
 
 export type Card = Timestamped & {
@@ -157,6 +168,33 @@ export type Subscription = Timestamped & {
   current_period_end: string | null;
   last_event_created_at: string | null;
   updated_at: string;
+};
+
+// Standalone (non-program) rewards, e.g. a business-configured birthday
+// reward. RewardDefinition is the business's config for one reward `type`;
+// StandaloneRewardGrant is a specific customer's earned instance of that
+// reward for a given recurrence (`period_key`, e.g. a year for an annual
+// birthday reward).
+export type RewardDefinition = Timestamped & {
+  id: string;
+  business_id: string;
+  type: RewardType;
+  reward_description: string;
+  active: boolean;
+  config: Record<string, unknown>;
+  updated_at: string;
+};
+
+export type StandaloneRewardGrant = Timestamped & {
+  id: string;
+  business_id: string;
+  customer_id: string;
+  reward_definition_id: string;
+  period_key: string;
+  status: StandaloneRewardStatus;
+  granted_at: string;
+  redeemed_at: string | null;
+  redeemed_by: string | null;
 };
 
 export type StripeWebhookEvent = {
@@ -220,6 +258,7 @@ export interface Database {
         | "consent_at"
         | "source_location_id"
         | "extra"
+        | "birthday"
       >;
       cards: TableDef<
         Card,
@@ -250,6 +289,19 @@ export interface Database {
         | "last_event_created_at"
       >;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
+      reward_definitions: TableDef<
+        RewardDefinition,
+        "id" | "created_at" | "updated_at" | "active" | "config"
+      >;
+      standalone_reward_grants: TableDef<
+        StandaloneRewardGrant,
+        | "id"
+        | "created_at"
+        | "status"
+        | "granted_at"
+        | "redeemed_at"
+        | "redeemed_by"
+      >;
     };
     Views: Record<string, never>;
     Functions: {
@@ -283,6 +335,18 @@ export interface Database {
         };
         Returns: boolean;
       };
+      customers_with_birthday_this_month: {
+        Args: Record<string, never>;
+        Returns: Customer[];
+      };
+      redeem_standalone_reward: {
+        Args: {
+          p_grant_id: string;
+          p_employee_id: string;
+          p_location_id?: string | null;
+        };
+        Returns: StandaloneRewardGrant;
+      };
     };
     Enums: {
       membership_role: MembershipRole;
@@ -291,6 +355,7 @@ export interface Database {
       program_type: ProgramType;
       card_status: CardStatus;
       stamp_kind: StampKind;
+      standalone_reward_status: StandaloneRewardStatus;
     };
   };
 }

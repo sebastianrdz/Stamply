@@ -32,7 +32,7 @@ export async function GET(
 
   try {
     const locations = await businessLocations(admin, card.business_id);
-    const buffer = await buildApplePass(card, locations, card.rewards);
+    const buffer = await buildApplePass(card, locations, card.rewards, admin);
 
     if (!card.apple_pass_generated_at) {
       await admin

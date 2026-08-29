@@ -63,3 +63,23 @@ export async function notifyCardByToken(
   const card = await getCardByToken(supabase, token);
   if (card) await notifyCardUpdated(supabase, card);
 }
+
+/**
+ * Notify both wallets of a birthday-reward-driven change. Bumps `updated_at`
+ * first: Apple's `buildApplePass` birthday branch (and Google's equivalent)
+ * only fires when the pass is actually re-rendered, and Apple's webservice
+ * re-fetch / Google's patch are both keyed off this card having changed —
+ * without the bump there's nothing to trigger a re-render of the just-added
+ * birthday content.
+ */
+export async function notifyCardUpdatedForBirthday(
+  supabase: Client,
+  card: CardWithRelations,
+): Promise<void> {
+  const { error } = await supabase
+    .from("cards")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", card.id);
+  if (error) throw error;
+  await notifyCardUpdated(supabase, card);
+}

@@ -23,6 +23,14 @@ export function EnrollForm({ programId }: { programId: string }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <Label htmlFor="birthday">{dict.customerJoin.form.birthdayLabel}</Label>
+        <Input id="birthday" name="birthday" type="date" required />
+        <p className="text-muted-foreground text-xs">
+          {dict.customerJoin.form.birthdayHint}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="email">{dict.customerJoin.form.emailLabel}</Label>
         <Input id="email" name="email" type="email" inputMode="email" />
       </div>
