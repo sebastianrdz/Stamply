@@ -21,6 +21,16 @@ export function marketingUrl(): string {
   );
 }
 
+/** Terms & Conditions page, hosted on the marketing site. */
+export function termsUrl(): string {
+  return `${marketingUrl()}/terms`;
+}
+
+/** Privacy Policy page, hosted on the marketing site. */
+export function privacyUrl(): string {
+  return `${marketingUrl()}/privacy`;
+}
+
 /** Public enrollment link for a program (shown as an in-store QR). */
 export function enrollUrl(programId: string): string {
   return `${base()}/c/join/${programId}`;

@@ -112,6 +112,14 @@ export type Customer = Timestamped & {
   // stay assignable. Runtime rows always have the key (value is `null`
   // until a birthday is collected); treat a missing key the same as `null`.
   birthday?: string | null;
+  // Optional (not just nullable) unlike this file's usual convention, same
+  // reason as `birthday` above: test fixtures (src/lib/wallet/apple/pass.test.ts,
+  // src/lib/wallet/google/wallet.test.ts — both off-limits to edit here)
+  // build full `Customer` literals predating this column and can't be
+  // updated as part of this change, so the key itself must be optional to
+  // stay assignable. Runtime rows always have the key (value is `null` until
+  // terms are accepted); treat a missing key the same as `null`.
+  terms_accepted_at?: string | null;
 };
 
 export type Card = Timestamped & {
@@ -259,6 +267,7 @@ export interface Database {
         | "source_location_id"
         | "extra"
         | "birthday"
+        | "terms_accepted_at"
       >;
       cards: TableDef<
         Card,

@@ -123,7 +123,8 @@
       "newToStamply": "¿Nuevo en Stamply?",
       "createAnAccount": "Crea una cuenta",
       "alreadyHaveAccount": "¿Ya tienes una cuenta?",
-      "forgotPassword": "¿Olvidaste tu contraseña?"
+      "forgotPassword": "¿Olvidaste tu contraseña?",
+      "termsNotice": "Al crear una cuenta, aceptas nuestros {terms} y {privacy}."
     },
     "checkEmail": {
       "title": "Revisa tu correo",
@@ -618,6 +619,7 @@
       "birthdayLabel": "Tu fecha de nacimiento",
       "birthdayHint": "Te sorprenderemos en tu cumpleaños.",
       "marketingConsent": "Envíame ofertas y novedades. Puedes darte de baja cuando quieras.",
+      "termsConsent": "Acepto los {terms} y el {privacy}.",
       "creating": "Creando tu tarjeta…",
       "submit": "Unirme y obtener mi tarjeta"
     },
@@ -630,7 +632,8 @@
       "programNotFound": "No se encontró este programa de lealtad.",
       "programInactive": "Este programa no está aceptando nuevos miembros por ahora.",
       "customerLimitReached": "Este negocio alcanzó su límite de clientes.",
-      "enrollFailed": "No se pudo completar la inscripción."
+      "enrollFailed": "No se pudo completar la inscripción.",
+      "termsRequired": "Debes aceptar los Términos y Condiciones y el Aviso de Privacidad para continuar."
     },
     "error": {
       "title": "Algo salió mal",
@@ -741,6 +744,137 @@
       "body": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de Stamply. Este enlace vence en 1 hora.",
       "cta": "Restablecer contraseña",
       "footer": "Si no solicitaste esto, puedes ignorar este correo — tu contraseña seguirá siendo la misma."
+    }
+  },
+  "legal": {
+    "draftNotice": "BORRADOR — Pendiente de revisión por un abogado antes de su publicación. Este documento es una plantilla preparada con fines internos y no constituye asesoría legal ni una versión final vigente.",
+    "lastUpdatedLabel": "Última actualización",
+    "lastUpdatedDate": "2026-09-02",
+    "placeholders": {
+      "legalEntityName": "[NOMBRE DE LA ENTIDAD LEGAL — PENDIENTE]",
+      "registeredAddress": "[DOMICILIO FISCAL REGISTRADO — PENDIENTE]",
+      "privacyContactEmail": "[CORREO DE CONTACTO DE PRIVACIDAD — PENDIENTE]",
+      "governingJurisdiction": "[JURISDICCIÓN APLICABLE — PENDIENTE]"
+    },
+    "nav": {
+      "privacyTitle": "Aviso de Privacidad",
+      "termsTitle": "Términos y Condiciones"
+    },
+    "privacy": {
+      "title": "Aviso de Privacidad de Stamply",
+      "intro": "Stamply es una plataforma de tarjetas de lealtad digitales que permite a negocios pequeños operar programas de recompensas para sus clientes, y permite a esos clientes inscribirse y llevar su tarjeta en Apple Wallet o Google Wallet. Este Aviso de Privacidad se emite conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) de México y explica qué datos personales recaba Stamply, con qué fines, con quién se comparten y cómo puedes ejercer tus derechos de Acceso, Rectificación, Cancelación y Oposición (derechos ARCO).\n\nStamply es operado por {legalEntityName}, con domicilio en {registeredAddress}.",
+      "sections": {
+        "scope": {
+          "heading": "Alcance y responsable del tratamiento de datos",
+          "body": "Este Aviso aplica a dos tipos de personas distintas que interactúan con Stamply, y el papel de Stamply frente a los datos personales de cada una es diferente.\n\nRespecto de los datos de los dueños de negocio y sus empleados que crean una cuenta en Stamply para administrar un programa de lealtad (incluyendo su información de acceso y de facturación), Stamply actúa como responsable del tratamiento de datos personales en los términos de la LFPDPPP: Stamply decide los fines y medios de ese tratamiento.\n\nRespecto de los datos de los clientes finales que se inscriben al programa de recompensas de un negocio a través de un enlace o código QR público, Stamply actúa principalmente como encargado del tratamiento por cuenta del negocio: el negocio decide qué programa de lealtad ofrecer, qué datos solicita a sus clientes y con qué fines los usa, y es responsable frente a esos clientes de contar con una base legal para tratar sus datos. Stamply únicamente opera la plataforma tecnológica que permite al negocio administrar ese programa y almacena esos datos en su nombre. Si eres cliente de un programa de lealtad, te recomendamos también consultar el aviso de privacidad del negocio específico al que te inscribiste."
+        },
+        "dataWeCollectBusiness": {
+          "heading": "Datos que recabamos de dueños de negocio y empleados",
+          "body": "Cuando un dueño de negocio o un empleado invitado crea una cuenta en Stamply, recabamos: nombre, correo electrónico y contraseña (administrados mediante nuestro proveedor de autenticación, Supabase) y cookies de sesión necesarias para mantener la sesión iniciada.\n\nSi el negocio contrata un plan de pago, recabamos y almacenamos el identificador de cliente de Stripe, el plan de suscripción contratado y el estatus de esa suscripción (activa, cancelada, en periodo de prueba, etc.). Stamply nunca recibe ni almacena el número de tarjeta ni otros datos de pago completos; esa información la procesa y resguarda directamente Stripe."
+        },
+        "dataWeCollectCustomers": {
+          "heading": "Datos que recabamos de los clientes de un programa de lealtad",
+          "body": "Cuando una persona se inscribe al programa de recompensas de un negocio a través de un enlace o código QR público, recabamos los datos que el formulario de inscripción solicita: nombre completo, correo electrónico (opcional, según lo configure el negocio), teléfono (opcional), fecha de nacimiento, si aceptó recibir comunicaciones de mercadotecnia del negocio (junto con la fecha y hora de esa elección), y la fecha y hora en que aceptó estos Términos y Condiciones y este Aviso de Privacidad.\n\nSi el cliente descarga su tarjeta a Apple Wallet o Google Wallet, su nombre completo y fecha de nacimiento se incluyen directamente en el archivo del pase digital que se descarga a su dispositivo."
+        },
+        "howWeUseData": {
+          "heading": "Para qué usamos tus datos personales",
+          "body": "Usamos los datos de dueños de negocio y empleados para: crear y administrar su cuenta y sesión; procesar el cobro de su suscripción a través de Stripe; enviarles correos transaccionales (por ejemplo, invitaciones de equipo, confirmación de cuenta y restablecimiento de contraseña) a través de Resend; y generar analítica de uso del producto a través de PostHog para entender y mejorar Stamply.\n\nUsamos los datos de los clientes de un programa de lealtad para: crear y mostrar su tarjeta digital de lealtad; generar el pase de Apple Wallet o Google Wallet correspondiente; registrar su progreso dentro del programa (sellos o puntos acumulados); enviarle al negocio, a través de un evento de analítica (customer_enrolled) que incluye el identificador del cliente y el identificador del negocio, información que le permite a ese negocio medir el desempeño de su propio programa; y, si el cliente lo autorizó expresamente, permitir que el negocio le envíe ofertas o novedades. Stamply hoy en día no envía correos electrónicos directamente a los clientes de un programa de lealtad."
+        },
+        "thirdPartyProcessors": {
+          "heading": "Terceros que procesan datos en nuestro nombre",
+          "intro": "Para operar Stamply, compartimos datos personales con los siguientes proveedores, cada uno actuando como encargado del tratamiento respecto de los datos que procesa por cuenta de Stamply o del negocio, según corresponda:",
+          "items": {
+            "supabase": "Supabase: proveedor de autenticación y base de datos. Almacena las credenciales de acceso (correo y contraseña) de dueños de negocio y empleados, gestiona las cookies de sesión, y aloja la base de datos donde se guardan los datos de negocios, empleados y clientes de los programas de lealtad.",
+            "stripe": "Stripe: procesador de pagos utilizado únicamente para el cobro de las suscripciones de los negocios. Stripe recibe y resguarda los datos completos de pago (como el número de tarjeta); Stamply solo almacena el identificador de cliente de Stripe, el plan contratado y el estatus de la suscripción.",
+            "resend": "Resend: proveedor de envío de correo electrónico transaccional. Lo usamos para enviar correos a dueños de negocio, empleados e invitaciones de equipo (por ejemplo, confirmación de cuenta, restablecimiento de contraseña e invitaciones). Actualmente no enviamos correos a través de Resend a los clientes de un programa de lealtad.",
+            "posthog": "PostHog: herramienta de analítica de producto que corre tanto en nuestros servidores como en el navegador. Registra el uso general del producto por parte de las cuentas de negocio y, en cada inscripción a un programa de lealtad, un evento (customer_enrolled) que incluye el identificador del cliente y el identificador del negocio, usado para la analítica del propio programa del negocio. Los tokens o credenciales que pudieran aparecer en una URL se eliminan automáticamente antes de registrarse.",
+            "appleWallet": "Apple Wallet: al generar un pase para Apple Wallet, el nombre completo y la fecha de nacimiento del cliente se incrustan directamente en el archivo del pase que se descarga a su dispositivo. Ese archivo queda bajo el control del cliente y de Apple conforme a los términos de Apple Wallet.",
+            "googleWallet": "Google Wallet: igual que con Apple Wallet, al generar un pase para Google Wallet el nombre completo y la fecha de nacimiento del cliente se incrustan en el pase digital emitido, conforme a los términos de Google Wallet."
+          }
+        },
+        "cookies": {
+          "heading": "Cookies",
+          "body": "Usamos una cookie para recordar tu preferencia de idioma (español o inglés). Esta cookie se coloca incluso a visitantes que no han creado una cuenta ni se han inscrito a ningún programa de lealtad, y no contiene datos personales: únicamente guarda qué idioma prefieres ver.\n\nAdemás, usamos cookies de sesión necesarias para mantener iniciada la sesión de las cuentas de dueños de negocio y empleados autenticados a través de Supabase. Los clientes de un programa de lealtad no inician sesión ni requieren contraseña, por lo que no se les asignan cookies de sesión de este tipo."
+        },
+        "dataRetention": {
+          "heading": "Conservación de datos",
+          "body": "Conservamos los datos de una cuenta de negocio mientras esa cuenta permanezca activa y durante el periodo adicional necesario para cumplir obligaciones legales, fiscales o contractuales aplicables después de su cancelación.\n\nConservamos los datos de un cliente de un programa de lealtad mientras el negocio mantenga activo ese programa y la relación de membresía del cliente, o hasta que el cliente o el negocio soliciten su cancelación conforme a la sección de Derechos ARCO. Si un negocio cierra su cuenta en Stamply, sus programas de lealtad y los datos de sus clientes asociados a esos programas dejan de estar disponibles conforme a los plazos que se comuniquen al negocio en su momento."
+        },
+        "yourRights": {
+          "heading": "Tus derechos ARCO",
+          "body": "Conforme a la LFPDPPP, tienes derecho a Acceder a tus datos personales en nuestro poder, a Rectificarlos si son inexactos o incompletos, a Cancelarlos cuando consideres que no se requieren para los fines que justificaron su tratamiento, y a Oponerte al tratamiento de los mismos para fines específicos (por ejemplo, mercadotecnia). También puedes revocar en cualquier momento el consentimiento que hayas otorgado, incluyendo el consentimiento para recibir ofertas o novedades de un negocio.\n\nSi eres dueño de negocio o empleado, puedes ejercer estos derechos directamente escribiendo a {privacyContactEmail}.\n\nSi eres cliente de un programa de lealtad, tu solicitud debe dirigirse en primer lugar al negocio del que eres miembro, ya que es quien decide los fines del tratamiento de tus datos; sin embargo, también puedes escribirnos a {privacyContactEmail} y coordinaremos con el negocio correspondiente para atender tu solicitud dentro de los plazos que marca la ley."
+        },
+        "dataSecurity": {
+          "heading": "Seguridad de los datos",
+          "body": "Aplicamos medidas administrativas, técnicas y físicas razonables para proteger los datos personales bajo nuestro resguardo contra daño, pérdida, alteración, acceso o tratamiento no autorizado, incluyendo el uso de conexiones cifradas, control de acceso a nuestros sistemas y el uso de proveedores de infraestructura reconocidos (Supabase, Stripe, Resend y PostHog) que mantienen sus propios estándares de seguridad. Ningún sistema es completamente infalible, por lo que no podemos garantizar la seguridad absoluta de la información transmitida por internet."
+        },
+        "internationalTransfers": {
+          "heading": "Transferencias internacionales de datos",
+          "body": "Algunos de los proveedores que utilizamos para operar Stamply (incluyendo Supabase, Stripe, Resend y PostHog) procesan o almacenan datos en servidores ubicados fuera de México, incluyendo Estados Unidos. Al usar Stamply o inscribirte en un programa de lealtad operado con Stamply, entiendes y aceptas que tus datos personales podrán ser transferidos y tratados fuera de México por estos proveedores, únicamente para los fines descritos en este Aviso de Privacidad y bajo obligaciones contractuales de confidencialidad y protección de datos."
+        },
+        "changesToPolicy": {
+          "heading": "Cambios a este Aviso de Privacidad",
+          "body": "Podemos actualizar este Aviso de Privacidad de tiempo en tiempo para reflejar cambios en nuestras prácticas de tratamiento de datos, en nuestros proveedores, o en la legislación aplicable. Publicaremos la versión vigente en esta misma página junto con su fecha de última actualización. Te recomendamos revisar este Aviso periódicamente."
+        },
+        "contact": {
+          "heading": "Contacto",
+          "body": "Si tienes preguntas sobre este Aviso de Privacidad o deseas ejercer tus derechos ARCO, puedes contactarnos en:\n\n{legalEntityName}\n{registeredAddress}\nCorreo: {privacyContactEmail}"
+        }
+      }
+    },
+    "terms": {
+      "title": "Términos y Condiciones de Stamply",
+      "intro": "Estos Términos y Condiciones ('Términos') rigen el uso de Stamply, una plataforma de tarjetas de lealtad digitales operada por {legalEntityName}. Aplican tanto a los negocios que crean una cuenta para administrar un programa de recompensas ('Negocio') como a las personas que se inscriben como miembros del programa de recompensas de un Negocio ('Miembro'). Al crear una cuenta de Negocio o al inscribirte como Miembro de un programa de lealtad operado con Stamply, aceptas estos Términos.",
+      "sections": {
+        "acceptance": {
+          "heading": "Aceptación de los Términos",
+          "body": "Al crear una cuenta de Negocio en Stamply, o al completar el formulario de inscripción a un programa de lealtad como Miembro, declaras que has leído, entendido y aceptado estos Términos y el Aviso de Privacidad de Stamply. Si no estás de acuerdo con estos Términos, no debes crear una cuenta ni inscribirte a ningún programa de lealtad a través de Stamply.\n\nRegistramos la fecha y hora en que un Miembro acepta estos Términos y el Aviso de Privacidad al momento de inscribirse."
+        },
+        "accountEligibility": {
+          "heading": "Cuentas de Negocio y elegibilidad",
+          "body": "Esta sección aplica a los Negocios que crean una cuenta en Stamply. Para crear una cuenta debes tener capacidad legal para contratar conforme a la legislación aplicable, proporcionar información veraz y actualizada sobre tu negocio, y mantener la confidencialidad de tus credenciales de acceso.\n\nEres responsable de toda la actividad que ocurra bajo tu cuenta y bajo las cuentas de los empleados que invites a tu equipo, incluyendo la configuración del programa de lealtad, las recompensas ofrecidas y las comunicaciones que se envíen a tus clientes."
+        },
+        "subscriptionBilling": {
+          "heading": "Suscripción y facturación",
+          "body": "Esta sección aplica a los Negocios. El uso de Stamply para operar un programa de lealtad puede requerir la contratación de un plan de suscripción de pago, cuyo cobro se procesa a través de Stripe. Al contratar un plan, autorizas el cobro periódico correspondiente conforme a la modalidad de facturación (mensual o anual) que elijas.\n\nLas suscripciones se renuevan automáticamente al final de cada periodo de facturación, salvo que las canceles antes de la fecha de renovación. Podemos modificar los precios de nuestros planes con aviso previo razonable; el cambio de precio aplicará a partir del siguiente ciclo de facturación. Salvo que la ley aplicable disponga lo contrario, los pagos realizados no son reembolsables."
+        },
+        "rewardsProgramTerms": {
+          "heading": "Términos del programa de recompensas para Miembros",
+          "body": "Esta sección aplica a los Miembros que se inscriben al programa de recompensas de un Negocio a través de un enlace o código QR público. Inscribirte como Miembro no requiere crear una cuenta ni una contraseña, y no genera ningún cargo a tu cargo.\n\nCada Negocio define, administra y es el único responsable de las reglas de su propio programa de recompensas: cuántos sellos o puntos se requieren, qué recompensas se ofrecen, y las condiciones para canjearlas. Stamply únicamente provee la plataforma tecnológica que permite al Negocio operar su programa y a ti llevar tu tarjeta digital; Stamply no garantiza la disponibilidad, el valor ni el cumplimiento de ninguna recompensa ofrecida por un Negocio, y no es responsable si un Negocio modifica, suspende o da por terminado su programa de recompensas, o si cierra su operación.\n\nSi descargas tu tarjeta a Apple Wallet o Google Wallet, tu nombre completo y fecha de nacimiento quedarán incrustados en ese pase digital; eres responsable de la seguridad del dispositivo donde lo descargues."
+        },
+        "acceptableUse": {
+          "heading": "Uso aceptable",
+          "body": "Al usar Stamply, ya sea como Negocio o como Miembro, te comprometes a no: proporcionar información falsa o suplantar la identidad de otra persona o negocio; crear inscripciones falsas o automatizadas a un programa de lealtad; intentar acceder sin autorización a cuentas, datos o sistemas de Stamply o de otros usuarios; interferir con el funcionamiento de la plataforma, incluyendo mediante ingeniería inversa, scraping o sobrecarga de nuestros sistemas; ni usar Stamply para fines ilícitos o para generar, distribuir o solicitar contenido que viole derechos de terceros.\n\nPodemos suspender o cancelar el acceso de cualquier cuenta o inscripción que incumpla esta sección."
+        },
+        "intellectualProperty": {
+          "heading": "Propiedad intelectual",
+          "body": "Stamply, su software, diseño, marcas y logotipos son propiedad de {legalEntityName} o de sus licenciantes, y están protegidos por la legislación de propiedad intelectual aplicable. Estos Términos no te otorgan ningún derecho de propiedad sobre la plataforma, únicamente una licencia limitada, no exclusiva e intransferible para usarla conforme a estos Términos.\n\nCada Negocio conserva la propiedad de su propia marca, nombre comercial, logotipo y contenido que suba a Stamply para configurar su programa de lealtad."
+        },
+        "thirdPartyServices": {
+          "heading": "Servicios de terceros",
+          "body": "Stamply utiliza servicios de terceros para operar la plataforma, incluyendo Supabase (autenticación y base de datos), Stripe (procesamiento de pagos), Resend (envío de correo electrónico) y PostHog (analítica), así como los servicios de Apple Wallet y Google Wallet para la generación de pases digitales. El uso de estos servicios está sujeto también a los términos y políticas de cada proveedor.\n\nStamply no es responsable por interrupciones, fallas o cambios en estos servicios de terceros que estén fuera de nuestro control razonable."
+        },
+        "disclaimersLiability": {
+          "heading": "Garantías y limitación de responsabilidad",
+          "body": "Stamply se proporciona 'tal cual' y 'según disponibilidad', sin garantías de ningún tipo, expresas o implícitas, incluyendo garantías de comerciabilidad, idoneidad para un fin particular o ausencia de errores o interrupciones.\n\nEn la máxima medida permitida por la legislación de {governingJurisdiction}, {legalEntityName} no será responsable por daños indirectos, incidentales, especiales o consecuentes derivados del uso o la imposibilidad de usar Stamply, incluyendo pérdidas relacionadas con recompensas no canjeadas o programas de lealtad modificados o discontinuados por un Negocio."
+        },
+        "termination": {
+          "heading": "Terminación",
+          "body": "Un Negocio puede cancelar su cuenta de Stamply en cualquier momento desde su panel de configuración o solicitándolo a {privacyContactEmail}; la cancelación de la suscripción de pago se rige además por la sección de Suscripción y Facturación.\n\nUn Miembro puede solicitar en cualquier momento que se cancele su inscripción y sus datos personales conforme a la sección de Derechos ARCO del Aviso de Privacidad.\n\nPodemos suspender o terminar el acceso de cualquier cuenta o inscripción que incumpla estos Términos, incluyendo la sección de Uso Aceptable, con aviso previo cuando sea razonablemente posible."
+        },
+        "governingLaw": {
+          "heading": "Ley aplicable y jurisdicción",
+          "body": "Estos Términos se rigen por las leyes de {governingJurisdiction}. Cualquier controversia derivada de estos Términos o del uso de Stamply se someterá a los tribunales competentes de {governingJurisdiction}, renunciando las partes a cualquier otro fuero que pudiera corresponderles por razón de su domicilio presente o futuro."
+        },
+        "changesToTerms": {
+          "heading": "Cambios a estos Términos",
+          "body": "Podemos modificar estos Términos de tiempo en tiempo para reflejar cambios en Stamply, en nuestros proveedores o en la legislación aplicable. Publicaremos la versión vigente en esta misma página junto con su fecha de última actualización, y para cambios materiales haremos un esfuerzo razonable por notificar a los Negocios a través de su cuenta o correo electrónico. El uso continuado de Stamply después de la publicación de cambios constituye la aceptación de los Términos actualizados."
+        },
+        "contact": {
+          "heading": "Contacto",
+          "body": "Si tienes preguntas sobre estos Términos y Condiciones, puedes contactarnos en:\n\n{legalEntityName}\n{registeredAddress}\nCorreo: {privacyContactEmail}"
+        }
+      }
     }
   }
 }

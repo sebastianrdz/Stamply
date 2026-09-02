@@ -2,6 +2,9 @@
   "name": "@stamply/i18n",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "test": "vitest run"
+  },
   "exports": {
     "./config": "./src/config.ts",
     "./locale": "./src/locale.ts",
@@ -25,6 +28,7 @@
   "devDependencies": {
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "next": "16.2.10"
+    "next": "16.2.10",
+    "vitest": "^3.0.5"
   }
 }

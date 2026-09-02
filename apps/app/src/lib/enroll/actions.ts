@@ -44,6 +44,9 @@ export async function enroll(
     marketing_consent: z
       .union([z.literal("on"), z.null()])
       .transform((v) => v === "on"),
+    terms_accepted: z.literal("on", {
+      message: dict.customerJoin.errors.termsRequired,
+    }),
     birthday: z
       .string()
       .min(1, dict.customerJoin.errors.birthdayRequired)
@@ -74,6 +77,7 @@ export async function enroll(
     email: formData.get("email"),
     phone: formData.get("phone"),
     marketing_consent: formData.get("marketing_consent"),
+    terms_accepted: formData.get("terms_accepted"),
     birthday: formData.get("birthday"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
@@ -173,6 +177,7 @@ export async function enroll(
         consent_at: parsed.data.marketing_consent
           ? new Date().toISOString()
           : null,
+        terms_accepted_at: new Date().toISOString(),
       })
       .select("id")
       .single();

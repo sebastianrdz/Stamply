@@ -8,6 +8,8 @@ import { Button } from "@stamply/ui/button";
 import { Input } from "@stamply/ui/input";
 import { Label } from "@stamply/ui/label";
 import { useTranslations } from "@stamply/i18n/provider";
+import { interpolateNodes } from "@stamply/i18n/format";
+import { termsUrl, privacyUrl } from "@/lib/urls";
 
 const initialState: AuthState = {};
 
@@ -81,6 +83,31 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             ? dict.auth.form.signIn
             : dict.auth.form.createAccount}
       </Button>
+
+      {mode === "register" && (
+        <p className="text-muted-foreground text-center text-xs">
+          {interpolateNodes(dict.auth.form.termsNotice, {
+            terms: (
+              <Link
+                key="terms"
+                href={termsUrl()}
+                className="text-primary font-medium hover:underline"
+              >
+                {dict.legal.nav.termsTitle}
+              </Link>
+            ),
+            privacy: (
+              <Link
+                key="privacy"
+                href={privacyUrl()}
+                className="text-primary font-medium hover:underline"
+              >
+                {dict.legal.nav.privacyTitle}
+              </Link>
+            ),
+          })}
+        </p>
+      )}
 
       <p className="text-muted-foreground text-center text-sm">
         {mode === "login" ? (

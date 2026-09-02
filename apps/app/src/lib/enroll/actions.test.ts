@@ -98,6 +98,7 @@ const baseFields = {
   email: "jane@example.com",
   phone: "",
   birthday: "1990-05-15",
+  terms_accepted: "on",
 };
 
 beforeEach(() => {
@@ -124,6 +125,21 @@ describe("enroll — validation", () => {
   it("surfaces the zod message for a missing birthday", async () => {
     const state = await enroll({}, form({ ...baseFields, birthday: "" }));
     expect(state.error).toBe("Ingresa tu fecha de nacimiento.");
+  });
+
+  it("returns an error when terms are not accepted", async () => {
+    const fd = form(baseFields);
+    fd.delete("terms_accepted");
+    const state = await enroll({}, fd);
+    expect(state.error).toBeTruthy();
+  });
+
+  it("returns an error when terms_accepted is any value other than 'on'", async () => {
+    const state = await enroll(
+      {},
+      form({ ...baseFields, terms_accepted: "false" }),
+    );
+    expect(state.error).toBeTruthy();
   });
 });
 
