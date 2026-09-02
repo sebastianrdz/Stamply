@@ -19,5 +19,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
         },
       },
     },
+    {
+      url: `${base}/privacy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+      alternates: {
+        languages: {
+          es: `${base}/privacy`,
+          en: `${base}/privacy`,
+        },
+      },
+    },
+    {
+      url: `${base}/terms`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+      alternates: {
+        languages: {
+          es: `${base}/terms`,
+          en: `${base}/terms`,
+        },
+      },
+    },
   ];
 }

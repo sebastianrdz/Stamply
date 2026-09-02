@@ -1,11 +1,14 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 import { enroll, type EnrollState } from "@/lib/enroll/actions";
 import { Button } from "@stamply/ui/button";
 import { Input } from "@stamply/ui/input";
 import { Label } from "@stamply/ui/label";
 import { useTranslations } from "@stamply/i18n/provider";
+import { interpolateNodes } from "@stamply/i18n/format";
+import { termsUrl, privacyUrl } from "@/lib/urls";
 
 const initialState: EnrollState = {};
 
@@ -47,6 +50,37 @@ export function EnrollForm({ programId }: { programId: string }) {
           className="border-input mt-0.5 size-4 rounded accent-[hsl(var(--brand))]"
         />
         <span>{dict.customerJoin.form.marketingConsent}</span>
+      </label>
+
+      <label className="text-muted-foreground flex items-start gap-2.5 text-sm">
+        <input
+          type="checkbox"
+          name="terms_accepted"
+          required
+          className="border-input mt-0.5 size-4 rounded accent-[hsl(var(--brand))]"
+        />
+        <span>
+          {interpolateNodes(dict.customerJoin.form.termsConsent, {
+            terms: (
+              <Link
+                key="terms"
+                href={termsUrl()}
+                className="text-primary font-medium hover:underline"
+              >
+                {dict.legal.nav.termsTitle}
+              </Link>
+            ),
+            privacy: (
+              <Link
+                key="privacy"
+                href={privacyUrl()}
+                className="text-primary font-medium hover:underline"
+              >
+                {dict.legal.nav.privacyTitle}
+              </Link>
+            ),
+          })}
+        </span>
       </label>
 
       {state.error && (

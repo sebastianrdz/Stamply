@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ScanLine, Smartphone, Bell, MapPin } from "lucide-react";
-import { Logo } from "@stamply/ui/logo";
 import { buttonVariants } from "@stamply/ui/button";
 import { Card, CardContent } from "@stamply/ui/card";
 import { Badge } from "@stamply/ui/badge";
-import { LanguageSelector } from "@stamply/i18n/language-selector";
 import { cn } from "@stamply/ui/utils";
 import { PAID_PLANS } from "@stamply/plans";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
+import { Header } from "@/components/header";
+import { Footer } from "@/components/footer";
 import { PricingPlans } from "./pricing-plans";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -88,21 +88,7 @@ export default async function Home() {
           __html: JSON.stringify(jsonLd),
         }}
       />
-      <header className="flex items-center justify-between gap-4 px-6 py-4">
-        <Logo />
-        <nav className="flex items-center gap-2">
-          <LanguageSelector className="mr-1" />
-          <Link
-            href={`${appUrl}/login`}
-            className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
-          >
-            {landing.nav.signIn}
-          </Link>
-          <Link href={`${appUrl}/register`} className={cn(buttonVariants({ size: "sm" }))}>
-            {landing.nav.getStarted}
-          </Link>
-        </nav>
-      </header>
+      <Header />
 
       <main className="flex-1">
         {/* Hero */}
@@ -163,9 +149,7 @@ export default async function Home() {
         </section>
       </main>
 
-      <footer className="border-border text-muted-foreground border-t px-6 py-8 text-center text-sm">
-        <p>{landing.footer.rights}</p>
-      </footer>
+      <Footer />
     </div>
   );
 }
