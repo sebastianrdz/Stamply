@@ -774,14 +774,13 @@
     }
   },
   "legal": {
-    "draftNotice": "BORRADOR — Pendiente de revisión por un abogado antes de su publicación. Este documento es una plantilla preparada con fines internos y no constituye asesoría legal ni una versión final vigente.",
     "lastUpdatedLabel": "Última actualización",
     "lastUpdatedDate": "2026-09-02",
     "placeholders": {
-      "legalEntityName": "[NOMBRE DE LA ENTIDAD LEGAL — PENDIENTE]",
-      "registeredAddress": "[DOMICILIO FISCAL REGISTRADO — PENDIENTE]",
-      "privacyContactEmail": "[CORREO DE CONTACTO DE PRIVACIDAD — PENDIENTE]",
-      "governingJurisdiction": "[JURISDICCIÓN APLICABLE — PENDIENTE]"
+      "legalEntityName": "Sebastian Rodriguez Salinas, persona física con actividad empresarial",
+      "registeredAddress": "Calzada las Huertas 215, Santa Catarina, Nuevo León, C.P. 66362, México",
+      "privacyContactEmail": "support@contact.stamplycards.com",
+      "governingJurisdiction": "México"
     },
     "nav": {
       "privacyTitle": "Aviso de Privacidad",
@@ -893,7 +892,7 @@
         },
         "governingLaw": {
           "heading": "Ley aplicable y jurisdicción",
-          "body": "Estos Términos se rigen por las leyes de {governingJurisdiction}. Cualquier controversia derivada de estos Términos o del uso de Stamply se someterá a los tribunales competentes de {governingJurisdiction}, renunciando las partes a cualquier otro fuero que pudiera corresponderles por razón de su domicilio presente o futuro."
+          "body": "Estos Términos se rigen por las leyes de {governingJurisdiction}. Cualquier controversia derivada de estos Términos o del uso de Stamply se someterá a los tribunales competentes de Santa Catarina, Nuevo León, México, renunciando las partes a cualquier otro fuero que pudiera corresponderles por razón de su domicilio presente o futuro."
         },
         "changesToTerms": {
           "heading": "Cambios a estos Términos",
