@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Logo } from "@stamply/ui/logo";
 import { buttonVariants } from "@stamply/ui/button";
-import { LanguageSelector } from "@stamply/i18n/language-selector";
 import { cn } from "@stamply/ui/utils";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
@@ -18,7 +17,6 @@ export async function Header() {
         <Logo />
       </Link>
       <nav className="flex items-center gap-2">
-        <LanguageSelector className="mr-1" />
         <Link
           href={`${appUrl}/login`}
           className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
