@@ -23,11 +23,7 @@ export function LegalDocument({
 
   return (
     <div>
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
-        {dict.legal.draftNotice}
-      </div>
-
-      <h1 className="mt-6 text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
+      <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">{title}</h1>
       <p className="text-muted-foreground mt-2 text-sm">
         {dict.legal.lastUpdatedLabel}: {dict.legal.lastUpdatedDate}
       </p>
