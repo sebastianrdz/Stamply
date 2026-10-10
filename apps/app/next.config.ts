@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 // Business logos/background images are user-uploaded to Supabase Storage and
@@ -9,6 +10,9 @@ const supabaseUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
+  // Pin to the monorepo root (where pnpm-lock.yaml lives). The React Compiler's
+  // babel loader gets paths relative to it; a mismatched root panics HMR.
+  turbopack: { root: path.resolve(import.meta.dirname, "../..") },
   images: {
     remotePatterns: [
       {
