@@ -119,16 +119,13 @@ export default async function Home() {
               <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-3">
                 <Link
                   href={`${appUrl}/register`}
-                  className={cn(buttonVariants({ size: "lg" }), "rounded-xl")}
+                  className={buttonVariants({ size: "lg" })}
                 >
                   {landing.hero.ctaPrimary}
                 </Link>
                 <Link
                   href="#como-funciona"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "lg" }),
-                    "rounded-xl",
-                  )}
+                  className={buttonVariants({ variant: "outline", size: "lg" })}
                 >
                   {landing.hero.ctaSecondary}
                 </Link>
@@ -279,7 +276,7 @@ export default async function Home() {
             <div className="flex flex-col gap-2">
               <Link
                 href={`${appUrl}/register`}
-                className={cn(buttonVariants({ size: "lg" }), "rounded-xl")}
+                className={buttonVariants({ size: "lg" })}
               >
                 {landing.cta.button}
               </Link>

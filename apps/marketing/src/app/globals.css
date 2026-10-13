@@ -8,16 +8,6 @@
 @source "../../../../packages/ui/src";
 @source "../../../../packages/i18n/src";
 
-/* Warm landing palette; purple --primary is inherited from @stamply/ui. */
-:root {
-  --background: 48 33% 97%;
-  --foreground: 240 6% 10%;
-  --muted: 40 15% 94%;
-  --muted-foreground: 240 5% 41%;
-  --border: 40 12% 89%;
-  --input: 40 12% 86%;
-}
-
 /* Sticky header (64px) + breathing room for #anchors. */
 html {
   scroll-padding-top: 5rem;
@@ -26,14 +16,5 @@ html {
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
   }
 }

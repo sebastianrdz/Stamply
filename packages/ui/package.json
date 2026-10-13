@@ -13,6 +13,7 @@
     "./select": "./src/components/select.tsx",
     "./skeleton": "./src/components/skeleton.tsx",
     "./interval-toggle": "./src/components/interval-toggle.tsx",
+    "./pricing-panel": "./src/components/pricing-panel.tsx",
     "./textarea": "./src/components/textarea.tsx",
     "./theme.css": "./src/theme.css",
     "./toast": "./src/toast.tsx"
