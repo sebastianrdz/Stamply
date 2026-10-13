@@ -787,12 +787,6 @@
       "taxIncluded": "IVA incluido",
       "billedYear": "{total} MXN facturados al año",
       "billedMonth": "Facturación mensual",
-      "locations": "Sucursales",
-      "customers": "Clientes",
-      "employees": "Empleados",
-      "unlimited": "Sin límite",
-      "compare": "Comparar planes",
-      "compareIncludes": "Incluye",
       "cta": "Prueba gratis",
       "trial": "14 días gratis · Sin tarjeta de crédito"
     },

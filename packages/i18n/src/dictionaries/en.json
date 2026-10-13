@@ -787,12 +787,6 @@
       "taxIncluded": "VAT included",
       "billedYear": "{total} MXN billed yearly",
       "billedMonth": "Billed monthly",
-      "locations": "Locations",
-      "customers": "Customers",
-      "employees": "Employees",
-      "unlimited": "Unlimited",
-      "compare": "Compare plans",
-      "compareIncludes": "Includes",
       "cta": "Try free",
       "trial": "14 days free · No credit card"
     },

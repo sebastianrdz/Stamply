@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import {
   PAID_PLANS,
   annualMonthly,
@@ -29,8 +29,6 @@ export function PricingPlans({ appUrl }: { appUrl: string }) {
     currencyDisplay: "narrowSymbol",
     maximumFractionDigits: 0,
   });
-  const count = (n: number | null) =>
-    n === null ? pricing.unlimited : new Intl.NumberFormat(tag).format(n);
 
   return (
     <>
@@ -54,11 +52,6 @@ export function PricingPlans({ appUrl }: { appUrl: string }) {
         {PAID_PLANS.map((plan) => {
           const copy = dict.billing.plans[plan.tier];
           const price = annual ? annualMonthly(plan.tier)! : plan.price;
-          const rows = [
-            [pricing.locations, plan.limits.locations],
-            [pricing.customers, plan.limits.customers],
-            [pricing.employees, plan.limits.employees],
-          ] as const;
           return (
             <div key={plan.tier} className="flex flex-col gap-6 p-6 sm:p-8">
               <div>
@@ -87,14 +80,14 @@ export function PricingPlans({ appUrl }: { appUrl: string }) {
                   {pricing.taxIncluded}
                 </p>
               </div>
-              <dl className="border-border divide-border divide-y border-y text-sm">
-                {rows.map(([label, value]) => (
-                  <div key={label} className="flex justify-between py-2.5">
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="font-medium tabular-nums">{count(value)}</dd>
-                  </div>
+              <ul className="border-border flex flex-col gap-2.5 border-t pt-5 text-sm">
+                {copy.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2">
+                    <Check className="text-success mt-0.5 size-4 shrink-0" />
+                    {f}
+                  </li>
                 ))}
-              </dl>
+              </ul>
               <div className="mt-auto">
                 <Link
                   href={`${appUrl}/register`}
@@ -111,32 +104,6 @@ export function PricingPlans({ appUrl }: { appUrl: string }) {
         })}
       </div>
 
-      <details className="group border-border mt-6 border-b">
-        <summary className="focus-visible:ring-ring flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 rounded-md text-sm font-medium focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-          {pricing.compare}
-          <ChevronDown className="size-4 transition-transform duration-150 group-open:rotate-180" />
-        </summary>
-        <div className="grid gap-8 pt-2 pb-8 md:grid-cols-3">
-          {PAID_PLANS.map((plan) => {
-            const copy = dict.billing.plans[plan.tier];
-            return (
-              <div key={plan.tier}>
-                <h4 className="text-sm font-semibold">
-                  {copy.name} · {pricing.compareIncludes}
-                </h4>
-                <ul className="mt-3 flex flex-col gap-2 text-sm">
-                  {copy.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2">
-                      <Check className="text-success mt-0.5 size-4 shrink-0" />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-      </details>
     </>
   );
 }
