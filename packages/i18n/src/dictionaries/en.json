@@ -701,38 +701,135 @@
   },
   "landing": {
     "nav": {
+      "how": "How it works",
+      "examples": "Examples",
+      "pricing": "Pricing",
       "signIn": "Sign in",
-      "getStarted": "Get started"
+      "getStarted": "Try free",
+      "primaryLabel": "Main navigation",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu"
     },
     "hero": {
-      "badge": "Digital loyalty, done right",
-      "title": "Turn one-time visitors into regulars.",
-      "subtitle": "Stamply gives cafés, barbershops, and restaurants digital loyalty cards in Apple Wallet and Google Wallet — with rewards your customers actually come back for.",
-      "ctaPrimary": "Start free trial",
-      "ctaSecondary": "See pricing"
+      "eyebrow": "Digital loyalty cards",
+      "title": "Give your customers a reason to come back.",
+      "subtitle": "Create a card with your brand, reward every visit and stay with your customers in Apple Wallet and Google Wallet.",
+      "ctaPrimary": "Try free",
+      "ctaSecondary": "See how it works",
+      "trial": "14 days free · No credit card"
     },
-    "features": {
-      "wallet": {
-        "title": "Apple & Google Wallet",
-        "body": "Customers add their card to the wallet they already use. No app to install."
-      },
-      "scan": {
-        "title": "Scan to stamp",
-        "body": "Staff scan the customer's QR from any phone or tablet — right in the browser."
-      },
-      "liveUpdates": {
-        "title": "Live updates",
-        "body": "Stamps and rewards update on the wallet card instantly."
-      },
-      "nearby": {
-        "title": "Nearby reminders",
-        "body": "Notification surfaces on the lock screen when a customer is near your shop."
+    "trust": {
+      "label": "The essentials",
+      "items": [
+        "Apple Wallet and Google Wallet",
+        "No other app to install",
+        "Scan from the browser"
+      ]
+    },
+    "how": {
+      "title": "From the first visit to the next reward.",
+      "steps": [
+        {
+          "title": "Create your card",
+          "body": "Customize your brand and set the reward."
+        },
+        {
+          "title": "Customers save it",
+          "body": "They sign up and add the card to their wallet."
+        },
+        {
+          "title": "Scan and reward",
+          "body": "Your team adds stamps and the customer sees their progress."
+        }
+      ],
+      "notes": {
+        "enrollment": "The customer signs up from their phone and saves the card to their wallet.",
+        "update": "The card updates with every stamp: in the example it goes from 5 to 6.",
+        "proximity": "Apple Wallet can show a reminder when the customer is near your location. The system decides, so it is not guaranteed to appear."
       }
     },
+    "examples": {
+      "title": "Your brand, on your customers' phones.",
+      "subtitle": "A loyalty experience that feels like part of your business.",
+      "selectorLabel": "Choose an example business",
+      "businesses": {
+        "bruma": {
+          "name": "Bruma Café",
+          "style": "Warm specialty café.",
+          "detail": "Free coffee of your choice · 10 stamps"
+        },
+        "alba": {
+          "name": "Alba Café",
+          "style": "Bright, contemporary café.",
+          "detail": "10 stamps"
+        },
+        "verde": {
+          "name": "Verde Mesa",
+          "style": "Fresh, elegant restaurant.",
+          "detail": "7 stamps"
+        }
+      }
+    },
+    "images": {
+      "heroShowcase": "Two phones showing the example cards of Bruma Café and Alba Café.",
+      "bruma": "Example Bruma Café card in Apple Wallet, with 2 of 10 stamps and 2 rewards.",
+      "alba": "Example Alba Café card in Apple Wallet, with 6 of 10 stamps and 1 reward.",
+      "verde": "Example Verde Mesa card in Apple Wallet, with 5 of 7 stamps and 0 rewards.",
+      "enrollment": "Bruma Café sign-up form next to its card saved in Apple Wallet.",
+      "update": "The Alba Café card goes from 5 to 6 stamps; the rewards counter stays at 1.",
+      "proximity": "Verde Mesa nearby reminder on the phone lock screen."
+    },
     "pricing": {
-      "heading": "Simple, per-location pricing",
-      "subtitle": "Monthly subscriptions, billed monthly — cancel anytime. Start with a 14-day free trial, no card required.",
-      "cta": "Start free trial"
+      "title": "Choose the plan for your business.",
+      "subtitle": "Start with 14 days free. No credit card.",
+      "intervalLabel": "Billing period",
+      "currency": "MXN",
+      "taxIncluded": "VAT included",
+      "billedYear": "{total} MXN billed yearly",
+      "billedMonth": "Billed monthly",
+      "locations": "Locations",
+      "customers": "Customers",
+      "employees": "Employees",
+      "unlimited": "Unlimited",
+      "compare": "Compare plans",
+      "compareIncludes": "Includes",
+      "cta": "Try free",
+      "trial": "14 days free · No credit card"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": [
+        {
+          "q": "Do my customers need to download an app?",
+          "a": "No. They sign up from their phone and add the card to Apple Wallet or Google Wallet, which are already on their phone."
+        },
+        {
+          "q": "How are stamps added?",
+          "a": "Your team scans the QR code on the customer's card from the browser of a phone or tablet. The stamp is added and the customer sees their progress on the card."
+        },
+        {
+          "q": "Can I use my logo and colors?",
+          "a": "Yes. Upload your logo, pick your brand's main color and start from a card template."
+        },
+        {
+          "q": "Do I need special equipment?",
+          "a": "No. A phone or tablet with a camera and a browser is enough. There is nothing to install."
+        },
+        {
+          "q": "What does the free trial include?",
+          "a": "14 days with no credit card, with 1 location, 1 employee, up to 50 customers and 1 loyalty program."
+        },
+        {
+          "q": "How does cancellation work?",
+          "a": "You cancel from the billing portal. The subscription renews automatically until you cancel and, per the Terms, payments are non-refundable except as required by law."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Give your customers a reason to come back.",
+      "body": "Create your first loyalty card with Stamply.",
+      "button": "Try free",
+      "trial": "14 days free · No credit card"
     },
     "footer": {
       "rights": "© 2026 Stamply. All rights reserved."
@@ -740,7 +837,7 @@
   },
   "seo": {
     "title": "Stamply — Digital Loyalty Cards",
-    "description": "Bring digital loyalty cards for your café, barbershop, or restaurant to Apple Wallet and Google Wallet — no app required."
+    "description": "Create branded digital loyalty cards for your café, barbershop or restaurant in Apple Wallet and Google Wallet, no app to install."
   },
   "notFound": {
     "title": "Page not found",

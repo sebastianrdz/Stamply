@@ -1,0 +1,68 @@
+[
+  {
+    "id": "hero-wallet-showcase",
+    "prompt": "Create a wide landscape transparent-background landing-page product showcase for Stamply: TWO premium black modern smartphones, Bruma in the foreground slightly to the right, Alba behind and to the left, slight restrained opposing three-quarter perspective, sufficient separation so both merchant headers and stamp progress are visible. Both devices are full length and fully within frame; no overlapping foreground phone across the Alba logo or progress. Realistic slim satin graphite frames, elegant minimal highlights, restrained natural contact shadow only, no excessive glare. The first attached image is the EXACT Bruma screen to insert into the front phone; the second is the EXACT Alba screen for rear phone. Preserve the screenshots' original entire card layout, photo backgrounds, logos, all text, member name, QR codes, stamp icons, and counts: Bruma 2/10, PREMIOS 2; Alba 6/10, PREMIOS 1. Use screenshots as screen inserts with perspective matching the device; do not redesign, simplify, recreate, enhance the pass or invent interface elements. Keep screen predominantly face-on enough to read it. Leave generous clear padding around phones. Only the two devices, no café environment or base, no headline, no marketing copy, no Apple or Google badges, no decorations, no arrows, no hands, no floor plane, no background. Genuine transparent alpha. Landscape composition approximately 3:2, professionally polished web-ready asset.",
+    "reference_files": [
+      "Bruma_AppleWallet.PNG",
+      "Alba_AppleWallet.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  },
+  {
+    "id": "bruma-wallet-phone",
+    "prompt": "Create a premium straight-on black modern smartphone mockup on a GENUINELY TRANSPARENT background. This is a standalone portrait product asset for the bruma-wallet-phone example selector on Stamply's landing page. One whole phone only, large in frame with a little clear padding on every side, tall portrait composition around 1:2. The attached screenshot is the exact real screen content. Insert and preserve it in full inside a realistic slim satin graphite device frame. Keep original pass layout, original photographic header, logos, member name, stamps, QR and all captured interface exactly intact, including Bruma 2/10 stamps and PREMIOS 2. Do not redesign or rewrite the screen; it is a screenshot insert. Tiny subtle reflection on frame only, crisp legible screen, polished but restrained studio device photography. Minimal device hardware with no duplicated software status bar. Match the phone framing across the other Stamply standalone example assets. No words outside phone, no hands, no background, no floor plane, no extra cards or devices, no watermarks, no embellishment, no cast shadow extending far from frame. Fully transparent alpha around device, not a solid black or white rectangle. Do not crop the device.",
+    "reference_files": [
+      "Bruma_AppleWallet.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  },
+  {
+    "id": "alba-wallet-phone",
+    "prompt": "Create a premium straight-on black modern smartphone mockup on a GENUINELY TRANSPARENT background. This is a standalone portrait product asset for the alba-wallet-phone example selector on Stamply's landing page. One whole phone only, large in frame with a little clear padding on every side, tall portrait composition around 1:2. The attached screenshot is the exact real screen content. Insert and preserve it in full inside a realistic slim satin graphite device frame. Keep original pass layout, original photographic header, logos, member name, stamps, QR and all captured interface exactly intact, including Alba 6/10 stamps and PREMIOS 1. Do not redesign or rewrite the screen; it is a screenshot insert. Tiny subtle reflection on frame only, crisp legible screen, polished but restrained studio device photography. Minimal device hardware with no duplicated software status bar. Match the phone framing across the other Stamply standalone example assets. No words outside phone, no hands, no background, no floor plane, no extra cards or devices, no watermarks, no embellishment, no cast shadow extending far from frame. Fully transparent alpha around device, not a solid black or white rectangle. Do not crop the device.",
+    "reference_files": [
+      "Alba_AppleWallet.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  },
+  {
+    "id": "verde-mesa-wallet-phone",
+    "prompt": "Create a premium straight-on black modern smartphone mockup on a GENUINELY TRANSPARENT background. This is a standalone portrait product asset for the verde-mesa-wallet-phone example selector on Stamply's landing page. One whole phone only, large in frame with a little clear padding on every side, tall portrait composition around 1:2. The attached screenshot is the exact real screen content. Insert and preserve it in full inside a realistic slim satin graphite device frame. Keep original pass layout, original photographic header, logos, member name, stamps, QR and all captured interface exactly intact, including Verde Mesa 5/7 stamps and PREMIOS 0. Do not redesign or rewrite the screen; it is a screenshot insert. Tiny subtle reflection on frame only, crisp legible screen, polished but restrained studio device photography. Minimal device hardware with no duplicated software status bar. Match the phone framing across the other Stamply standalone example assets. No words outside phone, no hands, no background, no floor plane, no extra cards or devices, no watermarks, no embellishment, no cast shadow extending far from frame. Fully transparent alpha around device, not a solid black or white rectangle. Do not crop the device.",
+    "reference_files": [
+      "VerdeMesa_AppleWallet.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  },
+  {
+    "id": "how-it-works-enrollment",
+    "prompt": "Create one landscape, genuinely transparent product composition with TWO whole premium graphite black smartphones, face-on with tiny perspective only, balanced equal-height devices and ample separation. Left phone contains Image 1, the actual Bruma customer registration screen, including browser UI; right phone contains Image 2, actual Bruma Apple Wallet pass. Preserve the supplied UI and text layout; the registration reward is 'Café gratis de tu elección!', 'Junta 10 sellos'; the name is 'Sebastian Rodriguez'. The right pass must retain 'Bruma Café', SELLOS 2/10, PREMIOS 2, its photo, stamp icons and QR area. These images are exact screen-insert references, not redesign references. Add ONE small restrained dark gray right-pointing arrow midway between the devices to communicate registration to saved card. No other text outside the screens, no fabricated success badge, no OS or wallet marketing badges, no marketing copy. The disabled registration button in the screenshot should retain its appearance. Device surfaces clean satin graphite; hardware consistent across both phones, no glare across screen. Keep all devices fully in frame and transparent space around them. No backdrop, floor, hands, table or decorative graphics. Landscape approximately 3:2 composition, crisply legible premium SaaS asset.",
+    "reference_files": [
+      "Bruma_UserRegistration.PNG",
+      "Bruma_AppleWallet.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  },
+  {
+    "id": "stamp-progress-update",
+    "prompt": "Create one wide landscape genuinely transparent-background comparison composition showing TWO premium satin graphite black smartphone mockups at equal size, upright and almost completely front-facing. LEFT screen uses Image 1, the real Alba Apple Wallet pass with SELLOS 5/10; RIGHT screen uses Image 2, the same real Alba pass with SELLOS 6/10. Preserve the original pass photo, logos, typography, member name, QR area and reward counts PREMIOS 1 on BOTH. Preserve exactly five visible filled sunrise stamps on the left and six on the right, matching their respective actual screenshots; do not invent a reward becoming available, and do not alter any other count. Screens are actual screenshot inserts, not reimagined interfaces. A subtle gray right arrow between the phones is the only added graphic. Phone shape and graphite hardware must be consistent across both, entire devices visible, equal sizes, clear separation, generous padding. No words outside phones, no hands, no confetti, no extra badges, no glow, no scene, no backdrop, no floor, no marketing claims. Display this as a real one-stamp progress update, not a full reward event. High clarity, restrained premium product photography, no excessive perspective or reflections.",
+    "reference_files": [
+      "Alba_AppleWallet_2.PNG",
+      "Alba_AppleWallet.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  },
+  {
+    "id": "proximity-reminder-phone",
+    "prompt": "Create ONE full upright face-on premium satin graphite black smartphone with truly transparent alpha around it, portrait asset around 1:2, large phone with even clear padding. The attached real iPhone lock-screen screenshot is the EXACT screen content to insert into it. Preserve the blue/green wallpaper, date and time, notification position, business icon and card thumbnail, camera and flashlight controls. Most important: keep the real notification text exactly 'Verde Mesa' and 'Estás cerca de Verde Mesa San Pedro'. Do not replace this with a push marketing offer, coupon, reward or stamp-added notification. Keep the original notification near the bottom of the lock screen. No notification duplicated outside the device, no enlarged floating notification, no extra words, no changed date/time, no hands, no scenery, no graphic decorations, no headline. Realistic slim rounded graphite smartphone frame with modern camera island; crisp screen without glare. Whole device fully inside image boundaries, polished restrained landing-page supporting asset.",
+    "reference_files": [
+      "VerdeMesa_LockedScreenNotification.PNG"
+    ],
+    "tool": "built-in image generation",
+    "transparent_background": true
+  }
+]
