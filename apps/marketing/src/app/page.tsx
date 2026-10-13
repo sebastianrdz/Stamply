@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getImageProps } from "next/image";
-import { Check, ChevronDown } from "lucide-react";
+import { Check } from "lucide-react";
 import { buttonVariants } from "@stamply/ui/button";
 import { cn } from "@stamply/ui/utils";
 import { PAID_PLANS } from "@stamply/plans";
@@ -9,6 +9,7 @@ import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { FaqAccordion } from "@/components/landing/faq-accordion";
 import { ProcessSwitcher, ExamplesSwitcher } from "@/components/landing/visual-switcher";
 import { bruma, heroShowcase } from "@/components/landing/landing-data";
 import { PricingPlans } from "./pricing-plans";
@@ -262,22 +263,7 @@ export default async function Home() {
             >
               {landing.faq.title}
             </h2>
-            <div className="border-border divide-border divide-y border-y">
-              {landing.faq.items.map((item) => (
-                <details key={item.q} className="group">
-                  <summary className="focus-visible:ring-ring flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-md py-3 text-base font-medium focus-visible:ring-2 focus-visible:outline-none [&::-webkit-details-marker]:hidden">
-                    {item.q}
-                    <ChevronDown
-                      aria-hidden
-                      className="text-muted-foreground size-5 shrink-0 transition-transform duration-150 group-open:rotate-180"
-                    />
-                  </summary>
-                  <p className="text-muted-foreground max-w-2xl pb-5">
-                    {item.a}
-                  </p>
-                </details>
-              ))}
-            </div>
+            <FaqAccordion items={landing.faq.items} />
           </div>
         </section>
 

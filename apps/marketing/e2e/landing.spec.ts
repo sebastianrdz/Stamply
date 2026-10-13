@@ -112,13 +112,19 @@ test.describe("Landing page (/)", () => {
     await expect(pricing.getByText(L.pricing.billedMonth).first()).toBeVisible();
   });
 
-  test("FAQ items start closed and open on click", async ({ page }) => {
+  test("FAQ starts closed and only one item is open at a time", async ({ page }) => {
     await page.goto("/");
-    const items = page.locator("#faq details");
-    await expect(items).toHaveCount(L.faq.items.length);
-    for (const d of await items.all()) await expect(d).not.toHaveAttribute("open", "");
-    await page.getByText(L.faq.items[0].q).click();
+    const btns = page.locator("#faq button[aria-expanded]");
+    await expect(btns).toHaveCount(L.faq.items.length);
+    await expect(page.locator("#faq button[aria-expanded=true]")).toHaveCount(0);
+    await btns.nth(0).click();
     await expect(page.getByText(L.faq.items[0].a)).toBeVisible();
+    await btns.nth(1).click();
+    await expect(page.getByText(L.faq.items[1].a)).toBeVisible();
+    await expect(page.getByText(L.faq.items[0].a)).toBeHidden();
+    await expect(page.locator("#faq button[aria-expanded=true]")).toHaveCount(1);
+    await btns.nth(1).click();
+    await expect(page.locator("#faq button[aria-expanded=true]")).toHaveCount(0);
   });
 
   test("mobile menu toggles, closes on Escape and returns focus", async ({
