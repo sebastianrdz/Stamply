@@ -12,10 +12,10 @@ export async function Footer() {
       <p>{landing.footer.rights}</p>
       <nav className="mt-3 flex flex-wrap items-center justify-center gap-4">
         <LanguageSelector />
-        <Link href="/terms" className="hover:text-foreground hover:underline">
+        <Link href="/terms" className="hover:text-foreground inline-flex min-h-11 items-center hover:underline">
           {legal.nav.termsTitle}
         </Link>
-        <Link href="/privacy" className="hover:text-foreground hover:underline">
+        <Link href="/privacy" className="hover:text-foreground inline-flex min-h-11 items-center hover:underline">
           {legal.nav.privacyTitle}
         </Link>
       </nav>

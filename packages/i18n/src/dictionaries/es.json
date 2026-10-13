@@ -701,38 +701,129 @@
   },
   "landing": {
     "nav": {
+      "how": "Cómo funciona",
+      "examples": "Ejemplos",
+      "pricing": "Precios",
       "signIn": "Iniciar sesión",
-      "getStarted": "Comenzar"
+      "getStarted": "Prueba gratis",
+      "primaryLabel": "Navegación principal",
+      "openMenu": "Abrir menú",
+      "closeMenu": "Cerrar menú"
     },
     "hero": {
-      "badge": "Lealtad digital, bien hecha",
-      "title": "Convierte visitas de una vez en clientes de siempre.",
-      "subtitle": "Stamply le da a cafeterías, barberías y restaurantes tarjetas de lealtad digitales en Apple Wallet y Google Wallet — con recompensas por las que tus clientes sí regresan.",
+      "eyebrow": "Tarjetas de lealtad digitales",
+      "title": "Haz que tus clientes vuelvan.",
+      "subtitle": "Crea una tarjeta con tu marca, recompensa cada visita y acompaña a tus clientes en Apple Wallet y Google Wallet.",
       "ctaPrimary": "Prueba gratis",
-      "ctaSecondary": "Ver precios"
+      "ctaSecondary": "Ver cómo funciona",
+      "trial": "14 días gratis · Sin tarjeta de crédito"
     },
-    "features": {
-      "wallet": {
-        "title": "Apple & Google Wallet",
-        "body": "Los clientes agregan su tarjeta al wallet que ya usan. No necesitan instalar ninguna app."
-      },
-      "scan": {
-        "title": "Escanea para sellar",
-        "body": "El personal escanea el QR del cliente desde cualquier teléfono o tablet — directo desde el navegador."
-      },
-      "liveUpdates": {
-        "title": "Actualizaciones en vivo",
-        "body": "Los sellos y recompensas se actualizan al instante en la tarjeta del wallet"
-      },
-      "nearby": {
-        "title": "Recordatorios de cercanía",
-        "body": "Notificación aparece en la pantalla de bloqueo cuando un cliente está cerca de tu negocio."
+    "trust": {
+      "label": "Lo esencial",
+      "items": [
+        "Apple Wallet y Google Wallet",
+        "Sin instalar otra app",
+        "Escaneo desde el navegador"
+      ]
+    },
+    "how": {
+      "title": "De la primera visita a la próxima recompensa.",
+      "steps": [
+        {
+          "title": "Crea tu tarjeta",
+          "body": "Personaliza tu marca y define la recompensa."
+        },
+        {
+          "title": "Tus clientes la guardan",
+          "body": "Se registran y agregan la tarjeta a su wallet."
+        },
+        {
+          "title": "Escanea y recompensa",
+          "body": "Tu equipo suma sellos y el cliente ve su progreso."
+        }
+      ],
+      "notes": {
+        "enrollment": "El cliente se registra desde su teléfono y guarda la tarjeta en su wallet.",
+        "update": "La tarjeta se actualiza con cada sello: en el ejemplo pasa de 5 a 6.",
+        "proximity": "Apple Wallet puede mostrar un recordatorio cuando el cliente está cerca de tu sucursal. Lo decide el sistema, así que no se garantiza que aparezca."
       }
     },
+    "examples": {
+      "title": "Tu marca, en el celular de tus clientes.",
+      "subtitle": "Una experiencia de lealtad que se siente parte de tu negocio.",
+      "selectorLabel": "Elige un negocio de ejemplo",
+      "businesses": {
+        "bruma": {
+          "name": "Bruma Café",
+          "style": "Cafetería de especialidad, cálida.",
+          "detail": "Café gratis de tu elección · 10 sellos"
+        },
+        "alba": {
+          "name": "Alba Café",
+          "style": "Cafetería luminosa y contemporánea.",
+          "detail": "10 sellos"
+        },
+        "verde": {
+          "name": "Verde Mesa",
+          "style": "Restaurante fresco y elegante.",
+          "detail": "7 sellos"
+        }
+      }
+    },
+    "images": {
+      "heroShowcase": "Dos teléfonos con las tarjetas de ejemplo de Bruma Café y Alba Café.",
+      "bruma": "Tarjeta de ejemplo de Bruma Café en Apple Wallet, con 2 de 10 sellos y 2 premios.",
+      "alba": "Tarjeta de ejemplo de Alba Café en Apple Wallet, con 6 de 10 sellos y 1 premio.",
+      "verde": "Tarjeta de ejemplo de Verde Mesa en Apple Wallet, con 5 de 7 sellos y 0 premios.",
+      "enrollment": "Formulario de inscripción de Bruma Café junto a su tarjeta guardada en Apple Wallet.",
+      "update": "La tarjeta de Alba Café pasa de 5 a 6 sellos; el contador de premios permanece en 1.",
+      "proximity": "Recordatorio de cercanía de Verde Mesa en la pantalla de bloqueo del teléfono."
+    },
     "pricing": {
-      "heading": "Precios simples, por sucursal",
-      "subtitle": "Suscripciones mensuales, facturadas cada mes — cancela cuando quieras. Comienza con una prueba gratis de 14 días, sin tarjeta requerida.",
-      "cta": "Prueba gratis"
+      "title": "Elige el plan para tu negocio.",
+      "subtitle": "Empieza con 14 días gratis. Sin tarjeta de crédito.",
+      "intervalLabel": "Periodo de facturación",
+      "currency": "MXN",
+      "taxIncluded": "IVA incluido",
+      "billedYear": "{total} MXN facturados al año",
+      "billedMonth": "Facturación mensual",
+      "cta": "Prueba gratis",
+      "trial": "14 días gratis · Sin tarjeta de crédito"
+    },
+    "faq": {
+      "title": "Preguntas frecuentes",
+      "items": [
+        {
+          "q": "¿Mis clientes necesitan descargar una app?",
+          "a": "No. Se registran desde su teléfono y agregan la tarjeta a Apple Wallet o Google Wallet, que ya vienen en su teléfono."
+        },
+        {
+          "q": "¿Cómo se agregan los sellos?",
+          "a": "Tu equipo escanea el código QR de la tarjeta del cliente desde el navegador de un teléfono o tablet. El sello se suma y el cliente ve su progreso en la tarjeta."
+        },
+        {
+          "q": "¿Puedo usar mi logo y mis colores?",
+          "a": "Sí. Sube tu logo, elige el color principal de tu marca y parte de una plantilla de tarjeta."
+        },
+        {
+          "q": "¿Necesito un equipo especial?",
+          "a": "No. Basta un teléfono o tablet con cámara y navegador. No hay nada que instalar."
+        },
+        {
+          "q": "¿Qué incluye la prueba gratis?",
+          "a": "14 días sin tarjeta de crédito, con 1 sucursal, 1 empleado, hasta 50 clientes y 1 programa de lealtad."
+        },
+        {
+          "q": "¿Cómo funciona la cancelación?",
+          "a": "Cancelas desde el portal de facturación. La suscripción se renueva automáticamente hasta que la canceles y, según los Términos, los pagos no son reembolsables salvo que la ley disponga lo contrario."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Dale a tus clientes una razón para volver.",
+      "body": "Crea tu primera tarjeta de lealtad con Stamply.",
+      "button": "Prueba gratis",
+      "trial": "14 días gratis · Sin tarjeta de crédito"
     },
     "footer": {
       "rights": "© 2026 Stamply. Todos los derechos reservados."
@@ -740,7 +831,7 @@
   },
   "seo": {
     "title": "Stamply — Tarjetas de lealtad digitales",
-    "description": "Lleva tarjetas de lealtad digitales para tu cafetería, barbería o restaurante a Apple Wallet y Google Wallet, sin apps que instalar."
+    "description": "Crea tarjetas de lealtad digitales con tu marca para tu cafetería, barbería o restaurante, en Apple Wallet y Google Wallet, sin apps que instalar."
   },
   "notFound": {
     "title": "Página no encontrada",

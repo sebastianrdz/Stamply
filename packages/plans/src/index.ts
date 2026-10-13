@@ -14,9 +14,9 @@ export type BillingInterval = "month" | "year";
 export interface PlanDef {
   tier: PlanTier;
   name: string;
-  /** Recurring monthly price in USD. */
+  /** Recurring monthly price in MXN (IVA included). */
   price: number;
-  /** Total yearly price in USD when billed annually (paid plans only). */
+  /** Total yearly price in MXN (IVA included) when billed annually (paid plans only). */
   annualTotal?: number;
   /** Billing cadence for paid plans; undefined for the free trial. */
   interval?: BillingInterval;

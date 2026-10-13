@@ -1,0 +1,29 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - link "Stamply" [ref=e4] [cursor=pointer]:
+        - /url: http://localhost:3001
+    - main [ref=e13]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - heading "Bienvenido de nuevo" [level=1] [ref=e17]
+          - paragraph [ref=e18]: Inicia sesión para administrar tus programas de lealtad.
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e21]: Correo electrónico
+            - textbox "Correo electrónico" [ref=e22]:
+              - /placeholder: tu@negocio.com
+          - generic [ref=e23]:
+            - generic [ref=e24]:
+              - generic [ref=e25]: Contraseña
+              - link "¿Olvidaste tu contraseña?" [ref=e26] [cursor=pointer]:
+                - /url: /forgot-password
+            - textbox "Contraseña" [ref=e27]:
+              - /placeholder: ••••••••
+          - button "Iniciar sesión" [ref=e28]
+          - paragraph [ref=e29]:
+            - text: ¿Nuevo en Stamply?
+            - link "Crea una cuenta" [ref=e30] [cursor=pointer]:
+              - /url: /register
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e36] [cursor=pointer]

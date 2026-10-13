@@ -109,7 +109,7 @@ export function DeleteAccountForm({
 
       <style>{`
         .delete-account-dialog::backdrop {
-          background-color: hsl(224 24% 12% / 0.6);
+          background-color: hsl(var(--foreground) / 0.6);
         }
       `}</style>
     </div>

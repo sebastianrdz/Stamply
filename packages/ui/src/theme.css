@@ -8,14 +8,14 @@
  * Shared design system — imported by every app's globals.css. See @stamply/ui.
  */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 224 24% 12%;
+  --background: 48 33% 97%;
+  --foreground: 240 6% 10%;
 
   --card: 0 0% 100%;
-  --card-foreground: 224 24% 12%;
+  --card-foreground: 240 6% 10%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 224 24% 12%;
+  --popover-foreground: 240 6% 10%;
 
   /* Primary = friendly violet/indigo */
   --primary: 256 82% 60%;
@@ -28,8 +28,8 @@
   --secondary: 256 30% 96%;
   --secondary-foreground: 256 30% 24%;
 
-  --muted: 220 16% 96%;
-  --muted-foreground: 220 12% 46%;
+  --muted: 40 15% 94%;
+  --muted-foreground: 240 5% 41%;
 
   --destructive: 0 80% 58%;
   --destructive-foreground: 0 0% 100%;
@@ -37,8 +37,8 @@
   --success: 152 62% 42%;
   --success-foreground: 0 0% 100%;
 
-  --border: 220 16% 90%;
-  --input: 220 16% 90%;
+  --border: 40 12% 89%;
+  --input: 40 12% 86%;
   --ring: 256 82% 60%;
 
   /* Per-business brand color; defaults to primary. */
@@ -121,4 +121,13 @@ body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }

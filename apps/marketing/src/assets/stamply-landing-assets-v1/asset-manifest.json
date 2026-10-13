@@ -1,0 +1,89 @@
+[
+  {
+    "id": "hero-wallet-showcase",
+    "src": "images/hero-wallet-showcase.png",
+    "width": 1536,
+    "height": 1024,
+    "transparent": true,
+    "section": "Hero",
+    "alt_es": "Dos teléfonos con las tarjetas de ejemplo de Bruma Café y Alba Café.",
+    "originals": [
+      "Bruma_AppleWallet.PNG",
+      "Alba_AppleWallet.PNG"
+    ]
+  },
+  {
+    "id": "bruma-wallet-phone",
+    "src": "images/bruma-wallet-phone.png",
+    "width": 887,
+    "height": 1774,
+    "transparent": true,
+    "section": "Business example selector",
+    "alt_es": "Tarjeta de ejemplo de Bruma Café en Apple Wallet, con 2 de 10 sellos y 2 premios.",
+    "originals": [
+      "Bruma_AppleWallet.PNG"
+    ]
+  },
+  {
+    "id": "alba-wallet-phone",
+    "src": "images/alba-wallet-phone.png",
+    "width": 884,
+    "height": 1780,
+    "transparent": true,
+    "section": "Business example selector",
+    "alt_es": "Tarjeta de ejemplo de Alba Café en Apple Wallet, con 6 de 10 sellos y 1 premio.",
+    "originals": [
+      "Alba_AppleWallet.PNG"
+    ]
+  },
+  {
+    "id": "verde-mesa-wallet-phone",
+    "src": "images/verde-mesa-wallet-phone.png",
+    "width": 887,
+    "height": 1774,
+    "transparent": true,
+    "section": "Business example selector",
+    "alt_es": "Tarjeta de ejemplo de Verde Mesa en Apple Wallet, con 5 de 7 sellos y 0 premios.",
+    "originals": [
+      "VerdeMesa_AppleWallet.PNG"
+    ]
+  },
+  {
+    "id": "how-it-works-enrollment",
+    "src": "images/how-it-works-enrollment.png",
+    "width": 1536,
+    "height": 1024,
+    "transparent": true,
+    "section": "How it works: join and save",
+    "alt_es": "Formulario de inscripción de Bruma Café junto a su tarjeta guardada en Apple Wallet.",
+    "originals": [
+      "Bruma_UserRegistration.PNG",
+      "Bruma_AppleWallet.PNG"
+    ]
+  },
+  {
+    "id": "stamp-progress-update",
+    "src": "images/stamp-progress-update.png",
+    "width": 1774,
+    "height": 887,
+    "transparent": true,
+    "section": "How it works: card update",
+    "alt_es": "La tarjeta de Alba Café pasa de 5 a 6 sellos; el contador de premios permanece en 1.",
+    "originals": [
+      "Alba_AppleWallet_2.PNG",
+      "Alba_AppleWallet.PNG"
+    ]
+  },
+  {
+    "id": "proximity-reminder-phone",
+    "src": "images/proximity-reminder-phone.png",
+    "width": 895,
+    "height": 1756,
+    "transparent": true,
+    "section": "Optional supporting visual within an existing section",
+    "alt_es": "Recordatorio de cercanía de Verde Mesa en la pantalla de bloqueo del teléfono.",
+    "originals": [
+      "VerdeMesa_LockedScreenNotification.PNG"
+    ]
+  }
+]

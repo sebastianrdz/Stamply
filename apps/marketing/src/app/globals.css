@@ -7,3 +7,14 @@
  */
 @source "../../../../packages/ui/src";
 @source "../../../../packages/i18n/src";
+
+/* Sticky header (64px) + breathing room for #anchors. */
+html {
+  scroll-padding-top: 5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
