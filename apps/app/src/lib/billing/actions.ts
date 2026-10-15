@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { appUrlBase } from "@/lib/wallet/shared";
 import { stripe, priceIdForPlan } from "./stripe";
-import type { BillingInterval } from "@stamply/plans";
+import { TRIAL_DAYS, type BillingInterval } from "@stamply/plans";
 import type { Business, PlanTier } from "@/types/database";
 
 /**
@@ -92,24 +92,26 @@ async function ensureStripeCustomer(
 
 /**
  * Find the customer's "live" subscription, if any — see
- * {@link LIVE_SUBSCRIPTION_STATUSES}. This is the source of truth for
+ * {@link isLiveSubscription}. This is the source of truth for
  * whether a plan change may create a new subscription (never, if one is
  * live) or must instead modify the existing one. Queries Stripe directly
  * rather than the local `subscriptions` table, which is only updated
  * asynchronously by the webhook and can be stale.
  */
-async function findLiveSubscription(
+async function findSubscriptions(
   client: Stripe,
   customerId: string,
-): Promise<Stripe.Subscription | null> {
+): Promise<{ live: Stripe.Subscription | null; hadAny: boolean }> {
   const subscriptions = await client.subscriptions.list({
     customer: customerId,
     status: "all",
     limit: 100,
   });
-  return (
-    subscriptions.data.find((sub) => isLiveSubscription(sub.status)) ?? null
-  );
+  return {
+    live: subscriptions.data.find((sub) => isLiveSubscription(sub.status)) ?? null,
+    // The 14 free days are once per business: any past subscription uses them up.
+    hadAny: subscriptions.data.length > 0,
+  };
 }
 
 /**
@@ -122,7 +124,7 @@ async function findLiveSubscription(
  *    into the plan-change confirmation flow for that subscription. Stripe
  *    updates the single existing subscription with proration; no Checkout
  *    session is created.
- *  - No live subscription (never subscribed, trial, or fully canceled) →
+ *  - No live subscription (never subscribed or fully canceled) →
  *    create a Checkout session, same as before. A canceled subscription
  *    can't be updated by the Portal, so this is also the correct path for
  *    reactivation.
@@ -144,7 +146,10 @@ export async function changePlan(
     user.email ?? undefined,
   );
 
-  const liveSubscription = await findLiveSubscription(client, customerId);
+  const { live: liveSubscription, hadAny } = await findSubscriptions(
+    client,
+    customerId,
+  );
 
   if (liveSubscription) {
     const item = liveSubscription.items.data[0];
@@ -188,9 +193,14 @@ export async function changePlan(
     // Show the "Add promotion code" field on the Checkout page (Stripe hides it
     // by default). Codes must also exist as live Promotion Codes in Stripe.
     allow_promotion_codes: true,
-    success_url: `${appUrlBase()}/dashboard/billing?status=success`,
-    cancel_url: `${appUrlBase()}/dashboard/billing?status=cancelled`,
-    subscription_data: { metadata: { business_id: business.id } },
+    // The plan page syncs the new subscription from this session before the
+    // webhook lands, so the owner isn't bounced back to the plan picker.
+    success_url: `${appUrlBase()}/onboarding/plan?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${appUrlBase()}/onboarding/plan?status=cancelled`,
+    subscription_data: {
+      metadata: { business_id: business.id },
+      ...(hadAny ? {} : { trial_period_days: TRIAL_DAYS }),
+    },
     metadata: { business_id: business.id, plan: tier },
   });
 

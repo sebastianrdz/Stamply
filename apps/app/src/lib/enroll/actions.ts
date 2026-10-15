@@ -121,7 +121,8 @@ export async function enroll(
   const program = programData as unknown as Program & { business: Business };
   const business = program.business;
 
-  if (!program.active) {
+  // A business with no plan can't take sign-ups; show the same message as a paused program.
+  if (!program.active || business.plan === "none") {
     return { error: dict.customerJoin.errors.programInactive };
   }
 

@@ -9,7 +9,7 @@ import {
 
 describe("PLANS", () => {
   it("prices match the published tiers", () => {
-    expect(PLANS.trial.price).toBe(0);
+    expect(PLANS.none.price).toBe(0);
     expect(PLANS.small.price).toBe(679);
     expect(PLANS.medium.price).toBe(1279);
     expect(PLANS.big.price).toBe(1879);
@@ -42,8 +42,8 @@ describe("PLANS", () => {
     });
   });
 
-  it("trial has no stripePriceEnv", () => {
-    expect(PLANS.trial.stripePriceEnv).toBeUndefined();
+  it("none has no stripePriceEnv", () => {
+    expect(PLANS.none.stripePriceEnv).toBeUndefined();
   });
 
   it("annual totals are 2 months free (10x monthly)", () => {
@@ -61,7 +61,7 @@ describe("annual pricing helpers", () => {
   });
 
   it("annualMonthly is null for a plan with no annual option", () => {
-    expect(annualMonthly("trial")).toBeNull();
+    expect(annualMonthly("none")).toBeNull();
   });
 
   it("annualSavingsPct is ~17% (2 months free) for every paid tier", () => {
@@ -71,7 +71,7 @@ describe("annual pricing helpers", () => {
   });
 
   it("annualSavingsPct is 0 for a plan with no annual option", () => {
-    expect(annualSavingsPct("trial")).toBe(0);
+    expect(annualSavingsPct("none")).toBe(0);
   });
 });
 
@@ -124,7 +124,7 @@ describe("planLimit", () => {
     expect(planLimit("big", "programs")).toBeNull();
   });
 
-  it("returns the trial limits", () => {
-    expect(planLimit("trial", "customers")).toBe(50);
+  it("returns zero limits for no plan", () => {
+    expect(planLimit("none", "customers")).toBe(0);
   });
 });

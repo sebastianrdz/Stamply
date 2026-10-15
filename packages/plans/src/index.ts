@@ -1,4 +1,4 @@
-export type PlanTier = "trial" | "small" | "medium" | "big";
+export type PlanTier = "none" | "small" | "medium" | "big";
 
 /** A limit of `null` means unlimited. */
 export interface PlanLimits {
@@ -18,7 +18,7 @@ export interface PlanDef {
   price: number;
   /** Total yearly price in MXN (IVA included) when billed annually (paid plans only). */
   annualTotal?: number;
-  /** Billing cadence for paid plans; undefined for the free trial. */
+  /** Billing cadence for paid plans; undefined for "none". */
   interval?: BillingInterval;
   tagline: string;
   limits: PlanLimits;
@@ -36,13 +36,13 @@ export interface PlanDef {
 }
 
 export const PLANS: Record<PlanTier, PlanDef> = {
-  trial: {
-    tier: "trial",
-    name: "Trial",
+  none: {
+    tier: "none",
+    name: "No plan",
     price: 0,
-    tagline: "14 days, full features, capped.",
-    limits: { locations: 1, employees: 1, customers: 50, programs: 1 },
-    features: ["All features", "1 location", "Up to 50 customers"],
+    tagline: "Choose a plan to get started.",
+    limits: { locations: 0, employees: 0, customers: 0, programs: 0 },
+    features: [],
   },
   small: {
     tier: "small",
@@ -107,6 +107,9 @@ export const PLANS: Record<PlanTier, PlanDef> = {
     stripePriceEnvAnnual: "STRIPE_PRICE_BIG_ANNUAL",
   },
 };
+
+/** Every plan's first subscription is free for this many days. */
+export const TRIAL_DAYS = 14;
 
 export const PAID_PLANS: PlanDef[] = [PLANS.small, PLANS.medium, PLANS.big];
 

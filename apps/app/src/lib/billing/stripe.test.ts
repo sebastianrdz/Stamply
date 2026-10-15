@@ -62,11 +62,11 @@ describe("priceIdForPlan / planForPriceId round trip", () => {
     expect(planForPriceId("price_unknown")).toBeNull();
   });
 
-  it("throws for trial, which has no Stripe price", async () => {
+  it("throws for none, which has no Stripe price", async () => {
     stubCoreEnv();
     const { priceIdForPlan } = await freshStripe();
-    expect(() => priceIdForPlan("trial")).toThrow(
-      "Plan trial has no monthly Stripe price.",
+    expect(() => priceIdForPlan("none")).toThrow(
+      "Plan none has no monthly Stripe price.",
     );
   });
 

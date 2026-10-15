@@ -168,6 +168,10 @@ describe("changePlan", () => {
           customer: "cus_new",
           line_items: [{ price: "price_medium_123", quantity: 1 }],
           allow_promotion_codes: true,
+          subscription_data: {
+            metadata: { business_id: "biz-1" },
+            trial_period_days: 14,
+          },
         }),
       );
       // Defaults to monthly billing when no interval is passed.
@@ -197,9 +201,14 @@ describe("changePlan", () => {
         status: "all",
         limit: 100,
       });
-      expect(fakeStripe.checkout.sessions.create).toHaveBeenCalledWith(
-        expect.objectContaining({ customer: "cus_existing" }),
-      );
+      // Reactivation: the 14 free days were already used, so no trial.
+      const args = (
+        fakeStripe.checkout.sessions.create.mock.calls[0] as unknown as [
+          { customer: string; subscription_data: Record<string, unknown> },
+        ]
+      )[0];
+      expect(args.customer).toBe("cus_existing");
+      expect(args.subscription_data).not.toHaveProperty("trial_period_days");
       expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
     });
 

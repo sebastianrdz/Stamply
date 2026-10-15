@@ -4,7 +4,7 @@
  */
 
 export type MembershipRole = "owner" | "admin" | "employee";
-export type PlanTier = "trial" | "small" | "medium" | "big";
+export type PlanTier = "none" | "small" | "medium" | "big";
 export type SubscriptionStatus =
   "trialing" | "active" | "past_due" | "canceled" | "incomplete" | "unpaid";
 export type ProgramType = "stamp" | "points";

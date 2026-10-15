@@ -55,7 +55,6 @@
     "annual": "Annual",
     "billedAnnually": "Billed annually",
     "annualSave": "Save {pct}%",
-    "freeTrial": "Free trial",
     "switchTo": "Switch to {name}",
     "roles": {
       "owner": "Owner",
@@ -73,7 +72,9 @@
     "validation": {
       "emailInvalid": "Enter a valid email.",
       "passwordTooShort": "Password must be at least 8 characters."
-    }
+    },
+    "startTrial": "Start 14-day free trial",
+    "subscribeTo": "Subscribe to {name}"
   },
   "settings": {
     "language": {
@@ -111,7 +112,7 @@
     "register": {
       "metaTitle": "Create account",
       "title": "Start with Stamply",
-      "subtitle": "Create your account and set up your first loyalty card."
+      "subtitle": "Create your account, set up your business, then choose a plan. The first 14 days are free."
     },
     "form": {
       "emailLabel": "Email",
@@ -195,6 +196,13 @@
     "errors": {
       "nameRequired": "Business name is required.",
       "createFailed": "Could not create business."
+    },
+    "plan": {
+      "metaTitle": "Choose a plan",
+      "title": "Choose a plan for {business}",
+      "subtitleTrial": "The first 14 days are free. Add a card to start; you won't be charged until day 15, and you can cancel before then.",
+      "subtitle": "Choose a plan to unlock your business.",
+      "ownerOnly": "{business} doesn't have a plan yet. Ask the owner to choose one."
     }
   },
   "dashboard": {
@@ -419,7 +427,8 @@
         "employees": "Employees",
         "customers": "Customers",
         "programs": "Programs"
-      }
+      },
+      "freeUntil": "Free until {date}"
     },
     "scan": {
       "metaTitle": "Scan",
@@ -446,7 +455,8 @@
         "programDisabled": "This program is disabled and isn't accepting stamps or redemptions.",
         "unauthorized": "Your session expired. Please sign in again.",
         "network": "Network error. Try again.",
-        "generic": "Something went wrong. Try again."
+        "generic": "Something went wrong. Try again.",
+        "noPlan": "This business doesn't have an active plan. The owner needs to choose one."
       }
     },
     "settings": {
@@ -542,14 +552,10 @@
   },
   "billing": {
     "plans": {
-      "trial": {
-        "name": "Trial",
-        "tagline": "14 days, full features, capped.",
-        "features": [
-          "All features",
-          "1 location",
-          "Up to 50 customers"
-        ]
+      "none": {
+        "name": "No plan",
+        "tagline": "Choose a plan to get started.",
+        "features": []
       },
       "small": {
         "name": "Small",
@@ -705,7 +711,7 @@
       "examples": "Examples",
       "pricing": "Pricing",
       "signIn": "Sign in",
-      "getStarted": "Try free",
+      "getStarted": "Start free",
       "primaryLabel": "Main navigation",
       "openMenu": "Open menu",
       "closeMenu": "Close menu"
@@ -714,9 +720,9 @@
       "eyebrow": "Digital loyalty cards",
       "title": "Give your customers a reason to come back.",
       "subtitle": "Create a card with your brand, reward every visit and stay with your customers in Apple Wallet and Google Wallet.",
-      "ctaPrimary": "Try free",
+      "ctaPrimary": "Start free",
       "ctaSecondary": "See how it works",
-      "trial": "14 days free · No credit card"
+      "trial": "First 14 days free · Cancel anytime"
     },
     "trust": {
       "label": "The essentials",
@@ -781,14 +787,14 @@
     },
     "pricing": {
       "title": "Choose the plan for your business.",
-      "subtitle": "Start with 14 days free. No credit card.",
+      "subtitle": "Every plan starts with 14 days free. You won't be charged until day 15.",
       "intervalLabel": "Billing period",
       "currency": "MXN",
       "taxIncluded": "VAT included",
       "billedYear": "{total} MXN billed yearly",
       "billedMonth": "Billed monthly",
-      "cta": "Try free",
-      "trial": "14 days free · No credit card"
+      "cta": "Start free",
+      "trial": "First 14 days free · Cancel anytime"
     },
     "faq": {
       "title": "Frequently asked questions",
@@ -810,8 +816,8 @@
           "a": "No. A phone or tablet with a camera and a browser is enough. There is nothing to install."
         },
         {
-          "q": "What does the free trial include?",
-          "a": "14 days with no credit card, with 1 location, 1 employee, up to 50 customers and 1 loyalty program."
+          "q": "How does the 14-day free period work?",
+          "a": "Pick any plan and use everything in it free for 14 days. We ask for a card when you start and only charge it on day 15. Cancel before then and you pay nothing. Each business you add gets its own 14 days."
         },
         {
           "q": "How does cancellation work?",
@@ -822,8 +828,8 @@
     "cta": {
       "title": "Give your customers a reason to come back.",
       "body": "Create your first loyalty card with Stamply.",
-      "button": "Try free",
-      "trial": "14 days free · No credit card"
+      "button": "Start free",
+      "trial": "First 14 days free · Cancel anytime"
     },
     "footer": {
       "rights": "© 2026 Stamply. All rights reserved."

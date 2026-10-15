@@ -63,3 +63,25 @@ export async function currentBillingInterval(
     return null;
   }
 }
+
+/**
+ * Whether the business can still get the 14 free days: true unless its Stripe
+ * customer already has any subscription (the trial is once per business).
+ * Display-only — `changePlan` enforces it. Errors read as "eligible".
+ */
+export async function isTrialEligible(
+  customerId: string | null,
+): Promise<boolean> {
+  if (!customerId) return true;
+  try {
+    const { data } = await stripe().subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: 1,
+    });
+    return data.length === 0;
+  } catch (e) {
+    console.error("[billing] isTrialEligible failed", e);
+    return true;
+  }
+}

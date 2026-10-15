@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { requireBusiness, getMemberships } from "@/lib/auth/session";
 import { DashboardNav } from "@/components/dashboard/nav";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -11,6 +12,8 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, membership } = await requireBusiness();
+  // No plan yet (new business, or subscription canceled): pick one first.
+  if (membership.business.plan === "none") redirect("/onboarding/plan");
   const memberships = await getMemberships();
 
   const options = memberships.map((m) => ({

@@ -129,7 +129,7 @@ describe("createBusiness", () => {
 
     await expect(
       createBusiness({}, form({ name: "Bean & Brew" })),
-    ).rejects.toThrow("NEXT_REDIRECT:/dashboard?welcome=1");
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/plan");
 
     const businessInsert =
       mock.builderFor("businesses").insert.mock.calls[0][0];
@@ -156,7 +156,7 @@ describe("createBusiness", () => {
       "biz-1",
       expect.objectContaining({ path: "/" }),
     );
-    expect(redirect).toHaveBeenCalledWith("/dashboard?welcome=1");
+    expect(redirect).toHaveBeenCalledWith("/onboarding/plan");
 
     expect(captureServerEventMock).toHaveBeenCalledWith({
       distinctId: "user-1",
@@ -190,7 +190,7 @@ describe("createBusiness", () => {
 
     await expect(
       createBusiness({}, form({ name: "Bean & Brew" })),
-    ).rejects.toThrow("NEXT_REDIRECT:/dashboard?welcome=1");
+    ).rejects.toThrow("NEXT_REDIRECT:/onboarding/plan");
 
     expect(captureServerEventMock).toHaveBeenCalledWith(
       expect.objectContaining({

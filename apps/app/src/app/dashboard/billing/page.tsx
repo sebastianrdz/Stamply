@@ -11,11 +11,13 @@ import { Button } from "@stamply/ui/button";
 import { cn } from "@stamply/ui/utils";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
+import { interpolate } from "@stamply/i18n/format";
 import { BillingToastListener } from "./billing-toast-listener";
-import { PlanSelector } from "./plan-selector";
+import { BillingPlanSelector as PlanSelector } from "@/components/billing-plan-selector";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const dict = await getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
   return { title: dict.dashboard.billing.metaTitle };
 }
 
@@ -31,12 +33,26 @@ export default async function BillingPage() {
   const business = membership.business;
   const plan = PLANS[business.plan];
   const supabase = await createClient();
-  const dict = await getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
   // Best-effort: which cadence the live subscription is on (for the summary +
   // to mark the exact current plan). Null when unknown / no subscription.
   const currentInterval = business.stripe_customer_id
     ? await currentBillingInterval(business.stripe_customer_id)
     : null;
+
+  // During the 14 free days the subscription's period end is the trial end.
+  let trialEnd: string | null = null;
+  if (business.subscription_status === "trialing") {
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("current_period_end")
+      .eq("business_id", business.id)
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    trialEnd = sub?.current_period_end ?? null;
+  }
 
   const usage = await Promise.all(
     RESOURCE_KEYS.map(async (key) => ({
@@ -63,12 +79,16 @@ export default async function BillingPage() {
               {dict.dashboard.billing.planSuffix}
             </CardTitle>
             <p className="text-muted-foreground text-sm">
-              {plan.price > 0
-                ? currentInterval === "year"
-                  ? `$${annualMonthly(business.plan) ?? plan.price}${dict.common.perMonth} · ${dict.common.billedAnnually}`
-                  : `$${plan.price}${dict.common.perMonth} · ${dict.common.billedMonthly}`
-                : dict.common.freeTrial}{" "}
+              {currentInterval === "year"
+                ? `$${annualMonthly(business.plan) ?? plan.price}${dict.common.perMonth} · ${dict.common.billedAnnually}`
+                : `$${plan.price}${dict.common.perMonth} · ${dict.common.billedMonthly}`}{" "}
               · {dict.common.subscriptionStatus[business.subscription_status]}
+              {trialEnd &&
+                ` · ${interpolate(dict.dashboard.billing.freeUntil, {
+                  date: new Intl.DateTimeFormat(locale, {
+                    dateStyle: "medium",
+                  }).format(new Date(trialEnd)),
+                })}`}
             </p>
           </div>
           {business.stripe_customer_id && (
