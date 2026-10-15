@@ -11,8 +11,8 @@ describe("PLANS", () => {
   it("prices match the published tiers", () => {
     expect(PLANS.none.price).toBe(0);
     expect(PLANS.small.price).toBe(679);
-    expect(PLANS.medium.price).toBe(1279);
-    expect(PLANS.big.price).toBe(1879);
+    expect(PLANS.medium.price).toBe(1879);
+    expect(PLANS.big.price).toBe(3579);
   });
 
   it("small plan limits", () => {
@@ -48,16 +48,16 @@ describe("PLANS", () => {
 
   it("annual totals are 2 months free (10x monthly)", () => {
     expect(PLANS.small.annualTotal).toBe(6790);
-    expect(PLANS.medium.annualTotal).toBe(12790);
-    expect(PLANS.big.annualTotal).toBe(18790);
+    expect(PLANS.medium.annualTotal).toBe(18790);
+    expect(PLANS.big.annualTotal).toBe(35790);
   });
 });
 
 describe("annual pricing helpers", () => {
   it("annualMonthly is the rounded per-month equivalent", () => {
     expect(annualMonthly("small")).toBe(566); // 6790/12 = 565.83
-    expect(annualMonthly("medium")).toBe(1066); // 12790/12 = 1065.83
-    expect(annualMonthly("big")).toBe(1566); // 18790/12 = 1565.83
+    expect(annualMonthly("medium")).toBe(1066); // 18790/12 = 1065.83
+    expect(annualMonthly("big")).toBe(1566); // 35790/12 = 1565.83
   });
 
   it("annualMonthly is null for a plan with no annual option", () => {
