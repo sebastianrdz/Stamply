@@ -66,8 +66,8 @@ export const PLANS: Record<PlanTier, PlanDef> = {
   medium: {
     tier: "medium",
     name: "Medium",
-    price: 1279,
-    annualTotal: 12790,
+    price: 1879,
+    annualTotal: 18790,
     interval: "month",
     tagline: "For growing businesses with a small team.",
     limits: { locations: 3, employees: 5, customers: 1000, programs: 3 },
@@ -85,8 +85,8 @@ export const PLANS: Record<PlanTier, PlanDef> = {
   big: {
     tier: "big",
     name: "Big",
-    price: 1879,
-    annualTotal: 18790,
+    price: 3579,
+    annualTotal: 35790,
     interval: "month",
     tagline: "For multi-location brands.",
     limits: {
