@@ -55,7 +55,6 @@
     "annual": "Anual",
     "billedAnnually": "Facturación anual",
     "annualSave": "Ahorra {pct}%",
-    "freeTrial": "Prueba gratis",
     "switchTo": "Cambiar a {name}",
     "roles": {
       "owner": "Propietario",
@@ -73,7 +72,9 @@
     "validation": {
       "emailInvalid": "Ingresa un correo válido.",
       "passwordTooShort": "La contraseña debe tener al menos 8 caracteres."
-    }
+    },
+    "startTrial": "Empezar 14 días gratis",
+    "subscribeTo": "Suscribirme a {name}"
   },
   "settings": {
     "language": {
@@ -111,7 +112,7 @@
     "register": {
       "metaTitle": "Crear cuenta",
       "title": "Comienza con Stamply",
-      "subtitle": "Crea tu cuenta y configura tu primera tarjeta de lealtad."
+      "subtitle": "Crea tu cuenta, configura tu negocio y elige un plan. Los primeros 14 días son gratis."
     },
     "form": {
       "emailLabel": "Correo electrónico",
@@ -195,6 +196,13 @@
     "errors": {
       "nameRequired": "El nombre del negocio es obligatorio.",
       "createFailed": "No se pudo crear el negocio."
+    },
+    "plan": {
+      "metaTitle": "Elige un plan",
+      "title": "Elige un plan para {business}",
+      "subtitleTrial": "Los primeros 14 días son gratis. Agrega una tarjeta para empezar; no se te cobrará hasta el día 15 y puedes cancelar antes.",
+      "subtitle": "Elige un plan para desbloquear tu negocio.",
+      "ownerOnly": "{business} aún no tiene un plan. Pide al dueño que elija uno."
     }
   },
   "dashboard": {
@@ -419,7 +427,8 @@
         "employees": "Empleados",
         "customers": "Clientes",
         "programs": "Programas"
-      }
+      },
+      "freeUntil": "Gratis hasta {date}"
     },
     "scan": {
       "metaTitle": "Escanear",
@@ -446,7 +455,8 @@
         "programDisabled": "Este programa está desactivado y no acepta sellos ni canjes.",
         "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo.",
         "network": "Error de red. Intenta de nuevo.",
-        "generic": "Algo salió mal. Intenta de nuevo."
+        "generic": "Algo salió mal. Intenta de nuevo.",
+        "noPlan": "Este negocio no tiene un plan activo. El dueño debe elegir uno."
       }
     },
     "settings": {
@@ -542,14 +552,10 @@
   },
   "billing": {
     "plans": {
-      "trial": {
-        "name": "Prueba",
-        "tagline": "14 días, todas las funciones, con límites.",
-        "features": [
-          "Todas las funciones",
-          "1 sucursal",
-          "Hasta 50 clientes"
-        ]
+      "none": {
+        "name": "Sin plan",
+        "tagline": "Elige un plan para empezar.",
+        "features": []
       },
       "small": {
         "name": "Pequeño",
@@ -705,7 +711,7 @@
       "examples": "Ejemplos",
       "pricing": "Precios",
       "signIn": "Iniciar sesión",
-      "getStarted": "Prueba gratis",
+      "getStarted": "Empieza gratis",
       "primaryLabel": "Navegación principal",
       "openMenu": "Abrir menú",
       "closeMenu": "Cerrar menú"
@@ -714,9 +720,9 @@
       "eyebrow": "Tarjetas de lealtad digitales",
       "title": "Haz que tus clientes vuelvan.",
       "subtitle": "Crea una tarjeta con tu marca, recompensa cada visita y acompaña a tus clientes en Apple Wallet y Google Wallet.",
-      "ctaPrimary": "Prueba gratis",
+      "ctaPrimary": "Empieza gratis",
       "ctaSecondary": "Ver cómo funciona",
-      "trial": "14 días gratis · Sin tarjeta de crédito"
+      "trial": "Primeros 14 días gratis · Cancela cuando quieras"
     },
     "trust": {
       "label": "Lo esencial",
@@ -781,14 +787,14 @@
     },
     "pricing": {
       "title": "Elige el plan para tu negocio.",
-      "subtitle": "Empieza con 14 días gratis. Sin tarjeta de crédito.",
+      "subtitle": "Todos los planes empiezan con 14 días gratis. No se te cobra hasta el día 15.",
       "intervalLabel": "Periodo de facturación",
       "currency": "MXN",
       "taxIncluded": "IVA incluido",
       "billedYear": "{total} MXN facturados al año",
       "billedMonth": "Facturación mensual",
-      "cta": "Prueba gratis",
-      "trial": "14 días gratis · Sin tarjeta de crédito"
+      "cta": "Empieza gratis",
+      "trial": "Primeros 14 días gratis · Cancela cuando quieras"
     },
     "faq": {
       "title": "Preguntas frecuentes",
@@ -810,8 +816,8 @@
           "a": "No. Basta un teléfono o tablet con cámara y navegador. No hay nada que instalar."
         },
         {
-          "q": "¿Qué incluye la prueba gratis?",
-          "a": "14 días sin tarjeta de crédito, con 1 sucursal, 1 empleado, hasta 50 clientes y 1 programa de lealtad."
+          "q": "¿Cómo funcionan los 14 días gratis?",
+          "a": "Elige cualquier plan y usa todo lo que incluye gratis durante 14 días. Te pedimos una tarjeta al empezar y solo se cobra el día 15. Si cancelas antes, no pagas nada. Cada negocio que agregues tiene sus propios 14 días."
         },
         {
           "q": "¿Cómo funciona la cancelación?",
@@ -822,8 +828,8 @@
     "cta": {
       "title": "Dale a tus clientes una razón para volver.",
       "body": "Crea tu primera tarjeta de lealtad con Stamply.",
-      "button": "Prueba gratis",
-      "trial": "14 días gratis · Sin tarjeta de crédito"
+      "button": "Empieza gratis",
+      "trial": "Primeros 14 días gratis · Cancela cuando quieras"
     },
     "footer": {
       "rights": "© 2026 Stamply. Todos los derechos reservados."

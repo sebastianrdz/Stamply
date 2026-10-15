@@ -14,12 +14,15 @@ import { PricingPanel } from "@stamply/ui/pricing-panel";
 import { useLocale, useTranslations } from "@stamply/i18n/provider";
 import { interpolate } from "@stamply/i18n/format";
 
-export function PlanSelector({
+export function BillingPlanSelector({
   currentTier,
   currentInterval,
+  trialEligible = false,
 }: {
   currentTier: PlanTier;
   currentInterval: BillingInterval | null;
+  /** True when the next Checkout starts with the 14 free days. */
+  trialEligible?: boolean;
 }) {
   const dict = useTranslations();
   const locale = useLocale();
@@ -77,7 +80,11 @@ export function PlanSelector({
               >
                 {isCurrentExact
                   ? dict.dashboard.billing.currentPlan
-                  : interpolate(dict.common.switchTo, { name: copy.name })}
+                  : trialEligible
+                    ? dict.common.startTrial
+                    : currentTier === "none"
+                      ? interpolate(dict.common.subscribeTo, { name: copy.name })
+                      : interpolate(dict.common.switchTo, { name: copy.name })}
               </Button>
             </form>
           ),

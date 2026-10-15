@@ -60,6 +60,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "card_not_found" }, { status: 404 });
   }
 
+  // No plan (never subscribed, or canceled) → nothing can be stamped/redeemed.
+  if (card.business.plan === "none") {
+    return NextResponse.json({ error: "no_plan" }, { status: 402 });
+  }
+
   // A disabled program rejects both stamp and redeem — checked before the
   // cooldown/RPC so a paused program never mutates card state. Standalone
   // rewards (redeem_standalone_reward) aren't tied to this card's program —

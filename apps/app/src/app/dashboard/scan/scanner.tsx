@@ -439,6 +439,8 @@ function errorMessage(result: ScanResult, dict: Dictionary): string {
       return dict.dashboard.scan.errors.notRedeemable;
     case "program_disabled":
       return dict.dashboard.scan.errors.programDisabled;
+    case "no_plan":
+      return dict.dashboard.scan.errors.noPlan;
     case "unauthorized":
       return dict.dashboard.scan.errors.unauthorized;
     case "network":

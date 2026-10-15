@@ -1,10 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 import type Stripe from "stripe";
-import { stripe, planForPriceId } from "@/lib/billing/stripe";
+import { stripe } from "@/lib/billing/stripe";
+import { applySubscription } from "@/lib/billing/sync";
 import { requireEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServerEvent } from "@/lib/posthog/server";
-import type { PlanTier, SubscriptionStatus } from "@/types/database";
 
 /** Which Stripe event triggered `syncSubscription`, so it can decide the
  *  right PostHog subscription-lifecycle event to fire. */
@@ -12,69 +12,15 @@ type SyncSource = "created" | "updated" | "deleted" | "checkout_completed";
 
 export const runtime = "nodejs";
 
-function mapStatus(status: Stripe.Subscription.Status): SubscriptionStatus {
-  switch (status) {
-    case "trialing":
-      return "trialing";
-    case "active":
-      return "active";
-    case "past_due":
-      return "past_due";
-    case "canceled":
-      return "canceled";
-    case "unpaid":
-      return "unpaid";
-    default:
-      return "incomplete";
-  }
-}
-
 async function syncSubscription(
   subscription: Stripe.Subscription,
   eventCreatedAt: Date,
   source: SyncSource,
 ) {
   const admin = createAdminClient();
-  const businessId = subscription.metadata.business_id;
-  if (!businessId) return;
-
-  const priceId = subscription.items.data[0]?.price.id ?? "";
-  const plan: PlanTier =
-    subscription.status === "canceled"
-      ? "trial"
-      : (planForPriceId(priceId) ?? "trial");
-  const status = mapStatus(subscription.status);
-  const periodEnd = subscription.items.data[0]?.current_period_end;
-
-  // The out-of-order/staleness guard lives entirely in the DB function
-  // (supabase/migrations/0007_stripe_webhook_atomic_guard.sql) as an atomic
-  // conditional UPDATE/UPSERT, not a read-then-write here — concurrent
-  // serverless invocations for the same subscription must not be able to
-  // race a read-time check.
-  const { data: applied, error } = await admin.rpc(
-    "sync_subscription_if_newer",
-    {
-      p_business_id: businessId,
-      p_stripe_subscription_id: subscription.id,
-      p_plan: plan,
-      p_status: status,
-      p_current_period_end: periodEnd
-        ? new Date(periodEnd * 1000).toISOString()
-        : null,
-      p_event_created_at: eventCreatedAt.toISOString(),
-    },
-  );
-
-  if (error) {
-    // Let the caller's try/catch handle the 500 + dedupe-row rollback.
-    throw new Error(`sync_subscription_if_newer failed: ${error.message}`);
-  }
-  if (!applied) {
-    console.log(
-      `[stripe webhook] skipped stale/out-of-order event for ${subscription.id}`,
-    );
-    return;
-  }
+  const result = await applySubscription(subscription, eventCreatedAt);
+  if (!result) return;
+  const { businessId, plan, status } = result;
 
   // Instrumentation only — must never break the webhook's actual sync
   // behavior (recording the dedupe row / returning 200), so the owner lookup
