@@ -13,6 +13,7 @@ import {
   BarChart3,
   Settings,
   Receipt,
+  Megaphone,
 } from "lucide-react";
 import { cn } from "@stamply/ui/utils";
 import { useTranslations } from "@stamply/i18n/provider";
@@ -24,6 +25,7 @@ type NavKey =
   | "programs"
   | "rewards"
   | "customers"
+  | "offers"
   | "locations"
   | "analytics"
   | "team"
@@ -53,6 +55,12 @@ const items: {
     allow: ["owner", "admin"],
   },
   { href: "/dashboard/customers", key: "customers", icon: Users },
+  {
+    href: "/dashboard/offers",
+    key: "offers",
+    icon: Megaphone,
+    allow: ["owner", "admin"],
+  },
   {
     href: "/dashboard/locations",
     key: "locations",
@@ -114,6 +122,7 @@ export function DashboardNav({
     programs: dict.nav.programs,
     rewards: dict.nav.rewards,
     customers: dict.nav.customers,
+    offers: dict.nav.offers,
     locations: dict.nav.locations,
     analytics: dict.nav.analytics,
     team: dict.nav.team,

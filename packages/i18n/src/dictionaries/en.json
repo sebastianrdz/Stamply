@@ -18,7 +18,8 @@
     "webLinkLabel": "View on the web",
     "webLinkText": "Open my card",
     "createdByLabel": "Created by",
-    "lastSyncLabel": "Last updated"
+    "lastSyncLabel": "Last updated",
+    "offerLabel": "Offer"
   },
   "common": {
     "save": "Save",
@@ -101,7 +102,8 @@
     "roleLabel": "Role",
     "toggleSidebar": "Toggle sidebar",
     "addBusiness": "Add business",
-    "selectBusiness": "Select business"
+    "selectBusiness": "Select business",
+    "offers": "Offers"
   },
   "auth": {
     "login": {
@@ -548,6 +550,32 @@
       "billingSuccess": "Subscription updated",
       "billingNoChange": "No changes were made",
       "teamJoined": "Joined {business}"
+    },
+    "offers": {
+      "metaTitle": "Offers",
+      "title": "Offers",
+      "description": "Send a special offer to your customers' wallet passes as a lock-screen notification.",
+      "composeTitle": "New offer",
+      "bodyLabel": "Message",
+      "bodyPlaceholder": "2x1 on coffee this Friday!",
+      "sendAll": "Send to all opted-in customers",
+      "sendSelected": "Send to {count} selected",
+      "sending": "Sending...",
+      "sentToast": "Offer sent to {count} passes",
+      "historyTitle": "Sent offers",
+      "historyEmpty": "No offers sent yet.",
+      "audienceAll": "All opted-in customers",
+      "audienceOne": "One customer",
+      "consentNote": "Only customers who opted in to marketing receive offers.",
+      "selectCustomers": "Select customers to send them an offer",
+      "selectedCount": "{count} selected",
+      "errors": {
+        "bodyRequired": "Write a message.",
+        "rateLimited": "Daily offer limit reached. Try again tomorrow.",
+        "noRecipients": "No opted-in customers to send to.",
+        "notOptedIn": "Some selected customers have not opted in.",
+        "deliveryFailed": "The offer was saved but delivery failed. Try again."
+      }
     }
   },
   "billing": {

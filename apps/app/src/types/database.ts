@@ -205,6 +205,15 @@ export type StandaloneRewardGrant = Timestamped & {
   redeemed_by: string | null;
 };
 
+export type WalletOffer = Timestamped & {
+  id: string;
+  business_id: string;
+  // null = sent to every opted-in customer of the business.
+  customer_id: string | null;
+  body: string;
+  created_by: string | null;
+};
+
 export type StripeWebhookEvent = {
   event_id: string;
   event_type: string;
@@ -296,6 +305,10 @@ export interface Database {
         | "stripe_subscription_id"
         | "current_period_end"
         | "last_event_created_at"
+      >;
+      wallet_offers: TableDef<
+        WalletOffer,
+        "id" | "created_at" | "customer_id" | "created_by"
       >;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<

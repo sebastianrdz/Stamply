@@ -44,6 +44,11 @@ vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => createAdminClientMock(),
 }));
 
+const latestOfferMock = vi.fn(async (): Promise<unknown> => null);
+vi.mock("@/lib/offers/queries", () => ({
+  latestOfferForCard: () => latestOfferMock(),
+}));
+
 // Rewards are read directly off card.rewards now (per-program), so there's no
 // queries module to mock — cardProgress (pure) is used as the real import.
 
@@ -412,6 +417,47 @@ describe("patchLoyaltyObject", () => {
       balance: { int: 1 },
     });
     expect(patchOpts.data.heroImage).toBeUndefined();
+  });
+});
+
+describe("offers", () => {
+  const offer = { id: "off-1", body: "2x1 on coffee" };
+
+  it("addOfferMessage POSTs a TEXT_AND_NOTIFY message to the object", async () => {
+    stubCoreEnv();
+    stubGoogleEnv();
+    requestMock.mockResolvedValue({ data: {} });
+
+    const { addOfferMessage, objectId } = await freshWallet();
+    await addOfferMessage(card().id, offer);
+
+    const [opts] = requestMock.mock.calls[0];
+    expect(opts.method).toBe("POST");
+    expect(opts.url).toBe(
+      `https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/${objectId(card().id)}/addMessage`,
+    );
+    expect(opts.data.message).toMatchObject({
+      id: "offer-off-1",
+      body: "2x1 on coffee",
+      messageType: "TEXT_AND_NOTIFY",
+    });
+  });
+
+  it("patchLoyaltyObject keeps the current offer so a stamp doesn't erase it", async () => {
+    stubCoreEnv();
+    stubGoogleEnv();
+    requestMock.mockResolvedValue({ data: {} });
+    latestOfferMock.mockResolvedValueOnce(offer);
+
+    const { patchLoyaltyObject } = await freshWallet();
+    await patchLoyaltyObject(cardWithRelations());
+
+    const [patchOpts] = requestMock.mock.calls.find(
+      ([opts]) => opts.method === "PATCH",
+    )!;
+    expect(patchOpts.data.messages).toEqual([
+      expect.objectContaining({ id: "offer-off-1", messageType: "TEXT" }),
+    ]);
   });
 });
 

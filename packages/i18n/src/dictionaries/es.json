@@ -18,7 +18,8 @@
     "webLinkLabel": "Ver en la web",
     "webLinkText": "Abrir mi tarjeta",
     "createdByLabel": "Creado por",
-    "lastSyncLabel": "Última actualización"
+    "lastSyncLabel": "Última actualización",
+    "offerLabel": "Oferta"
   },
   "common": {
     "save": "Guardar",
@@ -101,7 +102,8 @@
     "roleLabel": "Rol",
     "toggleSidebar": "Mostrar u ocultar el menú lateral",
     "addBusiness": "Agregar negocio",
-    "selectBusiness": "Selecciona un negocio"
+    "selectBusiness": "Selecciona un negocio",
+    "offers": "Ofertas"
   },
   "auth": {
     "login": {
@@ -548,6 +550,32 @@
       "billingSuccess": "Suscripción actualizada",
       "billingNoChange": "No se realizaron cambios",
       "teamJoined": "Te uniste a {business}"
+    },
+    "offers": {
+      "metaTitle": "Ofertas",
+      "title": "Ofertas",
+      "description": "Envía una oferta especial a las tarjetas de wallet de tus clientes como notificación en la pantalla de bloqueo.",
+      "composeTitle": "Nueva oferta",
+      "bodyLabel": "Mensaje",
+      "bodyPlaceholder": "¡2x1 en café este viernes!",
+      "sendAll": "Enviar a todos los clientes que aceptaron",
+      "sendSelected": "Enviar a {count} seleccionados",
+      "sending": "Enviando...",
+      "sentToast": "Oferta enviada a {count} tarjetas",
+      "historyTitle": "Ofertas enviadas",
+      "historyEmpty": "Aún no has enviado ofertas.",
+      "audienceAll": "Todos los clientes que aceptaron",
+      "audienceOne": "Un cliente",
+      "consentNote": "Solo reciben ofertas los clientes que aceptaron recibir marketing.",
+      "selectCustomers": "Selecciona clientes para enviarles una oferta",
+      "selectedCount": "{count} seleccionados",
+      "errors": {
+        "bodyRequired": "Escribe un mensaje.",
+        "rateLimited": "Alcanzaste el límite diario de ofertas. Intenta mañana.",
+        "noRecipients": "No hay clientes que hayan aceptado marketing.",
+        "notOptedIn": "Algunos clientes seleccionados no han aceptado marketing.",
+        "deliveryFailed": "La oferta se guardó pero falló el envío. Inténtalo de nuevo."
+      }
     }
   },
   "billing": {

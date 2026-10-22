@@ -11,6 +11,7 @@ import { renderStampStrip } from "@/lib/wallet/stamp-image";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isBirthdayMonth } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
+import { latestOfferForCard } from "@/lib/offers/queries";
 import esDict from "@stamply/i18n/dictionaries/es.json";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -233,6 +234,17 @@ export async function patchLoyaltyObject(
   let birthdayMessages:
     | { id: string; header: string; body: string; messageType: "TEXT" }[]
     | undefined;
+  // PATCHing `messages` replaces the whole array, so the current offer must be
+  // re-sent here or the next stamp would erase it from the pass.
+  let offerMessage:
+    | { id: string; header: string; body: string; messageType: "TEXT" }
+    | undefined;
+  try {
+    const offer = await latestOfferForCard(admin, card);
+    if (offer) offerMessage = offerPayload(offer.id, offer.body, "TEXT");
+  } catch (e) {
+    console.error("[google wallet] offer lookup failed", e);
+  }
   try {
     if (
       isBirthdayMonth(card.customer.birthday ?? null, card.business.timezone)
@@ -263,7 +275,42 @@ export async function patchLoyaltyObject(
       loyaltyPoints: { balance: { int: progress } },
       secondaryLoyaltyPoints: { label: "Rewards", balance: { int: rewards } },
       ...(heroUri && { heroImage: { sourceUri: { uri: heroUri } } }),
-      ...(birthdayMessages && { messages: birthdayMessages }),
+      ...((birthdayMessages || offerMessage) && {
+        messages: [
+          ...(birthdayMessages ?? []),
+          ...(offerMessage ? [offerMessage] : []),
+        ],
+      }),
+    },
+  });
+}
+
+function offerPayload<T extends "TEXT" | "TEXT_AND_NOTIFY">(
+  offerId: string,
+  body: string,
+  messageType: T,
+) {
+  return {
+    id: `offer-${offerId}`,
+    header: esDict.wallet.offerLabel,
+    body,
+    messageType,
+  };
+}
+
+/** Add an offer to the pass and have Google Wallet push a notification.
+ *  Google only notifies for the first 3 such messages per pass per 24h; past
+ *  that the message is still added, just silently. */
+export async function addOfferMessage(
+  cardId: string,
+  offer: { id: string; body: string },
+): Promise<void> {
+  const client = await auth().getClient();
+  await client.request({
+    url: `${BASE}/loyaltyObject/${objectId(cardId)}/addMessage`,
+    method: "POST",
+    data: {
+      message: offerPayload(offer.id, offer.body, "TEXT_AND_NOTIFY"),
     },
   });
 }
