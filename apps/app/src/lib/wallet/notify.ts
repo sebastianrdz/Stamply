@@ -5,7 +5,11 @@ import type { Database } from "@/types/database";
 import { getCardByToken, type CardWithRelations } from "@/lib/cards/queries";
 import type { PassLocation } from "@/lib/wallet/apple/pass";
 import { pushToDevices } from "@/lib/wallet/apple/apns";
-import { patchLoyaltyObject } from "@/lib/wallet/google/wallet";
+import {
+  addOfferMessage,
+  patchLoyaltyObject,
+} from "@/lib/wallet/google/wallet";
+import type { WalletOffer } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
 
@@ -82,4 +86,114 @@ export async function notifyCardUpdatedForBirthday(
     .eq("id", card.id);
   if (error) throw error;
   await notifyCardUpdated(supabase, card);
+}
+
+function chunk<T>(items: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size)
+    out.push(items.slice(i, i + size));
+  return out;
+}
+
+type OfferTarget = {
+  id: string;
+  customer_id: string;
+  google_object_id: string | null;
+  offer: WalletOffer;
+};
+
+/** Cards (of opted-in customers only) that should receive these offers. */
+async function offerTargets(
+  supabase: Client,
+  offers: WalletOffer[],
+): Promise<OfferTarget[]> {
+  const select =
+    "id, customer_id, google_object_id, customer:customers!inner(marketing_consent)";
+  type Row = Omit<OfferTarget, "offer">;
+  if (offers.length === 1 && offers[0].customer_id === null) {
+    const { data, error } = await supabase
+      .from("cards")
+      .select(select)
+      .eq("business_id", offers[0].business_id)
+      .eq("customer.marketing_consent", true);
+    if (error) throw error;
+    return ((data ?? []) as unknown as Row[]).map((c) => ({
+      ...c,
+      offer: offers[0],
+    }));
+  }
+  const byCustomer = new Map(offers.map((o) => [o.customer_id, o]));
+  const out: OfferTarget[] = [];
+  for (const part of chunk([...byCustomer.keys()] as string[], 200)) {
+    const { data, error } = await supabase
+      .from("cards")
+      .select(select)
+      .eq("business_id", offers[0].business_id)
+      .eq("customer.marketing_consent", true)
+      .in("customer_id", part);
+    if (error) throw error;
+    for (const c of (data ?? []) as unknown as Row[]) {
+      out.push({ ...c, offer: byCustomer.get(c.customer_id)! });
+    }
+  }
+  return out;
+}
+
+/**
+ * Deliver business offers to the passes of opted-in customers: either one
+ * offer with customer_id null (everyone) or one offer per chosen customer.
+ * Returns how many passes were targeted. Bumps `updated_at` so Apple's
+ * refetch sees a changed pass, then nudges Apple devices (the refetched
+ * `changeMessage` field shows the notification) and adds a notifying message
+ * to each Google object. Providers are isolated like notifyCardUpdated.
+ *
+ * shortcut: runs inline in the calling server action; move to a queue once a
+ * business has thousands of Google passes (function timeout).
+ */
+export async function notifyOffers(
+  supabase: Client,
+  offers: WalletOffer[],
+): Promise<number> {
+  if (offers.length === 0) return 0;
+  const targets = await offerTargets(supabase, offers);
+  if (targets.length === 0) return 0;
+
+  const ids = targets.map((t) => t.id);
+  const now = new Date().toISOString();
+  for (const part of chunk(ids, 200)) {
+    const { error } = await supabase
+      .from("cards")
+      .update({ updated_at: now })
+      .in("id", part);
+    if (error) throw error;
+  }
+
+  const applePush = (async () => {
+    for (const part of chunk(ids, 200)) {
+      const { data } = await supabase
+        .from("apple_registrations")
+        .select("push_token")
+        .in("card_id", part);
+      await pushToDevices((data ?? []).map((r) => r.push_token));
+    }
+  })().catch((e) => console.error("[notify] apple offer push failed", e));
+
+  const googleAdd = (async () => {
+    const withGoogle = targets.filter((t) => t.google_object_id);
+    for (const part of chunk(withGoogle, 20)) {
+      await Promise.all(
+        part.map((t) =>
+          addOfferMessage(t.id, t.offer).catch((e) =>
+            console.error("[notify] google offer message failed", {
+              cardId: t.id,
+              e,
+            }),
+          ),
+        ),
+      );
+    }
+  })();
+
+  await Promise.all([applePush, googleAdd]);
+  return targets.length;
 }

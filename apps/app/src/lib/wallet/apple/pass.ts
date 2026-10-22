@@ -17,6 +17,7 @@ import {
   birthdayMonthWindow,
 } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
+import { latestOfferForCard } from "@/lib/offers/queries";
 import type { createAdminClient } from "@/lib/supabase/admin";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -102,6 +103,29 @@ export async function buildApplePass(
       }
     } catch (e) {
       console.error("[apple wallet] birthday reward check failed", e);
+    }
+  }
+
+  // Business offer: best-effort, same rules as the birthday block above.
+  // `changeMessage` is what makes Wallet show a lock-screen notification when
+  // the value changes after a push-triggered refetch; an identical re-send
+  // changes nothing, so nothing is shown.
+  let offerBackField:
+    | { key: string; label: string; value: string; changeMessage: string }
+    | undefined;
+  if (admin) {
+    try {
+      const offer = await latestOfferForCard(admin, card);
+      if (offer) {
+        offerBackField = {
+          key: "offer",
+          label: w.offerLabel,
+          value: offer.body,
+          changeMessage: "%@",
+        };
+      }
+    } catch (e) {
+      console.error("[apple wallet] offer lookup failed", e);
     }
   }
 
@@ -215,6 +239,7 @@ export async function buildApplePass(
           value: lastSync,
         },
         ...(birthdayBackField ? [birthdayBackField] : []),
+        ...(offerBackField ? [offerBackField] : []),
       ],
     },
   };

@@ -65,6 +65,11 @@ vi.mock("@/lib/wallet/shared", () => ({
   appUrlBase: () => appUrlBaseMock(),
 }));
 
+const latestOfferMock = vi.fn(async (): Promise<unknown> => null);
+vi.mock("@/lib/offers/queries", () => ({
+  latestOfferForCard: () => latestOfferMock(),
+}));
+
 import { buildApplePass, type PassLocation } from "./pass";
 
 function business(overrides: Partial<Business> = {}): Business {
@@ -421,5 +426,32 @@ describe("buildApplePass", () => {
     expect(json.storeCard.primaryFields).toEqual([
       { key: "reward", label: "PREMIO", value: "A free coffee" },
     ]);
+  });
+
+  it("adds the current offer as a back field with changeMessage so Wallet notifies", async () => {
+    latestOfferMock.mockResolvedValueOnce({ id: "off-1", body: "2x1 on coffee" });
+    await buildApplePass(
+      cardWithRelations(),
+      undefined,
+      0,
+      {} as Parameters<typeof buildApplePass>[3],
+    );
+    const [buffers] = pkPassCtor.mock.calls.at(-1) as [Record<string, Buffer>];
+    const json = JSON.parse(buffers["pass.json"].toString());
+
+    expect(json.storeCard.backFields).toContainEqual({
+      key: "offer",
+      label: "Oferta",
+      value: "2x1 on coffee",
+      changeMessage: "%@",
+    });
+  });
+
+  it("has no offer field when there is no offer", async () => {
+    const json = await buildPassJson(cardWithRelations());
+    const keys = (json.storeCard as { backFields: { key: string }[] }).backFields.map(
+      (f) => f.key,
+    );
+    expect(keys).not.toContain("offer");
   });
 });
