@@ -470,6 +470,7 @@ function ResultView({
     use_coupon: s.couponUsed,
     check_in: s.checkedIn,
     renew: s.renewed,
+    stamp: result.state?.type === "points" ? s.pointsAdded : s.stampAdded,
     set_tier: s.tierChanged,
   };
 

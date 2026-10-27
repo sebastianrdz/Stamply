@@ -8,6 +8,7 @@ import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
 import { Card, CardContent } from "@stamply/ui/card";
 import type { Business, Program } from "@/types/database";
+import { programTagline } from "@/lib/programs/tagline";
 import { EnrollForm } from "./enroll-form";
 
 export async function generateMetadata({
@@ -109,13 +110,7 @@ export default async function JoinPage({
             <div className="text-sm">
               <p className="font-medium">{program.reward_description}</p>
               <p className="text-muted-foreground">
-                {program.type === "points"
-                  ? interpolate(dict.customerJoin.collectPoints, {
-                      goal: program.goal,
-                    })
-                  : interpolate(dict.customerJoin.collectStamps, {
-                      goal: program.goal,
-                    })}
+                {programTagline(program, dict.programTagline)}
               </p>
             </div>
           </CardContent>

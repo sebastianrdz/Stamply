@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { programTagline } from "@/lib/programs/tagline";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Gift, Users, Pencil } from "lucide-react";
@@ -78,15 +79,7 @@ export default async function ProgramDetailPage({
       <ProgramsToastListener />
       <PageHeader
         title={program.name}
-        description={
-          program.type === "points"
-            ? interpolate(dict.dashboard.programs.detail.collectPoints, {
-                goal: program.goal,
-              })
-            : interpolate(dict.dashboard.programs.detail.collectStamps, {
-                goal: program.goal,
-              })
-        }
+        description={programTagline(program, dict.programTagline)}
         action={
           <div className="flex flex-wrap items-center gap-3">
             <Badge variant={program.active ? "success" : "muted"}>

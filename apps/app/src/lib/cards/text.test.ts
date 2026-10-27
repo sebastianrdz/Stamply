@@ -50,4 +50,35 @@ describe("cardText", () => {
     expect(active.benefits).toBe("Toalla");
     expect(active.header.value).toBe("Gold");
   });
+
+  it("non-stamp cards never mention stamps, in any field", () => {
+    const programs = [
+      { type: "points" as const, goal: 100, reward_description: "Café" },
+      { type: "points" as const, goal: 1, reward_description: "x", config: { tiers: [{ points: 100, reward: "Café" }] } },
+      { type: "coupon" as const, goal: 1, reward_description: "2x1", config: { discount_kind: "percent", value: 20, max_uses: 2 } },
+      { type: "membership" as const, goal: 1, reward_description: "Pase mensual", config: { tiers: [{ name: "Oro", benefits: "Todo" }] } },
+      { type: "membership" as const, goal: 1, reward_description: "Pase mensual" },
+    ];
+    for (const p of programs) {
+      const t = cardText(cardState({ ...card, points: 20, valid_until: "2999-01-01T00:00:00Z", tier: "Oro" }, p), p, w, opts);
+      expect(JSON.stringify(t).toLowerCase()).not.toMatch(/sell|stamp/);
+    }
+  });
+
+  it("tiered points explain redeeming for rewards, not reaching a goal", () => {
+    const p = { type: "points" as const, goal: 100, reward_description: "x", config: { tiers: [{ points: 50, reward: "A" }] } };
+    const t = cardText(cardState(card, p), p, w, opts);
+    expect(t.howTo).toBe(interpolateHow());
+    expect(t.howTo).not.toMatch(/Llega a/);
+  });
+
+  it("tierless membership does not show the benefits blurb as a tier", () => {
+    const p = { type: "membership" as const, goal: 1, reward_description: "Pase mensual" };
+    const t = cardText(cardState(card, p), p, w, opts);
+    expect(t.header).toEqual({ label: "MEMBRESÍA", value: "Miembro" });
+  });
 });
+
+function interpolateHow() {
+  return w.howToPoints.replace("{business}", "Gym");
+}
