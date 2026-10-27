@@ -1,4 +1,13 @@
 {
+  "programTagline": {
+    "stamp": "Junta {goal} sellos",
+    "points": "Junta {goal} puntos",
+    "pointsTiers": "Acumula puntos y canjéalos por premios",
+    "couponPercent": "{value}% de descuento",
+    "couponFixed": "${value} de descuento",
+    "couponItem": "Artículo gratis",
+    "membership": "Membresía con beneficios"
+  },
   "wallet": {
     "stampsLabel": "SELLOS",
     "pointsLabel": "PUNTOS",
@@ -34,7 +43,9 @@
     "tierLabel": "NIVEL",
     "benefitsLabel": "Beneficios",
     "howToCoupon": "Muestra este cupón en {business} para canjear: {reward}.",
-    "howToMembership": "Muestra esta tarjeta en {business} para registrar tu visita."
+    "howToMembership": "Muestra esta tarjeta en {business} para registrar tu visita.",
+    "howToPoints": "Muestra esta tarjeta en {business} para acumular puntos y canjéalos por premios.",
+    "membershipLabel": "MEMBRESÍA"
   },
   "common": {
     "save": "Guardar",
@@ -275,6 +286,38 @@
         "description": "Crea las tarjetas de recompensas que tus clientes coleccionan.",
         "newProgram": "Nuevo programa",
         "manageCta": "Administrar y obtener QR de inscripción",
+        "details": {
+          "goal": "Meta",
+          "stampsValue": "{goal} sellos",
+          "reward": "Recompensa",
+          "earn": "Cómo se ganan",
+          "earnVisit": "{points} por visita",
+          "earnSpend": "{points} por cada $1 gastado",
+          "pointsValue": "{goal} puntos",
+          "rewardTiers": "Premios",
+          "offer": "Oferta",
+          "discount": "Descuento",
+          "freeItem": "Artículo gratis",
+          "uses": "Usos por cliente",
+          "usesValue": "{count}",
+          "unlimited": "Ilimitados",
+          "validity": "Vigencia",
+          "validityValue": "{days} días desde la inscripción",
+          "noExpiry": "Sin vencimiento",
+          "minSpend": "Compra mínima",
+          "activation": "Activación",
+          "activationFree": "Activa de inmediato",
+          "activationStaff": "La activa el personal",
+          "renewal": "Renovación",
+          "renewalValue": "Cada {days} días",
+          "memberTiers": "Niveles",
+          "benefits": "Beneficios",
+          "statCards": "Tarjetas emitidas",
+          "statPendingRewards": "Premios por canjear",
+          "statPointsBalance": "Puntos en circulación",
+          "statCouponUses": "Cupones usados",
+          "statActiveMembers": "Miembros activos"
+        },
         "active": "Activo",
         "paused": "Pausado",
         "collectPoints": "Junta {goal} puntos",
@@ -503,8 +546,8 @@
       "rewardReady": "Recompensa lista: {reward}",
       "scanNext": "Escanear siguiente",
       "quantityLabel": "Sellos a agregar",
-      "quantityDecrease": "Quitar un sello",
-      "quantityIncrease": "Agregar un sello",
+      "quantityDecrease": "Quitar uno",
+      "quantityIncrease": "Agregar uno",
       "actionStamp": "Agregar sellos",
       "actionVisit": "Registrar visita",
       "actionSpend": "Agregar puntos",
@@ -778,7 +821,7 @@
     },
     "meta": {
       "title": "Únete al programa de lealtad de {business}",
-      "description": "Regístrate en el programa de recompensas de {business} y empieza a coleccionar sellos hoy."
+      "description": "Regístrate en el programa de recompensas de {business} y empieza a disfrutar tus beneficios hoy."
     }
   },
   "card": {
@@ -814,7 +857,7 @@
     },
     "meta": {
       "title": "{business} — Tarjeta de lealtad",
-      "description": "Sigue tus sellos y recompensas con {business} en Stamply."
+      "description": "Sigue tu tarjeta y tus recompensas con {business} en Stamply."
     }
   },
   "landing": {

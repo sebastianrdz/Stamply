@@ -131,7 +131,7 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           customerName={card.customer.full_name}
           availableRewards={availableRewards}
           qrImageUrl={qr}
-          stampsLabel={dict.card.stamps}
+          stampsLabel={text.header.label}
           nameLabel={dict.card.name}
           rewardsLabel={dict.card.rewards}
           guestLabel={dict.card.guest}

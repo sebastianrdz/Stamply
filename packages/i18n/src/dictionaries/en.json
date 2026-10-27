@@ -1,4 +1,13 @@
 {
+  "programTagline": {
+    "stamp": "Collect {goal} stamps",
+    "points": "Collect {goal} points",
+    "pointsTiers": "Earn points and redeem them for rewards",
+    "couponPercent": "{value}% off",
+    "couponFixed": "${value} off",
+    "couponItem": "Free item",
+    "membership": "Membership with benefits"
+  },
   "wallet": {
     "stampsLabel": "STAMPS",
     "pointsLabel": "POINTS",
@@ -34,7 +43,9 @@
     "tierLabel": "TIER",
     "benefitsLabel": "Benefits",
     "howToCoupon": "Show this coupon at {business} to redeem: {reward}.",
-    "howToMembership": "Show this card at {business} to check in."
+    "howToMembership": "Show this card at {business} to check in.",
+    "howToPoints": "Show this card at {business} to earn points and redeem them for rewards.",
+    "membershipLabel": "MEMBERSHIP"
   },
   "common": {
     "save": "Save",
@@ -275,6 +286,38 @@
         "description": "Create the reward cards your customers collect.",
         "newProgram": "New program",
         "manageCta": "Manage & get enrollment QR",
+        "details": {
+          "goal": "Goal",
+          "stampsValue": "{goal} stamps",
+          "reward": "Reward",
+          "earn": "How points are earned",
+          "earnVisit": "{points} per visit",
+          "earnSpend": "{points} per $1 spent",
+          "pointsValue": "{goal} points",
+          "rewardTiers": "Rewards",
+          "offer": "Offer",
+          "discount": "Discount",
+          "freeItem": "Free item",
+          "uses": "Uses per customer",
+          "usesValue": "{count}",
+          "unlimited": "Unlimited",
+          "validity": "Validity",
+          "validityValue": "{days} days from sign-up",
+          "noExpiry": "No expiry",
+          "minSpend": "Minimum spend",
+          "activation": "Activation",
+          "activationFree": "Active immediately",
+          "activationStaff": "Activated by staff",
+          "renewal": "Renewal",
+          "renewalValue": "Every {days} days",
+          "memberTiers": "Tiers",
+          "benefits": "Benefits",
+          "statCards": "Cards issued",
+          "statPendingRewards": "Rewards to redeem",
+          "statPointsBalance": "Points in circulation",
+          "statCouponUses": "Coupons used",
+          "statActiveMembers": "Active members"
+        },
         "active": "Active",
         "paused": "Paused",
         "collectPoints": "Collect {goal} points",
@@ -503,8 +546,8 @@
       "rewardReady": "Reward ready: {reward}",
       "scanNext": "Scan next",
       "quantityLabel": "Stamps to add",
-      "quantityDecrease": "Remove one stamp",
-      "quantityIncrease": "Add one stamp",
+      "quantityDecrease": "Remove one",
+      "quantityIncrease": "Add one",
       "actionStamp": "Add stamps",
       "actionVisit": "Register visit",
       "actionSpend": "Add points",
@@ -778,7 +821,7 @@
     },
     "meta": {
       "title": "Join {business}'s loyalty program",
-      "description": "Sign up for {business}'s rewards program and start collecting stamps today."
+      "description": "Sign up for {business}'s rewards program and start enjoying your benefits today."
     }
   },
   "card": {
@@ -814,7 +857,7 @@
     },
     "meta": {
       "title": "{business} — Loyalty Card",
-      "description": "Track your stamps and rewards with {business} on Stamply."
+      "description": "Track your card and rewards with {business} on Stamply."
     }
   },
   "landing": {

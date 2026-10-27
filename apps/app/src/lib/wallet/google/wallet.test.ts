@@ -330,9 +330,9 @@ describe("ensureLoyaltyObject", () => {
     expect(data.classId).toBe(classId(program().id));
     expect(data.state).toBe("ACTIVE");
     expect(data.barcode).toEqual({ type: "QR_CODE", value: "stmp_abc123" });
-    expect(data.loyaltyPoints).toEqual({ label: "Stamps", balance: { int: 4 } });
+    expect(data.loyaltyPoints).toEqual({ label: "SELLOS", balance: { int: 4 } });
     expect(data.secondaryLoyaltyPoints).toEqual({
-      label: "Rewards",
+      label: "PREMIOS",
       balance: { int: 2 },
     });
     expect(data.heroImage).toEqual({
@@ -384,7 +384,7 @@ describe("patchLoyaltyObject", () => {
     );
     expect(patchOpts.data.loyaltyPoints).toEqual({ balance: { int: 7 } });
     expect(patchOpts.data.secondaryLoyaltyPoints).toEqual({
-      label: "Rewards",
+      label: "PREMIOS",
       balance: { int: 5 },
     });
     expect(patchOpts.data.heroImage).toEqual({
@@ -413,7 +413,7 @@ describe("patchLoyaltyObject", () => {
     )!;
     expect(patchOpts.data.loyaltyPoints).toEqual({ balance: { int: 5 } });
     expect(patchOpts.data.secondaryLoyaltyPoints).toEqual({
-      label: "Rewards",
+      label: "PREMIOS",
       balance: { int: 1 },
     });
     expect(patchOpts.data.heroImage).toBeUndefined();

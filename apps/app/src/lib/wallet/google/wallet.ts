@@ -49,7 +49,7 @@ function auth(): GoogleAuth {
 
 /**
  * Balance fields for the LoyaltyObject. Stamp and untiered-points cards keep
- * the original numeric progress + rewards count (English labels, unchanged);
+ * the original numeric progress + rewards count (labels from the Spanish dictionary, like Apple);
  * other types send string balances from the type's formatted copy.
  */
 export function loyaltyFields(card: CardWithRelations, patch = false) {
@@ -64,12 +64,12 @@ export function loyaltyFields(card: CardWithRelations, patch = false) {
     return {
       loyaltyPoints: {
         // PATCH only updates the balance; the label was set on create.
-        ...(!patch && { label: card.program.type === "points" ? "Points" : "Stamps" }),
+        ...(!patch && { label: text.header.label }),
         balance: { int: state.progress },
       },
       // Mirrors Apple's REWARDS field — rewards this customer can redeem now.
       secondaryLoyaltyPoints: {
-        label: "Rewards",
+        label: esDict.wallet.rewards,
         balance: { int: card.rewards },
       },
     };

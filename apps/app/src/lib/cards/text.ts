@@ -73,6 +73,7 @@ export function cardText(
       return {
         ...base,
         legacy: false,
+        howTo: interpolate(w.howToPoints, { business: opts.business }),
         header: { label: w.pointsLabel, value: String(state.available) },
         primary: { label: w.nextRewardLabel, value: next },
         secondary: [],
@@ -109,13 +110,17 @@ export function cardText(
       const benefits = tiers.find((t) => t.name === state.tier)?.benefits || null;
       // No valid_until yet = staff still has to activate it.
       const until = !state.until ? w.pending : state.expired ? w.expired : fmt(state.until);
-      const tier = state.tier ?? program.reward_description;
+      // Tierless memberships have no level name: don't pass the benefits blurb off as one.
+      const header = state.tier
+        ? { label: w.tierLabel, value: state.tier }
+        : { label: w.membershipLabel, value: w.member };
+      const tier = header.value;
       return {
         ...base,
         legacy: false,
         howTo: interpolate(w.howToMembership, { business: opts.business }),
         benefits,
-        header: { label: w.tierLabel, value: tier },
+        header,
         primary: reward,
         secondary: [{ key: "until", label: w.validUntilLabel, value: until }],
         headline: tier,
