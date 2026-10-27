@@ -35,6 +35,16 @@ describe("cardState", () => {
     expect(expired).toMatchObject({ expired: true, actions: [] });
   });
 
+  it("membership with tiers offers set_tier even when pending or lapsed", () => {
+    const p = { type: "membership" as const, goal: 1, config: { tiers: [{ name: "Gold" }] } };
+    expect(cardState(card, p, now).actions).toEqual(["renew", "set_tier"]);
+    expect(cardState({ ...card, valid_until: "2026-07-01T00:00:00Z" }, p, now).actions).toEqual([
+      "check_in",
+      "renew",
+      "set_tier",
+    ]);
+  });
+
   it("membership: pending and lapsed only allow renew", () => {
     const p = { type: "membership" as const, goal: 1 };
     expect(cardState(card, p, now).actions).toEqual(["renew"]);

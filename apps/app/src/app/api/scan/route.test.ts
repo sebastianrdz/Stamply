@@ -225,6 +225,30 @@ describe("POST /api/scan", () => {
       });
     });
 
+    it("set_tier updates only the tier, keeps validity, works on a lapsed card", async () => {
+      const lapsed = card(prog, { valid_until: "2020-01-01T00:00:00Z", tier: "Bronze" });
+      getCardMock.mockResolvedValueOnce(lapsed).mockResolvedValue({ ...lapsed, tier: "Gold" });
+      adminDb.current = makeSupabaseMock({ cards: { data: { ...lapsed, tier: "Gold" }, error: null } });
+      const { status, json } = await call({ action: "set_tier", tier: "Gold" });
+      expect(status).toBe(200);
+      const b = adminDb.current.builderFor("cards");
+      expect(b.update).toHaveBeenCalledWith({ tier: "Gold" });
+      expect(b.eq).toHaveBeenCalledWith("id", "card-1");
+      expect(b.eq).toHaveBeenCalledWith("business_id", "biz-1");
+      expect(rpcMock).not.toHaveBeenCalled();
+      expect(notifyMock).toHaveBeenCalled();
+      expect(json.state.tier).toBe("Gold");
+    });
+
+    it("set_tier rejects unknown tier, missing tier, and programs without tiers", async () => {
+      getCardMock.mockResolvedValue(card(prog));
+      expect((await call({ action: "set_tier", tier: "Nope" })).json.error).toBe("tier_not_found");
+      expect((await call({ action: "set_tier" })).json.error).toBe("invalid_request");
+      getCardMock.mockResolvedValue(card({ ...prog, config: { renew_days: 30 } }));
+      expect((await call({ action: "set_tier", tier: "Gold" })).json.error).toBe("action_not_allowed");
+      expect(adminDb.current.from).not.toHaveBeenCalled();
+    });
+
     it("renew rejects an unknown tier and a non-membership card", async () => {
       getCardMock.mockResolvedValue(card(prog));
       expect((await call({ action: "renew", tier: "Nope" })).json.error).toBe("tier_not_found");

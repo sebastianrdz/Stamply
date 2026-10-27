@@ -249,6 +249,7 @@ function CardActions({
   const [amount, setAmount] = useState("");
   const [tierIndex, setTierIndex] = useState(affordable[0]?.index ?? 0);
   const [renewTier, setRenewTier] = useState(state.tier ?? tiers[0]?.name ?? "");
+  const [newTier, setNewTier] = useState(state.tier ?? tiers[0]?.name ?? "");
 
   const text = program
     ? cardText(state, { ...program, goal: program.goal ?? state.goal }, dict.wallet, {
@@ -418,6 +419,34 @@ function CardActions({
         </div>
       )}
 
+      {has("set_tier") && (
+        <div className="flex items-end gap-3">
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label htmlFor="scan-set-tier" className="text-sm font-medium">
+              {s.setTierLabel}
+            </label>
+            <Select
+              id="scan-set-tier"
+              value={newTier}
+              onChange={(e) => setNewTier(e.target.value)}
+            >
+              {tiers.map((t) => (
+                <option key={t.name} value={t.name}>
+                  {t.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            disabled={busy || newTier === state.tier}
+            onClick={() => onAct("set_tier", { tier: newTier })}
+          >
+            {s.actionSetTier}
+          </Button>
+        </div>
+      )}
+
       <StandaloneRewards
         initial={card.standaloneRewards}
         barcode={barcode}
@@ -464,6 +493,7 @@ function ResultView({
     use_coupon: s.couponUsed,
     check_in: s.checkedIn,
     renew: s.renewed,
+    set_tier: s.tierChanged,
   };
 
   return (
