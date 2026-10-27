@@ -214,14 +214,13 @@ describe("POST /api/scan", () => {
       expect(rpcMock).not.toHaveBeenCalled();
     });
 
-    it("renew uses config.renew_days and the chosen tier", async () => {
-      setup(card(prog), card(prog, { valid_until: future, tier: "Gold" }));
+    it("renew only extends validity: uses config.renew_days and ignores any tier", async () => {
+      setup(card(prog), card(prog, { valid_until: future }));
       const { status } = await call({ action: "renew", tier: "Gold" });
       expect(status).toBe(200);
       expect(rpcMock).toHaveBeenCalledWith("renew_membership", {
         p_card_id: "card-1",
         p_days: 30,
-        p_tier: "Gold",
       });
     });
 
@@ -249,9 +248,7 @@ describe("POST /api/scan", () => {
       expect(adminDb.current.from).not.toHaveBeenCalled();
     });
 
-    it("renew rejects an unknown tier and a non-membership card", async () => {
-      getCardMock.mockResolvedValue(card(prog));
-      expect((await call({ action: "renew", tier: "Nope" })).json.error).toBe("tier_not_found");
+    it("renew rejects a non-membership card", async () => {
       getCardMock.mockResolvedValue(card({ type: "stamp", goal: 5 }));
       expect((await call({ action: "renew" })).json.error).toBe("action_not_allowed");
       expect(rpcMock).not.toHaveBeenCalled();

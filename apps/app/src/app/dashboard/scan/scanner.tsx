@@ -248,7 +248,6 @@ function CardActions({
   const [quantity, setQuantity] = useState(1);
   const [amount, setAmount] = useState("");
   const [tierIndex, setTierIndex] = useState(affordable[0]?.index ?? 0);
-  const [renewTier, setRenewTier] = useState(state.tier ?? tiers[0]?.name ?? "");
   const [newTier, setNewTier] = useState(state.tier ?? tiers[0]?.name ?? "");
 
   const text = program
@@ -388,35 +387,13 @@ function CardActions({
       )}
 
       {has("renew") && (
-        <div className="flex items-end gap-3">
-          {tiers.length > 0 && (
-            <div className="flex flex-1 flex-col gap-1.5">
-              <label htmlFor="scan-renew-tier" className="text-sm font-medium">
-                {s.renewTierLabel}
-              </label>
-              <Select
-                id="scan-renew-tier"
-                value={renewTier}
-                onChange={(e) => setRenewTier(e.target.value)}
-              >
-                {tiers.map((t) => (
-                  <option key={t.name} value={t.name}>
-                    {t.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-          )}
-          <Button
-            variant={has("check_in") ? "outline" : "primary"}
-            disabled={busy}
-            onClick={() =>
-              onAct("renew", tiers.length > 0 ? { tier: renewTier } : {})
-            }
-          >
-            {s.actionRenew}
-          </Button>
-        </div>
+        <Button
+          variant={has("check_in") ? "outline" : "primary"}
+          disabled={busy}
+          onClick={() => onAct("renew")}
+        >
+          {s.actionRenew}
+        </Button>
       )}
 
       {has("set_tier") && (
