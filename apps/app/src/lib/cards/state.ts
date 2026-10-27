@@ -7,7 +7,8 @@ export type ScanAction =
   | "redeem_tier"
   | "use_coupon"
   | "check_in"
-  | "renew";
+  | "renew"
+  | "set_tier";
 
 export interface PointsTier {
   points: number;
@@ -114,12 +115,11 @@ export function cardState(
     case "membership": {
       // No valid_until yet = pending activation, same as expired for scanning.
       const expired = !card.valid_until || past(card.valid_until);
-      return {
-        ...base,
-        until: card.valid_until ?? null,
-        expired,
-        actions: expired ? ["renew"] : ["check_in", "renew"],
-      };
+      const hasTiers = Array.isArray(config.tiers) && config.tiers.length > 0;
+      const actions: ScanAction[] = expired ? ["renew"] : ["check_in", "renew"];
+      // Tier change is independent of validity: allowed even when lapsed/pending.
+      if (hasTiers) actions.push("set_tier");
+      return { ...base, until: card.valid_until ?? null, expired, actions };
     }
   }
 }

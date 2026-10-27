@@ -25,6 +25,7 @@ const schema = z.object({
     "use_coupon",
     "check_in",
     "renew",
+    "set_tier",
     "redeem_standalone_reward",
   ]),
   delta: z.coerce.number().int().min(1).max(50).default(1),
@@ -149,6 +150,11 @@ export async function POST(req: NextRequest) {
       if (state.available < t.points) return err("insufficient_points", 409);
     }
 
+    if (action === "set_tier") {
+      if (!tier) return err("invalid_request", 400);
+      if (!pointsTiers.some((t) => t.name === tier)) return err("tier_not_found", 404);
+    }
+
     if (action === "renew") {
       const days = Number(config.renew_days);
       if (!(days >= 1)) return err("invalid_config", 409);
@@ -242,7 +248,16 @@ export async function POST(req: NextRequest) {
                     p_days: Number(config.renew_days),
                     p_tier: tier ?? undefined,
                   })
-                : admin.rpc("redeem_standalone_reward", {
+                : action === "set_tier"
+                  ? // Single-column change: no RPC needed; card was already scoped to the caller's business.
+                    admin
+                      .from("cards")
+                      .update({ tier })
+                      .eq("id", card.id)
+                      .eq("business_id", card.business_id)
+                      .select()
+                      .single()
+                  : admin.rpc("redeem_standalone_reward", {
                     p_grant_id: grant_id!,
                     p_employee_id: user.id,
                     p_location_id: location_id ?? null,
@@ -331,10 +346,15 @@ export async function POST(req: NextRequest) {
         },
         groups: { business: card.business_id },
       });
-    } else if (action === "check_in" || action === "renew") {
+    } else if (action === "check_in" || action === "renew" || action === "set_tier") {
       captureServerEvent({
         distinctId: user.id,
-        event: action === "check_in" ? "membership_checked_in" : "membership_renewed",
+        event:
+          action === "check_in"
+            ? "membership_checked_in"
+            : action === "renew"
+              ? "membership_renewed"
+              : "membership_tier_changed",
         properties: { program_id: card.program_id, location_id: location_id ?? null },
         groups: { business: card.business_id },
       });
