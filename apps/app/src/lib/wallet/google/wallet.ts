@@ -5,7 +5,8 @@ import jwt from "jsonwebtoken";
 import { requireEnv } from "@/lib/env";
 import { appUrlBase } from "@/lib/wallet/shared";
 import type { CardWithRelations } from "@/lib/cards/queries";
-import { cardProgress } from "@/lib/cards/queries";
+import { cardState } from "@/lib/cards/state";
+import { cardText } from "@/lib/cards/text";
 import type { PassLocation } from "@/lib/wallet/apple/pass";
 import { renderStampStrip } from "@/lib/wallet/stamp-image";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -44,6 +45,59 @@ function auth(): GoogleAuth {
     credentials: { client_email: email, private_key: privateKey },
     scopes: [SCOPE],
   });
+}
+
+/**
+ * Balance fields for the LoyaltyObject. Stamp and untiered-points cards keep
+ * the original numeric progress + rewards count (English labels, unchanged);
+ * other types send string balances from the type's formatted copy.
+ */
+export function loyaltyFields(card: CardWithRelations, patch = false) {
+  const state = cardState(card, card.program);
+  const text = cardText(state, card.program, esDict.wallet, {
+    locale: "es-MX",
+    business: card.business.name,
+    rewards: card.rewards,
+    timeZone: card.business.timezone,
+  });
+  if (text.legacy) {
+    return {
+      loyaltyPoints: {
+        // PATCH only updates the balance; the label was set on create.
+        ...(!patch && { label: card.program.type === "points" ? "Points" : "Stamps" }),
+        balance: { int: state.progress },
+      },
+      // Mirrors Apple's REWARDS field — rewards this customer can redeem now.
+      secondaryLoyaltyPoints: {
+        label: "Rewards",
+        balance: { int: card.rewards },
+      },
+    };
+  }
+  const [first, ...rest] = [
+    ...(text.primary && card.program.type === "points" ? [text.primary] : []),
+    ...text.secondary,
+  ];
+  const extra = [...rest, ...text.auxiliary];
+  return {
+    loyaltyPoints: {
+      label: text.header.label,
+      balance: { string: text.header.value },
+    },
+    ...(first && {
+      secondaryLoyaltyPoints: {
+        label: first.label,
+        balance: { string: first.value },
+      },
+    }),
+    ...(extra.length > 0 && {
+      textModulesData: extra.map((f) => ({
+        id: f.label,
+        header: f.label,
+        body: f.value,
+      })),
+    }),
+  };
 }
 
 function sanitize(id: string): string {
@@ -159,9 +213,7 @@ async function objectPayload(
   card: CardWithRelations,
   locations: PassLocation[],
 ) {
-  const progress = cardProgress(card, card.program);
-  // Per-program: this card's own banked rewards, not a cross-program total.
-  const rewards = card.rewards;
+  const progress = cardState(card, card.program).progress;
   const heroUri = await heroImageUri(admin, card, progress);
   return {
     id: objectId(card.id),
@@ -169,13 +221,7 @@ async function objectPayload(
     state: "ACTIVE",
     accountName: card.customer.full_name ?? "Member",
     barcode: { type: "QR_CODE", value: card.barcode_value },
-    loyaltyPoints: {
-      label: card.program.type === "points" ? "Points" : "Stamps",
-      balance: { int: progress },
-    },
-    // Mirrors Apple's REWARDS field — how many rewards this customer can
-    // redeem right now, for both program types.
-    secondaryLoyaltyPoints: { label: "Rewards", balance: { int: rewards } },
+    ...loyaltyFields(card),
     ...(heroUri && { heroImage: { sourceUri: { uri: heroUri } } }),
     locations: locations.map((l) => ({
       latitude: l.lat,
@@ -216,10 +262,8 @@ export async function patchLoyaltyObject(
 ): Promise<void> {
   const client = await auth().getClient();
   const id = objectId(card.id);
-  const progress = cardProgress(card, card.program);
+  const progress = cardState(card, card.program).progress;
   const admin = createAdminClient();
-  // Per-program: this card's own banked rewards, not a cross-program total.
-  const rewards = card.rewards;
   // Intentionally awaited (not fire-and-forget): this adds render+upload
   // latency to notifyCardUpdated's synchronous scan-time call, but on
   // serverless a detached background task can be killed once the response is
@@ -272,8 +316,7 @@ export async function patchLoyaltyObject(
     url: `${BASE}/loyaltyObject/${id}`,
     method: "PATCH",
     data: {
-      loyaltyPoints: { balance: { int: progress } },
-      secondaryLoyaltyPoints: { label: "Rewards", balance: { int: rewards } },
+      ...loyaltyFields(card, true),
       ...(heroUri && { heroImage: { sourceUri: { uri: heroUri } } }),
       ...((birthdayMessages || offerMessage) && {
         messages: [

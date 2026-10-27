@@ -22,35 +22,103 @@ export interface ProgramFormState {
  *  most 10 slots, so goals above this aren't allowed for stamp programs. */
 const MAX_STAMP_GOAL = 10;
 
-/** Shared create/update validation. Stamp programs are capped at 10 stamps;
- *  points programs keep the generous 1000 ceiling. */
+const tierName = z.string().trim().min(1).max(60);
+const money = z.number().int().min(0).max(10_000_000);
+
+const pointsConfig = z.object({
+  earn: z.enum(["visit", "spend"]).default("visit"),
+  points_per_unit: z.number().positive().max(10_000).default(1),
+  tiers: z
+    .array(
+      z.object({
+        points: z.number().int().min(1).max(1_000_000),
+        reward: z.string().trim().min(1).max(100),
+      }),
+    )
+    .min(1)
+    .max(10)
+    .optional(),
+});
+
+const couponConfig = z
+  .object({
+    discount_kind: z.enum(["percent", "fixed", "item"]),
+    value: z.number().min(0).max(10_000_000),
+    max_uses: z.number().int().min(1).nullable().default(1),
+    valid_days: z.number().int().min(1).max(3650).nullable().default(null),
+    min_spend_cents: money.optional(),
+  })
+  .refine((c) => c.discount_kind !== "percent" || (c.value > 0 && c.value <= 100));
+
+const membershipConfig = z.object({
+  access: z.enum(["free", "staff_activated"]),
+  tiers: z
+    .array(z.object({ name: tierName, benefits: z.string().trim().max(200) }))
+    .max(10)
+    .default([]),
+  renew_days: z.number().int().min(1).max(3650),
+});
+
+/** Shared create/update validation: discriminated on `type`, each type with its
+ *  own `config`. Stamp programs are capped at 10 stamps; points keep the generous
+ *  1000 ceiling; coupon/membership always store goal = 1. */
 function programSchema(dict: Dictionary) {
+  const e = dict.dashboard.programs.errors;
+  const base = {
+    name: z.string().min(2, e.nameRequired).max(80),
+    goal: z.coerce.number().int().min(1, e.goalMin).max(1000),
+    reward_description: z.string().min(2, e.rewardRequired).max(200),
+  };
   return z
-    .object({
-      name: z
-        .string()
-        .min(2, dict.dashboard.programs.errors.nameRequired)
-        .max(80),
-      type: z.enum(["stamp", "points"]),
-      goal: z.coerce
-        .number()
-        .int()
-        .min(1, dict.dashboard.programs.errors.goalMin)
-        .max(1000),
-      reward_description: z
-        .string()
-        .min(2, dict.dashboard.programs.errors.rewardRequired)
-        .max(200),
-    })
+    .discriminatedUnion("type", [
+      z.object({ ...base, type: z.literal("stamp"), config: z.object({}) }),
+      z.object({ ...base, type: z.literal("points"), config: pointsConfig }),
+      z.object({
+        ...base,
+        type: z.literal("coupon"),
+        config: couponConfig,
+      }),
+      z.object({
+        ...base,
+        type: z.literal("membership"),
+        config: membershipConfig,
+      }),
+    ])
     .superRefine((val, ctx) => {
       if (val.type === "stamp" && val.goal > MAX_STAMP_GOAL) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           path: ["goal"],
-          message: dict.dashboard.programs.errors.stampGoalMax,
+          message: e.stampGoalMax,
         });
       }
-    });
+    })
+    .transform((val) =>
+      val.type === "coupon" || val.type === "membership"
+        ? { ...val, goal: 1 }
+        : val,
+    );
+}
+
+/** The `config` form field is JSON; unparsable input becomes undefined so the
+ *  schema rejects it. Missing/empty = `{}`. */
+function parseConfigField(raw: FormDataEntryValue | null): unknown {
+  if (raw == null || raw === "") return {};
+  try {
+    return JSON.parse(String(raw));
+  } catch {
+    return undefined;
+  }
+}
+
+function firstError(
+  issues: { path: PropertyKey[]; message: string }[],
+  dict: Dictionary,
+) {
+  const i = issues[0];
+  return i.path[0] === "config" || i.path[0] === "type"
+    ? dict.dashboard.programs.errors.configInvalid
+    : i.message;
 }
 
 export async function createProgram(
@@ -66,8 +134,9 @@ export async function createProgram(
     type: formData.get("type"),
     goal: formData.get("goal"),
     reward_description: formData.get("reward_description"),
+    config: parseConfigField(formData.get("config")),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  if (!parsed.success) return { error: firstError(parsed.error.issues, dict) };
 
   const supabase = await createClient();
 
@@ -91,6 +160,7 @@ export async function createProgram(
     type: parsed.data.type,
     goal: parsed.data.goal,
     reward_description: parsed.data.reward_description,
+    config: parsed.data.config,
   });
   if (error) return { error: error.message };
 
@@ -136,22 +206,37 @@ export async function updateProgram(
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
 
+  const supabase = await createClient();
+
+  // Type is locked after creation: existing cards would reread the other
+  // counter column. Validate against the stored type, never the submitted one.
+  const { data: existing } = await supabase
+    .from("programs")
+    .select("type, config")
+    .eq("id", programId)
+    .eq("business_id", business.id)
+    .maybeSingle();
+  if (!existing) return { error: dict.dashboard.programs.delete.notFoundError };
+
   const parsed = programSchema(dict).safeParse({
     name: formData.get("name"),
-    type: formData.get("type"),
+    type: existing.type,
     goal: formData.get("goal"),
     reward_description: formData.get("reward_description"),
+    // Field absent = keep the stored config.
+    config: formData.has("config")
+      ? parseConfigField(formData.get("config"))
+      : (existing.config ?? {}),
   });
-  if (!parsed.success) return { error: parsed.error.issues[0].message };
+  if (!parsed.success) return { error: firstError(parsed.error.issues, dict) };
 
-  const supabase = await createClient();
   const { error } = await supabase
     .from("programs")
     .update({
       name: parsed.data.name,
-      type: parsed.data.type,
       goal: parsed.data.goal,
       reward_description: parsed.data.reward_description,
+      config: parsed.data.config,
     })
     .eq("id", programId)
     .eq("business_id", business.id);

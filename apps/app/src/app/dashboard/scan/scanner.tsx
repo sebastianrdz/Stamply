@@ -6,19 +6,22 @@ import {
   Gift,
   XCircle,
   RotateCcw,
-  Stamp,
   Minus,
   Plus,
 } from "lucide-react";
 import type { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@stamply/ui/button";
 import { Card, CardContent } from "@stamply/ui/card";
+import { Input } from "@stamply/ui/input";
+import { Select } from "@stamply/ui/select";
 import { cn } from "@stamply/ui/utils";
-import { useTranslations } from "@stamply/i18n/provider";
+import { useLocale, useTranslations } from "@stamply/i18n/provider";
 import { interpolate } from "@stamply/i18n/format";
 import type { Dictionary } from "@stamply/i18n/dictionaries";
-
-type Mode = "stamp" | "redeem";
+import type { CardState, ScanAction } from "@/lib/cards/state";
+import { cardText } from "@/lib/cards/text";
+import { affordableTiers } from "@/lib/cards/tiers";
+import type { ProgramType } from "@/types/database";
 
 // Mirrors the fields scanner.tsx needs from the `StandaloneReward` shape in
 // src/lib/rewards/queries.ts (only that file imports "server-only", so we
@@ -30,9 +33,19 @@ interface StandaloneRewardItem {
   isAvailableNow: boolean;
 }
 
+interface ScanProgram {
+  name: string;
+  type: ProgramType;
+  goal?: number;
+  reward_description: string;
+  config?: Record<string, unknown>;
+}
+
 interface ScanResult {
   ok: boolean;
-  action?: Mode;
+  action?: ScanAction;
+  program?: ScanProgram;
+  state?: CardState;
   customerName?: string | null;
   programName?: string;
   reward?: string;
@@ -75,30 +88,17 @@ async function stopScanner(scanner: Html5Qrcode | null): Promise<void> {
 
 export function Scanner() {
   const dict = useTranslations();
-  const [mode, setMode] = useState<Mode>("stamp");
   const [scanning, setScanning] = useState(false);
+  // Looked-up card awaiting an action (lookup never mutates).
+  const [card, setCard] = useState<ScanResult | null>(null);
   const [result, setResult] = useState<ScanResult | null>(null);
+  const [acting, setActing] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
-  // The barcode from the scan that produced the current `result` — threaded
-  // down to ResultView so it can POST /api/scan again for a standalone reward
-  // redeem without re-scanning.
-  const [lastBarcode, setLastBarcode] = useState<string | null>(null);
-  // How many stamps to apply in a single scan (stamp mode only). The /api/scan
-  // route accepts a `delta` (1–50), so one scan can add several stamps at once.
-  const [quantity, setQuantity] = useState(1);
+  // The barcode of the card being handled — threaded down so actions and the
+  // standalone reward redeem can POST /api/scan without re-scanning.
+  const [barcode, setBarcode] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const busyRef = useRef(false);
-  const modeRef = useRef<Mode>(mode);
-  const quantityRef = useRef(quantity);
-
-  // Keep the latest mode/quantity readable inside the scan callback without
-  // re-creating it.
-  useEffect(() => {
-    modeRef.current = mode;
-  }, [mode]);
-  useEffect(() => {
-    quantityRef.current = quantity;
-  }, [quantity]);
 
   async function stop() {
     await stopScanner(scannerRef.current);
@@ -106,34 +106,42 @@ export function Scanner() {
     busyRef.current = false;
   }
 
-  async function submit(barcode: string) {
-    if (busyRef.current) return;
-    busyRef.current = true;
-    setLastBarcode(barcode);
+  async function post(body: Record<string, unknown>): Promise<ScanResult> {
     try {
       const res = await fetch("/api/scan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          barcode,
-          action: modeRef.current,
-          delta: modeRef.current === "stamp" ? quantityRef.current : 1,
-        }),
+        body: JSON.stringify(body),
       });
-      const data = (await res.json()) as ScanResult;
-      setResult({ ...data, ok: res.ok && data.ok !== false });
+      const data = (await res.json().catch(() => ({}))) as ScanResult;
+      return { ...data, ok: res.ok && data.ok !== false };
     } catch {
-      setResult({ ok: false, error: "network" });
-    } finally {
-      await stop();
-      // Reset to a single stamp so the count can't accidentally carry over to
-      // the next customer.
-      setQuantity(1);
+      return { ok: false, error: "network" };
     }
+  }
+
+  async function lookup(code: string) {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setBarcode(code);
+    const data = await post({ barcode: code, action: "lookup" });
+    await stop();
+    if (data.ok && data.state) setCard(data);
+    else setResult(data);
+  }
+
+  async function act(action: ScanAction, extra: Record<string, unknown> = {}) {
+    if (!barcode || acting) return;
+    setActing(true);
+    const data = await post({ barcode, action, ...extra });
+    setActing(false);
+    setCard(null);
+    setResult({ ...data, action });
   }
 
   async function start() {
     setResult(null);
+    setCard(null);
     setCameraError(null);
     const { Html5Qrcode } = await import("html5-qrcode");
     const scanner = scannerRef.current ?? new Html5Qrcode(READER_ID);
@@ -143,7 +151,7 @@ export function Scanner() {
       await scanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 240, height: 240 } },
-        (decoded) => void submit(decoded),
+        (decoded) => void lookup(decoded),
         () => {},
       );
     } catch {
@@ -160,37 +168,122 @@ export function Scanner() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Mode toggle */}
-      <div className="bg-muted grid grid-cols-2 gap-2 rounded-xl p-1">
-        {(["stamp", "redeem"] as const).map((m) => (
-          <button
-            key={m}
-            onClick={() => setMode(m)}
+      <Card className="overflow-hidden">
+        <CardContent className="p-0">
+          <div
+            id={READER_ID}
             className={cn(
-              "flex items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium capitalize transition-colors",
-              mode === m
-                ? "bg-background shadow-sm"
-                : "text-muted-foreground hover:text-foreground",
+              "aspect-square w-full bg-black",
+              !scanning && "hidden",
             )}
-          >
-            {m === "stamp" ? (
-              <Stamp className="size-4" />
-            ) : (
-              <Gift className="size-4" />
-            )}
-            {m === "stamp"
-              ? dict.dashboard.scan.modeStamp
-              : dict.dashboard.scan.modeRedeem}
-          </button>
+          />
+
+          {!scanning && !result && !card && (
+            <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
+              <p className="text-muted-foreground text-sm">
+                {dict.dashboard.scan.pointCameraHint}
+              </p>
+              <Button size="lg" onClick={start}>
+                {dict.dashboard.scan.startScanning}
+              </Button>
+              {cameraError && (
+                <p className="text-destructive text-sm">{cameraError}</p>
+              )}
+            </div>
+          )}
+
+          {card && (
+            <CardActions
+              card={card}
+              dict={dict}
+              busy={acting}
+              barcode={barcode}
+              onAct={act}
+              onCancel={start}
+            />
+          )}
+
+          {result && (
+            <ResultView
+              result={result}
+              dict={dict}
+              onNext={start}
+              barcode={barcode}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+/** Per-type actions for a looked-up card, driven by `state.actions`. */
+function CardActions({
+  card,
+  dict,
+  busy,
+  barcode,
+  onAct,
+  onCancel,
+}: {
+  card: ScanResult;
+  dict: Dictionary;
+  busy: boolean;
+  barcode: string | null;
+  onAct: (action: ScanAction, extra?: Record<string, unknown>) => void;
+  onCancel: () => void;
+}) {
+  const locale = useLocale();
+  const s = dict.dashboard.scan;
+  const state = card.state!;
+  const program = card.program;
+  const config = program?.config ?? {};
+  const tiers = (Array.isArray(config.tiers) ? config.tiers : []) as {
+    points: number;
+    reward: string;
+    name?: string;
+  }[];
+  const affordable = affordableTiers(tiers, state.available);
+
+  const [quantity, setQuantity] = useState(1);
+  const [amount, setAmount] = useState("");
+  const [tierIndex, setTierIndex] = useState(affordable[0]?.index ?? 0);
+  const [renewTier, setRenewTier] = useState(state.tier ?? tiers[0]?.name ?? "");
+
+  const text = program
+    ? cardText(state, { ...program, goal: program.goal ?? state.goal }, dict.wallet, {
+        locale,
+        business: "",
+        rewards: 0,
+      })
+    : null;
+  const cents = Math.round(Number(amount) * 100);
+  const has = (a: ScanAction) => state.actions.includes(a);
+  const earn: ScanAction | null = has("spend") ? "spend" : has("stamp") ? "stamp" : null;
+
+  return (
+    <div className="flex flex-col gap-4 p-5">
+      <div>
+        <p className="font-semibold">{card.customerName ?? dict.card.guest}</p>
+        <p className="text-muted-foreground text-sm">{program?.name}</p>
+        {text && (
+          <p className="mt-2 text-2xl font-bold">
+            {text.header.label}: {text.header.value}
+          </p>
+        )}
+        {text?.detail.map((line) => (
+          <p key={line} className="text-muted-foreground text-sm">
+            {line}
+          </p>
         ))}
       </div>
 
-      {/* Stamp quantity — one scan can add several stamps at once */}
-      {mode === "stamp" && (
-        <div className="border-border flex items-center justify-between gap-3 rounded-xl border px-4 py-3">
-          <span className="text-sm font-medium">
-            {dict.dashboard.scan.quantityLabel}
-          </span>
+      {state.actions.length === 0 && (
+        <p className="text-muted-foreground text-sm">{s.noActions}</p>
+      )}
+
+      {earn === "stamp" && (
+        <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button
               type="button"
@@ -198,7 +291,7 @@ export function Scanner() {
               size="icon"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={quantity <= 1}
-              aria-label={dict.dashboard.scan.quantityDecrease}
+              aria-label={s.quantityDecrease}
             >
               <Minus className="size-4" />
             </Button>
@@ -211,54 +304,130 @@ export function Scanner() {
               size="icon"
               onClick={() => setQuantity((q) => Math.min(50, q + 1))}
               disabled={quantity >= 50}
-              aria-label={dict.dashboard.scan.quantityIncrease}
+              aria-label={s.quantityIncrease}
             >
               <Plus className="size-4" />
             </Button>
           </div>
+          <Button disabled={busy} onClick={() => onAct("stamp", { delta: quantity })}>
+            {state.type === "points" ? s.actionVisit : s.actionStamp}
+          </Button>
         </div>
       )}
 
-      {/* Camera / result */}
-      <Card className="overflow-hidden">
-        <CardContent className="p-0">
-          <div
-            id={READER_ID}
-            className={cn(
-              "aspect-square w-full bg-black",
-              !scanning && "hidden",
-            )}
-          />
+      {earn === "spend" && (
+        <div className="flex items-end gap-3">
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label htmlFor="scan-amount" className="text-sm font-medium">
+              {s.amountLabel}
+            </label>
+            <Input
+              id="scan-amount"
+              type="number"
+              inputMode="decimal"
+              min={0.01}
+              step="0.01"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </div>
+          <Button
+            disabled={busy || !(cents > 0)}
+            onClick={() => onAct("spend", { amount_cents: cents })}
+          >
+            {s.actionSpend}
+          </Button>
+        </div>
+      )}
 
-          {!scanning && !result && (
-            <div className="flex flex-col items-center gap-4 px-6 py-16 text-center">
-              <p className="text-muted-foreground text-sm">
-                {interpolate(dict.dashboard.scan.pointCameraHint, {
-                  mode:
-                    mode === "stamp"
-                      ? dict.dashboard.scan.modeStamp
-                      : dict.dashboard.scan.modeRedeem,
-                })}
-              </p>
-              <Button size="lg" onClick={start}>
-                {dict.dashboard.scan.startScanning}
-              </Button>
-              {cameraError && (
-                <p className="text-destructive text-sm">{cameraError}</p>
-              )}
+      {has("redeem_tier") && affordable.length > 0 && (
+        <div className="flex items-end gap-3">
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label htmlFor="scan-tier" className="text-sm font-medium">
+              {s.tierPickLabel}
+            </label>
+            <Select
+              id="scan-tier"
+              value={tierIndex}
+              onChange={(e) => setTierIndex(Number(e.target.value))}
+            >
+              {affordable.map((t) => (
+                <option key={t.index} value={t.index}>
+                  {t.reward} ({t.points})
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button
+            disabled={busy}
+            onClick={() => onAct("redeem_tier", { tier_index: tierIndex })}
+          >
+            {s.actionRedeemTier}
+          </Button>
+        </div>
+      )}
+
+      {has("redeem") && (
+        <Button disabled={busy} onClick={() => onAct("redeem")}>
+          <Gift className="size-4" />
+          {s.actionRedeem}
+        </Button>
+      )}
+
+      {has("use_coupon") && (
+        <Button disabled={busy} onClick={() => onAct("use_coupon")}>
+          {s.actionUseCoupon}
+        </Button>
+      )}
+
+      {has("check_in") && (
+        <Button disabled={busy} onClick={() => onAct("check_in")}>
+          {s.actionCheckIn}
+        </Button>
+      )}
+
+      {has("renew") && (
+        <div className="flex items-end gap-3">
+          {tiers.length > 0 && (
+            <div className="flex flex-1 flex-col gap-1.5">
+              <label htmlFor="scan-renew-tier" className="text-sm font-medium">
+                {s.renewTierLabel}
+              </label>
+              <Select
+                id="scan-renew-tier"
+                value={renewTier}
+                onChange={(e) => setRenewTier(e.target.value)}
+              >
+                {tiers.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </Select>
             </div>
           )}
+          <Button
+            variant={has("check_in") ? "outline" : "primary"}
+            disabled={busy}
+            onClick={() =>
+              onAct("renew", tiers.length > 0 ? { tier: renewTier } : {})
+            }
+          >
+            {s.actionRenew}
+          </Button>
+        </div>
+      )}
 
-          {result && (
-            <ResultView
-              result={result}
-              dict={dict}
-              onNext={start}
-              barcode={lastBarcode}
-            />
-          )}
-        </CardContent>
-      </Card>
+      <StandaloneRewards
+        initial={card.standaloneRewards}
+        barcode={barcode}
+        dict={dict}
+      />
+
+      <Button onClick={onCancel} variant="ghost" className="gap-2">
+        <RotateCcw className="size-4" />
+        {s.scanNext}
+      </Button>
     </div>
   );
 }
@@ -274,16 +443,113 @@ function ResultView({
   onNext: () => void;
   barcode: string | null;
 }) {
+  const locale = useLocale();
+  const s = dict.dashboard.scan;
   const success = result.ok;
   const rewardReady = result.status === "completed";
+  const program = result.program;
+  const text =
+    program && result.state
+      ? cardText(
+          result.state,
+          { ...program, goal: program.goal ?? result.state.goal },
+          dict.wallet,
+          { locale, business: "", rewards: 0 },
+        )
+      : null;
+  const title: Record<string, string> = {
+    redeem: s.rewardRedeemed,
+    redeem_tier: s.rewardRedeemed,
+    spend: s.pointsAdded,
+    use_coupon: s.couponUsed,
+    check_in: s.checkedIn,
+    renew: s.renewed,
+  };
 
-  // Seeded once from the scan result — ResultView unmounts (result briefly
-  // goes null while the camera restarts) and remounts fresh for every new
-  // scan, so this initializer always reflects the current result, and
-  // redeeming a reward below can remove it from this local list without
-  // needing a re-scan.
+  return (
+    <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+      {success ? (
+        <div className="bg-success/15 text-success grid size-16 place-items-center rounded-full">
+          {result.action === "redeem" || result.action === "redeem_tier" ? (
+            <Gift className="size-8" />
+          ) : (
+            <Check className="size-8" strokeWidth={3} />
+          )}
+        </div>
+      ) : (
+        <div className="bg-destructive/15 text-destructive grid size-16 place-items-center rounded-full">
+          <XCircle className="size-8" />
+        </div>
+      )}
+
+      {success ? (
+        <>
+          <div>
+            <p className="text-lg font-semibold">
+              {title[result.action ?? ""] ?? s.stampAdded}
+            </p>
+            {result.customerName && (
+              <p className="text-muted-foreground text-sm">
+                {result.customerName} · {result.programName ?? program?.name}
+              </p>
+            )}
+          </div>
+          {text && (
+            <p className="text-2xl font-bold">
+              {text.legacy ? (
+                <>
+                  {result.state!.progress}
+                  <span className="text-muted-foreground">
+                    /{result.state!.goal}
+                  </span>
+                </>
+              ) : (
+                text.headline
+              )}
+            </p>
+          )}
+          {text?.detail.map((line) => (
+            <p key={line} className="text-muted-foreground text-sm">
+              {line}
+            </p>
+          ))}
+          {rewardReady && result.action === "stamp" && (
+            <div className="bg-accent/15 text-accent-foreground flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium">
+              <Gift className="size-4" />
+              {interpolate(s.rewardReady, { reward: result.reward ?? "" })}
+            </div>
+          )}
+          <StandaloneRewards
+            initial={result.standaloneRewards}
+            barcode={barcode}
+            dict={dict}
+          />
+        </>
+      ) : (
+        <p className="font-medium">{errorMessage(result, dict)}</p>
+      )}
+
+      <Button onClick={onNext} variant="outline" className="mt-2 gap-2">
+        <RotateCcw className="size-4" />
+        {s.scanNext}
+      </Button>
+    </div>
+  );
+}
+
+function StandaloneRewards({
+  initial,
+  barcode,
+  dict,
+}: {
+  initial?: StandaloneRewardItem[];
+  barcode: string | null;
+  dict: Dictionary;
+}) {
+  // Seeded once from the scan response; redeeming removes from this local
+  // list without needing a re-scan.
   const [rewards, setRewards] = useState<StandaloneRewardItem[]>(() =>
-    (result.standaloneRewards ?? []).filter((r) => r.isAvailableNow),
+    (initial ?? []).filter((r) => r.isAvailableNow),
   );
   const [redeemingId, setRedeemingId] = useState<string | null>(null);
   const [rewardErrors, setRewardErrors] = useState<Record<string, string>>({});
@@ -332,96 +598,38 @@ function ResultView({
     }
   }
 
+  if (rewards.length === 0) return null;
   return (
-    <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
-      {success ? (
-        <div className="bg-success/15 text-success grid size-16 place-items-center rounded-full">
-          {result.action === "redeem" ? (
-            <Gift className="size-8" />
-          ) : (
-            <Check className="size-8" strokeWidth={3} />
-          )}
-        </div>
-      ) : (
-        <div className="bg-destructive/15 text-destructive grid size-16 place-items-center rounded-full">
-          <XCircle className="size-8" />
-        </div>
-      )}
-
-      {success ? (
-        <>
-          <div>
-            <p className="text-lg font-semibold">
-              {result.action === "redeem"
-                ? dict.dashboard.scan.rewardRedeemed
-                : dict.dashboard.scan.stampAdded}
-            </p>
-            {result.customerName && (
-              <p className="text-muted-foreground text-sm">
-                {result.customerName} · {result.programName}
-              </p>
-            )}
+    <div className="flex w-full flex-col gap-2 text-left">
+      <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+        {dict.card.availableRewards}
+      </p>
+      {rewards.map((reward) => (
+        <div
+          key={reward.id}
+          className="border-border flex flex-col gap-1 rounded-lg border px-3 py-2"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="flex items-center gap-2 text-sm font-medium">
+              <Gift className="text-accent-foreground size-4 shrink-0" />
+              {reward.title}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="capitalize"
+              disabled={redeemingId === reward.id}
+              onClick={() => redeemStandaloneReward(reward.id)}
+            >
+              {dict.dashboard.scan.modeRedeem}
+            </Button>
           </div>
-          {result.action === "stamp" &&
-            result.progress != null &&
-            result.goal != null && (
-              <p className="text-2xl font-bold">
-                {result.progress}
-                <span className="text-muted-foreground">/{result.goal}</span>
-              </p>
-            )}
-          {rewardReady && result.action === "stamp" && (
-            <div className="bg-accent/15 text-accent-foreground flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium">
-              <Gift className="size-4" />
-              {interpolate(dict.dashboard.scan.rewardReady, {
-                reward: result.reward ?? "",
-              })}
-            </div>
+          {rewardErrors[reward.id] && (
+            <p className="text-destructive text-xs">{rewardErrors[reward.id]}</p>
           )}
-          {rewards.length > 0 && (
-            <div className="flex w-full flex-col gap-2 text-left">
-              <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
-                {dict.card.availableRewards}
-              </p>
-              {rewards.map((reward) => (
-                <div
-                  key={reward.id}
-                  className="border-border flex flex-col gap-1 rounded-lg border px-3 py-2"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="flex items-center gap-2 text-sm font-medium">
-                      <Gift className="text-accent-foreground size-4 shrink-0" />
-                      {reward.title}
-                    </span>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="capitalize"
-                      disabled={redeemingId === reward.id}
-                      onClick={() => redeemStandaloneReward(reward.id)}
-                    >
-                      {dict.dashboard.scan.modeRedeem}
-                    </Button>
-                  </div>
-                  {rewardErrors[reward.id] && (
-                    <p className="text-destructive text-xs">
-                      {rewardErrors[reward.id]}
-                    </p>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      ) : (
-        <p className="font-medium">{errorMessage(result, dict)}</p>
-      )}
-
-      <Button onClick={onNext} variant="outline" className="mt-2 gap-2">
-        <RotateCcw className="size-4" />
-        {dict.dashboard.scan.scanNext}
-      </Button>
+        </div>
+      ))}
     </div>
   );
 }
@@ -445,6 +653,18 @@ function errorMessage(result: ScanResult, dict: Dictionary): string {
       return dict.dashboard.scan.errors.unauthorized;
     case "network":
       return dict.dashboard.scan.errors.network;
+    case "action_not_allowed":
+      return dict.dashboard.scan.errors.actionNotAllowed;
+    case "insufficient_points":
+      return dict.dashboard.scan.errors.insufficientPoints;
+    case "coupon_expired":
+      return dict.dashboard.scan.errors.couponExpired;
+    case "coupon_exhausted":
+      return dict.dashboard.scan.errors.couponExhausted;
+    case "membership_inactive":
+      return dict.dashboard.scan.errors.membershipInactive;
+    case "amount_too_small":
+      return dict.dashboard.scan.errors.invalidAmount;
     default:
       // Instrumentation: `rpc_failed` (and any other unmapped code) carries the
       // raw DB/RPC reason in `detail` — append it (untranslated) so a failing

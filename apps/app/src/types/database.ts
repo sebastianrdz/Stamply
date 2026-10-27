@@ -7,9 +7,9 @@ export type MembershipRole = "owner" | "admin" | "employee";
 export type PlanTier = "none" | "small" | "medium" | "big";
 export type SubscriptionStatus =
   "trialing" | "active" | "past_due" | "canceled" | "incomplete" | "unpaid";
-export type ProgramType = "stamp" | "points";
+export type ProgramType = "stamp" | "points" | "coupon" | "membership";
 export type CardStatus = "active" | "completed" | "redeemed";
-export type StampKind = "stamp" | "redeem" | "adjust";
+export type StampKind = "stamp" | "redeem" | "adjust" | "checkin";
 export type RewardType = "birthday";
 export type StandaloneRewardStatus = "available" | "redeemed" | "expired";
 
@@ -91,6 +91,9 @@ export type Program = Timestamped & {
   reward_description: string;
   active: boolean;
   design: Record<string, unknown>;
+  // Optional like Customer.birthday: existing test fixtures build full
+  // literals predating migration 0023. Missing key == `{}`.
+  config?: Record<string, unknown>;
 };
 
 export type Customer = Timestamped & {
@@ -138,6 +141,12 @@ export type Card = Timestamped & {
   apple_pass_generated_at: string | null;
   google_object_id: string | null;
   updated_at: string;
+  // Optional (migration 0023): same fixture-compat reason as Customer.birthday.
+  points_redeemed?: number;
+  uses_count?: number;
+  expires_at?: string | null;
+  tier?: string | null;
+  valid_until?: string | null;
 };
 
 export type StampEvent = Timestamped & {
@@ -148,6 +157,8 @@ export type StampEvent = Timestamped & {
   delta: number;
   kind: StampKind;
   location_id: string | null;
+  // Optional (migration 0023): spend amount for points-by-spend events.
+  amount_cents?: number | null;
 };
 
 export type Redemption = Timestamped & {
@@ -342,6 +353,35 @@ export interface Database {
           p_employee_id: string;
           p_location_id?: string | null;
         };
+        Returns: Card;
+      };
+      redeem_points_tier: {
+        Args: {
+          p_card_id: string;
+          p_employee_id: string;
+          p_tier_index: number;
+          p_location_id?: string | null;
+        };
+        Returns: Card;
+      };
+      use_coupon: {
+        Args: {
+          p_card_id: string;
+          p_employee_id: string;
+          p_location_id?: string | null;
+        };
+        Returns: Card;
+      };
+      membership_check_in: {
+        Args: {
+          p_card_id: string;
+          p_employee_id: string;
+          p_location_id?: string | null;
+        };
+        Returns: Card;
+      };
+      renew_membership: {
+        Args: { p_card_id: string; p_days: number; p_tier?: string | null };
         Returns: Card;
       };
       auth_business_ids: { Args: Record<string, never>; Returns: string[] };

@@ -19,7 +19,22 @@
     "webLinkText": "Abrir mi tarjeta",
     "createdByLabel": "Creado por",
     "lastSyncLabel": "Última actualización",
-    "offerLabel": "Oferta"
+    "offerLabel": "Oferta",
+    "nextRewardLabel": "SIGUIENTE PREMIO",
+    "nextReward": "{points} pts para {reward}",
+    "topTier": "Premio máximo desbloqueado",
+    "couponLabel": "CUPÓN",
+    "discountPercent": "{value}% DESC.",
+    "discountFixed": "${value} DESC.",
+    "usesLabel": "USOS RESTANTES",
+    "unlimited": "Ilimitados",
+    "validUntilLabel": "VIGENTE HASTA",
+    "expired": "Vencido",
+    "pending": "Pendiente de activación",
+    "tierLabel": "NIVEL",
+    "benefitsLabel": "Beneficios",
+    "howToCoupon": "Muestra este cupón en {business} para canjear: {reward}.",
+    "howToMembership": "Muestra esta tarjeta en {business} para registrar tu visita."
   },
   "common": {
     "save": "Guardar",
@@ -286,7 +301,47 @@
         "rewardLabel": "Recompensa",
         "rewardPlaceholder": "Un café gratis a elección",
         "creating": "Creando…",
-        "create": "Crear programa"
+        "create": "Crear programa",
+        "typeStampHint": "Junta sellos y gana un premio",
+        "typePointsHint": "Acumula puntos y elige premios",
+        "typeCoupon": "Cupón",
+        "typeCouponHint": "Descuento con usos limitados",
+        "typeMembership": "Membresía",
+        "typeMembershipHint": "Nivel, beneficios y renovación",
+        "earnLabel": "Se ganan puntos por",
+        "earnVisit": "Visita",
+        "earnSpend": "Compra",
+        "pointsPerVisit": "Puntos por visita",
+        "pointsPerSpend": "Puntos por cada $1 gastado",
+        "tiersLabel": "Niveles de premio (opcional)",
+        "tiersHint": "Los clientes canjean puntos por estos premios. Déjalo vacío para usar una sola meta.",
+        "tierAdd": "Agregar nivel",
+        "tierRemove": "Quitar",
+        "tierPointsLabel": "Puntos",
+        "tierRewardLabel": "Premio",
+        "tierRewardPlaceholder": "Café gratis",
+        "discountKindLabel": "Descuento",
+        "discountPercent": "Porcentaje",
+        "discountFixed": "Monto fijo",
+        "discountItem": "Artículo gratis",
+        "discountValueLabel": "Valor",
+        "maxUsesLabel": "Usos máximos",
+        "unlimitedPlaceholder": "Ilimitados",
+        "validDaysLabel": "Vigencia (días)",
+        "neverPlaceholder": "Sin vencimiento",
+        "minSpendLabel": "Compra mínima (opcional)",
+        "accessLabel": "Activación",
+        "accessFree": "Activa de inmediato",
+        "accessStaff": "La activa el personal",
+        "renewDaysLabel": "Periodo de renovación (días)",
+        "memberTiersLabel": "Niveles de membresía",
+        "memberTierAdd": "Agregar nivel",
+        "memberTierName": "Nombre",
+        "memberTierBenefits": "Beneficios",
+        "rewardLabelCoupon": "Oferta",
+        "rewardPlaceholderCoupon": "20% de descuento en cualquier corte",
+        "rewardLabelMembership": "Membresía",
+        "rewardPlaceholderMembership": "Pase mensual al gimnasio"
       },
       "detail": {
         "collectPoints": "Junta {goal} puntos",
@@ -308,7 +363,7 @@
         "metaTitle": "Editar programa",
         "title": "Editar programa",
         "description": "Actualiza la meta y la recompensa de este programa.",
-        "goalChangeHint": "Cambiar el tipo o la meta afecta cómo se lee el progreso de las tarjetas de clientes que ya existen — puedes hacerlo, pero avisa a tu equipo."
+        "goalChangeHint": "El tipo no se puede cambiar. Cambiar la meta afecta cómo se lee el progreso de las tarjetas de clientes que ya existen — avisa a tu equipo."
       },
       "delete": {
         "cta": "Eliminar programa",
@@ -330,6 +385,8 @@
         "retroName": "Retro",
         "scanToJoin": "Escanea para unirte",
         "rewardLabel": "Tu recompensa: {reward}",
+        "couponHeadline": "Tu cupón: {reward}",
+        "membershipHeadline": "Tu membresía: {reward}",
         "download": "Descargar PNG",
         "downloading": "Generando…",
         "downloadError": "No se pudo generar la imagen. Intenta de nuevo.",
@@ -340,6 +397,7 @@
         "nameRequired": "Ponle un nombre al programa.",
         "goalMin": "La meta debe ser al menos 1.",
         "stampGoalMax": "Las tarjetas de sellos pueden tener como máximo 10 sellos.",
+        "configInvalid": "La configuración de la tarjeta no es válida. Revísala.",
         "rewardRequired": "Describe la recompensa."
       }
     },
@@ -435,10 +493,9 @@
     "scan": {
       "metaTitle": "Escanear",
       "title": "Escanear una tarjeta",
-      "description": "Agrega un sello o canjea una recompensa desde el QR del cliente.",
-      "modeStamp": "sellar",
+      "description": "Escanea la tarjeta del cliente y elige qué hacer.",
       "modeRedeem": "canjear",
-      "pointCameraHint": "Apunta la cámara al código QR de lealtad del cliente para {mode}.",
+      "pointCameraHint": "Apunta la cámara al código QR de lealtad del cliente.",
       "startScanning": "Comenzar a escanear",
       "cameraError": "No se pudo acceder a la cámara. Otorga el permiso y usa HTTPS.",
       "rewardRedeemed": "Recompensa canjeada",
@@ -448,6 +505,22 @@
       "quantityLabel": "Sellos a agregar",
       "quantityDecrease": "Quitar un sello",
       "quantityIncrease": "Agregar un sello",
+      "actionStamp": "Agregar sellos",
+      "actionVisit": "Registrar visita",
+      "actionSpend": "Agregar puntos",
+      "amountLabel": "Monto de la compra",
+      "actionRedeem": "Canjear premio",
+      "actionRedeemTier": "Canjear",
+      "tierPickLabel": "Premio",
+      "actionUseCoupon": "Usar cupón",
+      "actionCheckIn": "Registrar entrada",
+      "actionRenew": "Renovar membresía",
+      "renewTierLabel": "Nivel",
+      "pointsAdded": "Puntos agregados",
+      "couponUsed": "Cupón usado",
+      "checkedIn": "Entrada registrada",
+      "renewed": "Membresía renovada",
+      "noActions": "No hay nada que hacer con esta tarjeta ahora.",
       "errors": {
         "cooldown": "Se acaba de escanear — espera {seconds}s antes de sellar de nuevo.",
         "cooldownFallback": "unos segundos",
@@ -458,7 +531,13 @@
         "unauthorized": "Tu sesión expiró. Inicia sesión de nuevo.",
         "network": "Error de red. Intenta de nuevo.",
         "generic": "Algo salió mal. Intenta de nuevo.",
-        "noPlan": "Este negocio no tiene un plan activo. El dueño debe elegir uno."
+        "noPlan": "Este negocio no tiene un plan activo. El dueño debe elegir uno.",
+        "insufficientPoints": "No hay puntos suficientes para ese premio.",
+        "couponExpired": "Este cupón ya venció.",
+        "couponExhausted": "Este cupón ya no tiene usos.",
+        "membershipInactive": "Esta membresía no está activa. Renuévala primero.",
+        "actionNotAllowed": "Esta acción no está disponible para esta tarjeta.",
+        "invalidAmount": "Ingresa un monto válido."
       }
     },
     "settings": {
@@ -594,6 +673,7 @@
           "Hasta 100 clientes",
           "1 programa de lealtad",
           "Apple & Google Wallet",
+          "Todos los tipos de tarjeta incluidos",
           "Estadísticas básicas"
         ]
       },
@@ -605,6 +685,7 @@
           "5 empleados",
           "Hasta 1,000 clientes",
           "3 programas de lealtad",
+          "Todos los tipos de tarjeta incluidos",
           "Panel de analítica",
           "Campos de inscripción personalizados"
         ]
@@ -617,6 +698,7 @@
           "10+ empleados",
           "Hasta 10,000 clientes",
           "Programas ilimitados",
+          "Todos los tipos de tarjeta incluidos",
           "Soporte prioritario",
           "Acceso a la API"
         ]
@@ -736,6 +818,7 @@
   "landing": {
     "nav": {
       "how": "Cómo funciona",
+      "types": "Tipos de tarjeta",
       "examples": "Ejemplos",
       "pricing": "Precios",
       "signIn": "Iniciar sesión",
@@ -745,9 +828,9 @@
       "closeMenu": "Cerrar menú"
     },
     "hero": {
-      "eyebrow": "Tarjetas de lealtad digitales",
+      "eyebrow": "Tarjetas digitales para tu negocio",
       "title": "Haz que tus clientes vuelvan.",
-      "subtitle": "Crea una tarjeta con tu marca, recompensa cada visita y acompaña a tus clientes en Apple Wallet y Google Wallet.",
+      "subtitle": "Crea sellos, puntos, cupones o membresías con tu marca y llévalos en Apple Wallet y Google Wallet. Empieza con una tarjeta de sellos.",
       "ctaPrimary": "Empieza gratis",
       "ctaSecondary": "Ver cómo funciona",
       "trial": "Primeros 14 días gratis · Cancela cuando quieras"
@@ -773,13 +856,40 @@
         },
         {
           "title": "Escanea y recompensa",
-          "body": "Tu equipo suma sellos y el cliente ve su progreso."
+          "body": "Tu equipo escanea: suma un sello o puntos, canjea un cupón o registra una visita. El cliente ve su tarjeta actualizada."
         }
       ],
       "notes": {
         "enrollment": "El cliente se registra desde su teléfono y guarda la tarjeta en su wallet.",
         "update": "La tarjeta se actualiza con cada sello: en el ejemplo pasa de 5 a 6.",
         "proximity": "Apple Wallet puede mostrar un recordatorio cuando el cliente está cerca de tu sucursal. Lo decide el sistema, así que no se garantiza que aparezca."
+      }
+    },
+    "types": {
+      "title": "Una tarjeta para cada forma de premiar.",
+      "subtitle": "Elige el tipo que va con tu negocio. Todos viven en Apple Wallet y Google Wallet.",
+      "idealLabel": "Ideal para",
+      "items": {
+        "stamp": {
+          "name": "Sellos",
+          "mechanic": "Cada visita suma un sello; al juntar los necesarios, el cliente gana su premio.",
+          "ideal": "Cafeterías, restaurantes, barberías"
+        },
+        "points": {
+          "name": "Puntos",
+          "mechanic": "Suma puntos por visita o por monto gastado y canjéalos en distintos niveles de premio.",
+          "ideal": "Panaderías, tiendas, restaurantes"
+        },
+        "coupon": {
+          "name": "Cupones",
+          "mechanic": "Descuento en porcentaje o monto fijo, o un artículo gratis. De 1 uso, varios o ilimitado, y también paquetes prepagados.",
+          "ideal": "Salones, lavados de autos, tiendas"
+        },
+        "membership": {
+          "name": "Membresías",
+          "mechanic": "Nivel, vigencia y beneficios; tu equipo registra visitas y renueva desde el navegador.",
+          "ideal": "Gimnasios, estudios, clubes"
+        }
       }
     },
     "examples": {
@@ -801,6 +911,21 @@
           "name": "Verde Mesa",
           "style": "Restaurante fresco y elegante.",
           "detail": "7 sellos"
+        },
+        "pulso": {
+          "name": "Pulso Gym",
+          "style": "Gimnasio urbano con membresías.",
+          "detail": "Membresía Oro · vigente hasta el 31 dic · check-in en recepción"
+        },
+        "lila": {
+          "name": "Estudio Lila",
+          "style": "Salón de belleza con cupones.",
+          "detail": "20% de descuento · 3 usos · vence en 60 días"
+        },
+        "trigo": {
+          "name": "Panadería Trigo",
+          "style": "Panadería de barrio con puntos.",
+          "detail": "1 punto por cada $10 · pan gratis a los 200 puntos"
         }
       }
     },
@@ -809,6 +934,9 @@
       "bruma": "Tarjeta de ejemplo de Bruma Café en Apple Wallet, con 2 de 10 sellos y 2 premios.",
       "alba": "Tarjeta de ejemplo de Alba Café en Apple Wallet, con 6 de 10 sellos y 1 premio.",
       "verde": "Tarjeta de ejemplo de Verde Mesa en Apple Wallet, con 5 de 7 sellos y 0 premios.",
+      "pulso": "Ejemplo de tarjeta de membresía de Pulso Gym, nivel Oro.",
+      "lila": "Ejemplo de tarjeta de cupón de Estudio Lila, con 20% de descuento y 3 usos.",
+      "trigo": "Ejemplo de tarjeta de puntos de Panadería Trigo, con 140 de 200 puntos.",
       "enrollment": "Formulario de inscripción de Bruma Café junto a su tarjeta guardada en Apple Wallet.",
       "update": "La tarjeta de Alba Café pasa de 5 a 6 sellos; el contador de premios permanece en 1.",
       "proximity": "Recordatorio de cercanía de Verde Mesa en la pantalla de bloqueo del teléfono."
@@ -832,8 +960,16 @@
           "a": "No. Se registran desde su teléfono y agregan la tarjeta a Apple Wallet o Google Wallet, que ya vienen en su teléfono."
         },
         {
-          "q": "¿Cómo se agregan los sellos?",
-          "a": "Tu equipo escanea el código QR de la tarjeta del cliente desde el navegador de un teléfono o tablet. El sello se suma y el cliente ve su progreso en la tarjeta."
+          "q": "¿Cómo se suman sellos, puntos o usos?",
+          "a": "Tu equipo escanea el código QR de la tarjeta del cliente desde el navegador de un teléfono o tablet. La acción se registra y el cliente ve su tarjeta actualizada."
+        },
+        {
+          "q": "¿Qué tipos de tarjeta puedo crear?",
+          "a": "Cuatro: sellos (cada visita suma un sello y al completarlos hay premio), puntos (por visita o por monto gastado, con varios niveles de premio), cupones (descuento en porcentaje o monto fijo, o un artículo gratis) y membresías (con nivel, vigencia y beneficios). Todos los planes los incluyen."
+        },
+        {
+          "q": "¿Cómo funcionan los cupones de uno o varios usos?",
+          "a": "Tú defines cuántas veces se puede canjear un cupón: una vez, un número fijo de veces o sin límite, y opcionalmente una fecha de vencimiento. También sirven para paquetes prepagados, como 10 clases. Cada vez que tu equipo escanea el cupón se descuenta un uso y, al agotarse o vencer, deja de ser válido."
         },
         {
           "q": "¿Puedo usar mi logo y mis colores?",
@@ -855,7 +991,7 @@
     },
     "cta": {
       "title": "Dale a tus clientes una razón para volver.",
-      "body": "Crea tu primera tarjeta de lealtad con Stamply.",
+      "body": "Crea tu primera tarjeta digital con Stamply.",
       "button": "Empieza gratis",
       "trial": "Primeros 14 días gratis · Cancela cuando quieras"
     },
@@ -865,7 +1001,7 @@
   },
   "seo": {
     "title": "Stamply — Tarjetas de lealtad digitales",
-    "description": "Crea tarjetas de lealtad digitales con tu marca para tu cafetería, barbería o restaurante, en Apple Wallet y Google Wallet, sin apps que instalar."
+    "description": "Crea tarjetas digitales con tu marca (sellos, puntos, cupones y membresías) para tu cafetería, gimnasio, salón o tienda, en Apple Wallet y Google Wallet, sin apps que instalar."
   },
   "notFound": {
     "title": "Página no encontrada",

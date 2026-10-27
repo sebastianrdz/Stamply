@@ -26,6 +26,7 @@ export function LoyaltyCard({
   rewardsLabel,
   guestLabel,
   rewardReadyLabel,
+  panel,
 }: {
   businessName: string;
   program: Pick<Program, "name" | "type" | "goal" | "reward_description">;
@@ -45,6 +46,14 @@ export function LoyaltyCard({
   rewardsLabel: string;
   guestLabel: string;
   rewardReadyLabel: string;
+  /** Non-stamp types (tiered points, coupon, membership): replaces the stamp
+   *  grid/progress bar and the rewards count with the type's own copy. */
+  panel?: {
+    header: { label: string; value: string };
+    headline: string;
+    detail: string[];
+    side: { label: string; value: string } | null;
+  };
 }) {
   const grid =
     program.type === "stamp" ? computeStampGrid(progress, program.goal) : null;
@@ -71,10 +80,14 @@ export function LoyaltyCard({
         </div>
         <div className="shrink-0 text-right">
           <p className="text-[11px] font-semibold tracking-wide text-[hsl(var(--brand-foreground))]/70 uppercase">
-            {stampsLabel}
+            {panel ? panel.header.label : stampsLabel}
           </p>
           <p className="text-lg font-bold">
-            {completed ? rewardReadyLabel : `${progress}/${program.goal}`}
+            {panel
+              ? panel.header.value
+              : completed
+                ? rewardReadyLabel
+                : `${progress}/${program.goal}`}
           </p>
         </div>
       </div>
@@ -130,6 +143,18 @@ export function LoyaltyCard({
                 </div>
               ))}
             </div>
+          ) : panel ? (
+            <div className="flex flex-col gap-1 py-2">
+              <span className="text-3xl font-bold">{panel.headline}</span>
+              {panel.detail.map((line) => (
+                <span
+                  key={line}
+                  className="text-sm text-[hsl(var(--brand-foreground))]/80"
+                >
+                  {line}
+                </span>
+              ))}
+            </div>
           ) : (
             <div className="flex flex-col gap-2 py-2">
               <div className="flex items-baseline justify-between">
@@ -161,12 +186,16 @@ export function LoyaltyCard({
             {customerName || guestLabel}
           </p>
         </div>
-        <div className="shrink-0 text-right">
-          <p className="text-[11px] font-semibold tracking-wide text-[hsl(var(--brand-foreground))]/70 uppercase">
-            {rewardsLabel}
-          </p>
-          <p className="text-2xl font-bold">{availableRewards}</p>
-        </div>
+        {(!panel || panel.side) && (
+          <div className="shrink-0 text-right">
+            <p className="text-[11px] font-semibold tracking-wide text-[hsl(var(--brand-foreground))]/70 uppercase">
+              {panel ? panel.side!.label : rewardsLabel}
+            </p>
+            <p className="text-2xl font-bold">
+              {panel ? panel.side!.value : availableRewards}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* QR code — inside the card, centered, in a white box. */}

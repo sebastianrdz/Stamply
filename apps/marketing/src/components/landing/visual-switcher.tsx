@@ -5,6 +5,7 @@ import Image from "next/image";
 import { cn } from "@stamply/ui/utils";
 import { useTranslations } from "@stamply/i18n/provider";
 import { BUSINESSES, PROCESS_VISUALS } from "./landing-data";
+import { CardMock } from "./card-mock";
 
 const INTERVAL_MS = 3500;
 
@@ -79,7 +80,7 @@ export function ProcessSwitcher() {
   );
 }
 
-/** "Ejemplos": Bruma / Alba / Verde Mesa. */
+/** "Ejemplos": cafés with real wallet screenshots, then CSS mocks. */
 export function ExamplesSwitcher() {
   const { landing } = useTranslations();
   const { examples, images } = landing;
@@ -128,18 +129,33 @@ export function ExamplesSwitcher() {
         <div className="relative mx-auto h-[26rem] w-52 sm:h-[32rem] sm:w-64">
           {BUSINESSES.map((b) =>
             seen(b.id) ? (
-              <Image
+              <div
                 key={b.id}
-                src={b.image}
-                alt={images[b.id]}
-                fill
-                sizes="(min-width: 640px) 256px, 208px"
                 aria-hidden={b.id !== active}
                 className={cn(
-                  "object-contain transition-all duration-1000",
+                  "absolute inset-0 transition-all duration-1000",
                   b.id === active ? "opacity-100" : "opacity-0",
                 )}
-              />
+              >
+                {"image" in b ? (
+                  <Image
+                    src={b.image}
+                    alt={images[b.id]}
+                    fill
+                    sizes="(min-width: 640px) 256px, 208px"
+                    className="object-contain"
+                  />
+                ) : (
+                  <div className="flex h-full items-center">
+                    <CardMock
+                      kind={b.kind}
+                      primary={b.primary}
+                      secondary={b.secondary}
+                      label={images[b.id]}
+                    />
+                  </div>
+                )}
+              </div>
             ) : null,
           )}
         </div>

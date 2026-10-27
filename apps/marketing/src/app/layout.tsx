@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     template: "%s · Stamply",
   },
   description:
-    "Digital loyalty cards for cafés, barbershops, and restaurants — in Apple Wallet, Google Wallet, and the web.",
+    "Digital stamp, points, coupon and membership cards for cafés, gyms, salons, and shops — in Apple Wallet, Google Wallet, and the web.",
 };
 
 export default async function RootLayout({

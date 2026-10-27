@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
+import { cardState, type ScanAction } from "@/lib/cards/state";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
@@ -15,12 +16,40 @@ const STAMP_COOLDOWN_SECONDS = 10;
 
 const schema = z.object({
   barcode: z.string().min(1),
-  action: z.enum(["stamp", "redeem", "redeem_standalone_reward"]),
+  action: z.enum([
+    "lookup",
+    "stamp",
+    "spend",
+    "redeem",
+    "redeem_tier",
+    "use_coupon",
+    "check_in",
+    "renew",
+    "redeem_standalone_reward",
+  ]),
   delta: z.coerce.number().int().min(1).max(50).default(1),
+  // Spend amount in cents; the server derives the points delta from it.
+  amount_cents: z.number().int().min(1).max(10_000_000).optional(),
+  tier_index: z.number().int().min(0).optional(),
+  tier: z.string().min(1).max(60).optional(),
   location_id: z.string().uuid().nullish(),
   // Only used by (and required for) action === "redeem_standalone_reward".
   grant_id: z.string().uuid().optional(),
 });
+
+/** Postgres exceptions from the card-type RPCs -> HTTP status (error code = exception name). */
+const RPC_ERRORS: Record<string, number> = {
+  insufficient_points: 409,
+  coupon_expired: 409,
+  coupon_exhausted: 409,
+  membership_inactive: 409,
+  tier_not_found: 404,
+  card_not_found: 404,
+  invalid_days: 400,
+};
+
+const err = (error: string, status: number) =>
+  NextResponse.json({ error }, { status });
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -40,10 +69,16 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
-  const { barcode, action, delta, location_id, grant_id } = parsed.data;
-  if (action === "redeem_standalone_reward" && !grant_id) {
-    console.warn("[scan] redeem_standalone_reward request missing grant_id");
-    return NextResponse.json({ error: "invalid_request" }, { status: 400 });
+  const { barcode, action, location_id, grant_id, amount_cents, tier_index, tier } =
+    parsed.data;
+  let { delta } = parsed.data;
+  if (
+    (action === "redeem_standalone_reward" && !grant_id) ||
+    (action === "spend" && amount_cents === undefined) ||
+    (action === "redeem_tier" && tier_index === undefined)
+  ) {
+    console.warn("[scan] request missing required field for action", { action });
+    return err("invalid_request", 400);
   }
 
   // RLS scopes this to cards in the employee's business(es).
@@ -65,16 +100,65 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "no_plan" }, { status: 402 });
   }
 
-  // A disabled program rejects both stamp and redeem — checked before the
+  const isCardAction = action !== "redeem_standalone_reward";
+
+  // Read-only: no cooldown, no mutation.
+  if (action === "lookup") {
+    return lookupResponse(supabase, card);
+  }
+
+  // A disabled program rejects every card action — checked before the
   // cooldown/RPC so a paused program never mutates card state. Standalone
   // rewards (redeem_standalone_reward) aren't tied to this card's program —
   // they're a business/customer-level grant — so a paused program doesn't
   // block them.
-  if ((action === "stamp" || action === "redeem") && !card.program.active) {
-    return NextResponse.json({ error: "program_disabled" }, { status: 409 });
+  if (isCardAction && !card.program.active) {
+    return err("program_disabled", 409);
   }
 
-  if (action === "stamp") {
+  const config = (card.program.config ?? {}) as Record<string, unknown>;
+  const pointsTiers = (Array.isArray(config.tiers) ? config.tiers : []) as {
+    points: number;
+    reward: string;
+    name?: string;
+  }[];
+
+  if (isCardAction) {
+    const state = cardState(card, card.program);
+    if (action === "redeem" && card.status !== "completed") {
+      return err("not_redeemable", 409);
+    }
+    // Specific codes for the expired/exhausted cases, generic one otherwise.
+    if (action === "use_coupon" && state.expired) return err("coupon_expired", 409);
+    if (action === "use_coupon" && state.usesLeft === 0) return err("coupon_exhausted", 409);
+    if (action === "check_in" && state.expired) return err("membership_inactive", 409);
+    if (!state.actions.includes(action as ScanAction)) {
+      return err("action_not_allowed", 409);
+    }
+
+    if (action === "spend") {
+      const rate = Number(config.points_per_unit);
+      delta = Math.floor((amount_cents! / 100) * (rate > 0 ? rate : 1));
+      if (delta < 1) return err("amount_too_small", 400);
+      if (delta > 1_000_000) return err("invalid_request", 400);
+    }
+
+    if (action === "redeem_tier") {
+      const t = pointsTiers[tier_index!];
+      if (!t) return err("tier_not_found", 404);
+      if (state.available < t.points) return err("insufficient_points", 409);
+    }
+
+    if (action === "renew") {
+      const days = Number(config.renew_days);
+      if (!(days >= 1)) return err("invalid_config", 409);
+      if (tier && pointsTiers.length > 0 && !pointsTiers.some((t) => t.name === tier)) {
+        return err("tier_not_found", 404);
+      }
+    }
+  }
+
+  if (action === "stamp" || action === "spend") {
     // Cooldown guard against accidental repeat scans.
     const { data: last } = await supabase
       .from("stamp_events")
@@ -96,8 +180,6 @@ export async function POST(req: NextRequest) {
         );
       }
     }
-  } else if (action === "redeem" && card.status !== "completed") {
-    return NextResponse.json({ error: "not_redeemable" }, { status: 409 });
   }
 
   // apply_stamp/redeem_card are SECURITY DEFINER and bypass RLS internally,
@@ -138,25 +220,33 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const common = {
+    p_card_id: card.id,
+    p_employee_id: user.id,
+    p_location_id: location_id ?? null,
+  };
   const rpc =
-    action === "stamp"
-      ? admin.rpc("apply_stamp", {
-          p_card_id: card.id,
-          p_employee_id: user.id,
-          p_delta: delta,
-          p_location_id: location_id ?? null,
-        })
+    action === "stamp" || action === "spend"
+      ? admin.rpc("apply_stamp", { ...common, p_delta: delta })
       : action === "redeem"
-        ? admin.rpc("redeem_card", {
-            p_card_id: card.id,
-            p_employee_id: user.id,
-            p_location_id: location_id ?? null,
-          })
-        : admin.rpc("redeem_standalone_reward", {
-            p_grant_id: grant_id!,
-            p_employee_id: user.id,
-            p_location_id: location_id ?? null,
-          });
+        ? admin.rpc("redeem_card", common)
+        : action === "redeem_tier"
+          ? admin.rpc("redeem_points_tier", { ...common, p_tier_index: tier_index! })
+          : action === "use_coupon"
+            ? admin.rpc("use_coupon", common)
+            : action === "check_in"
+              ? admin.rpc("membership_check_in", common)
+              : action === "renew"
+                ? admin.rpc("renew_membership", {
+                    p_card_id: card.id,
+                    p_days: Number(config.renew_days),
+                    p_tier: tier ?? undefined,
+                  })
+                : admin.rpc("redeem_standalone_reward", {
+                    p_grant_id: grant_id!,
+                    p_employee_id: user.id,
+                    p_location_id: location_id ?? null,
+                  });
 
   const { data: mutated, error: rpcError } = await rpc;
   if (rpcError) {
@@ -175,10 +265,32 @@ export async function POST(req: NextRequest) {
       details: rpcError.details,
       hint: rpcError.hint,
     });
+    const known = Object.keys(RPC_ERRORS).find((k) => rpcError.message?.includes(k));
+    if (known) return err(known, RPC_ERRORS[known]);
     return NextResponse.json(
       { error: "rpc_failed", detail: rpcError.message, code: rpcError.code },
       { status: 400 },
     );
+  }
+
+  // apply_stamp has no amount param (avoids touching the locked-down RPC):
+  // tag the event it just wrote. Best-effort — the stamp already succeeded.
+  if (action === "spend") {
+    try {
+      const { data: ev } = await admin
+        .from("stamp_events")
+        .select("id")
+        .eq("card_id", card.id)
+        .eq("kind", "stamp")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (ev) {
+        await admin.from("stamp_events").update({ amount_cents }).eq("id", ev.id);
+      }
+    } catch (e) {
+      console.error("[scan] failed to record amount_cents", e);
+    }
   }
 
   // Capture analytics now, right off the RPC's own returned row: apply_stamp/
@@ -191,7 +303,7 @@ export async function POST(req: NextRequest) {
   // program_id/program_type/business_id since both loads reference the same
   // card/program.
   if (mutated) {
-    if (action === "stamp") {
+    if (action === "stamp" || action === "spend") {
       captureServerEvent({
         distinctId: user.id,
         event: "stamp_added",
@@ -204,7 +316,11 @@ export async function POST(req: NextRequest) {
         },
         groups: { business: card.business_id },
       });
-    } else if (action === "redeem") {
+    } else if (
+      action === "redeem" ||
+      action === "redeem_tier" ||
+      action === "use_coupon"
+    ) {
       captureServerEvent({
         distinctId: user.id,
         event: "reward_redeemed",
@@ -213,6 +329,13 @@ export async function POST(req: NextRequest) {
           program_type: card.program.type,
           location_id: location_id ?? null,
         },
+        groups: { business: card.business_id },
+      });
+    } else if (action === "check_in" || action === "renew") {
+      captureServerEvent({
+        distinctId: user.id,
+        event: action === "check_in" ? "membership_checked_in" : "membership_renewed",
+        properties: { program_id: card.program_id, location_id: location_id ?? null },
         groups: { business: card.business_id },
       });
     } else {
@@ -267,9 +390,48 @@ export async function POST(req: NextRequest) {
       goal: updated.program.goal,
       status: updated.status,
       type: updated.program.type,
+      state: cardState(updated, updated.program),
       ...(standaloneRewards && { standaloneRewards }),
     });
   }
 
   return NextResponse.json({ ok: true, action });
+}
+
+/** `lookup`: card summary + derived state + program info, no side effects. */
+async function lookupResponse(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  card: NonNullable<Awaited<ReturnType<typeof getCardByBarcode>>>,
+) {
+  let standaloneRewards;
+  try {
+    standaloneRewards = await getAvailableStandaloneRewardsForCustomer(
+      supabase,
+      card.business_id,
+      card.customer_id,
+    );
+  } catch (e) {
+    console.error("[scan] standalone rewards lookup failed", e);
+  }
+  const p = card.program;
+  return NextResponse.json({
+    ok: true,
+    action: "lookup",
+    customerName: card.customer.full_name,
+    programName: p.name,
+    reward: p.reward_description,
+    progress: cardProgress(card, p),
+    goal: p.goal,
+    status: card.status,
+    type: p.type,
+    state: cardState(card, p),
+    program: {
+      name: p.name,
+      type: p.type,
+      reward_description: p.reward_description,
+      config: p.config ?? {},
+      active: p.active,
+    },
+    ...(standaloneRewards && { standaloneRewards }),
+  });
 }

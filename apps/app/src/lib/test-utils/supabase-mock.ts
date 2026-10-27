@@ -25,6 +25,7 @@ export interface FakeQueryBuilder<T = unknown> {
   in: ReturnType<typeof vi.fn>;
   gte: ReturnType<typeof vi.fn>;
   order: ReturnType<typeof vi.fn>;
+  limit: ReturnType<typeof vi.fn>;
   maybeSingle: ReturnType<typeof vi.fn>;
   single: ReturnType<typeof vi.fn>;
   then: (
@@ -50,6 +51,7 @@ export function makeQueryBuilder<T = unknown>(
   builder.in = vi.fn(self);
   builder.gte = vi.fn(self);
   builder.order = vi.fn(self);
+  builder.limit = vi.fn(self);
   builder.maybeSingle = vi.fn(() => Promise.resolve(result));
   builder.single = vi.fn(() => Promise.resolve(result));
   builder.then = (resolve, reject) => Promise.resolve(result).then(resolve, reject);
