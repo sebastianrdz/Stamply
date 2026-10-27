@@ -158,9 +158,6 @@ export async function POST(req: NextRequest) {
     if (action === "renew") {
       const days = Number(config.renew_days);
       if (!(days >= 1)) return err("invalid_config", 409);
-      if (tier && pointsTiers.length > 0 && !pointsTiers.some((t) => t.name === tier)) {
-        return err("tier_not_found", 404);
-      }
     }
   }
 
@@ -246,7 +243,6 @@ export async function POST(req: NextRequest) {
                 ? admin.rpc("renew_membership", {
                     p_card_id: card.id,
                     p_days: Number(config.renew_days),
-                    p_tier: tier ?? undefined,
                   })
                 : action === "set_tier"
                   ? // Single-column change: no RPC needed; card was already scoped to the caller's business.

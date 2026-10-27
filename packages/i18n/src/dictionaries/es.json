@@ -515,7 +515,6 @@
       "actionUseCoupon": "Usar cupón",
       "actionCheckIn": "Registrar entrada",
       "actionRenew": "Renovar membresía",
-      "renewTierLabel": "Nivel",
       "actionSetTier": "Cambiar nivel",
       "setTierLabel": "Nuevo nivel",
       "tierChanged": "Nivel actualizado",

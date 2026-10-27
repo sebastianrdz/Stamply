@@ -515,7 +515,6 @@
       "actionUseCoupon": "Use coupon",
       "actionCheckIn": "Check in",
       "actionRenew": "Renew membership",
-      "renewTierLabel": "Tier",
       "actionSetTier": "Change tier",
       "setTierLabel": "New tier",
       "tierChanged": "Tier updated",
