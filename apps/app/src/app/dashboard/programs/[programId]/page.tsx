@@ -178,6 +178,7 @@ export default async function ProgramDetailPage({
         <TemplatesSection
           program={{
             name: program.name,
+            type: program.type,
             reward_description: program.reward_description,
           }}
           business={{

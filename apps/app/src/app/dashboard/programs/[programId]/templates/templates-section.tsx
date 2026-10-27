@@ -5,13 +5,14 @@ import { useTranslations } from "@stamply/i18n/provider";
 import { interpolate } from "@stamply/i18n/format";
 import { Card, CardHeader, CardTitle, CardContent } from "@stamply/ui/card";
 import { Button } from "@stamply/ui/button";
+import type { ProgramType } from "@/types/database";
 import { downloadSvgAsPng } from "./download-svg";
 import { TemplatePlayful } from "./template-playful";
 import { TemplateElegant } from "./template-elegant";
 import { TemplateRetro } from "./template-retro";
 
 interface TemplatesSectionProps {
-  program: { name: string; reward_description: string };
+  program: { name: string; type: ProgramType; reward_description: string };
   business: {
     name: string;
     brand_primary_color: string;
@@ -57,7 +58,13 @@ export function TemplatesSection({
     retro: t.retroName,
   };
 
-  const rewardText = interpolate(t.rewardLabel, {
+  const headline =
+    program.type === "coupon"
+      ? t.couponHeadline
+      : program.type === "membership"
+        ? t.membershipHeadline
+        : t.rewardLabel;
+  const rewardText = interpolate(headline, {
     reward: program.reward_description,
   });
   const logoAlt = interpolate(t.logoAlt, { business: business.name });

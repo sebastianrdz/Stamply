@@ -47,4 +47,60 @@ describe("issueCard", () => {
       "Failed to issue card",
     );
   });
+
+  it("coupon: sets expires_at from config.valid_days", async () => {
+    const mock = makeSupabaseMock({
+      programs: { data: { type: "coupon", config: { valid_days: 30 } } },
+      cards: { data: { id: "card-1" }, error: null },
+    });
+    await issueCard(mock as AnyClient, params);
+    const arg = mock.builderFor("cards").insert.mock.calls[0][0];
+    const days = (new Date(arg.expires_at).getTime() - Date.now()) / 86400000;
+    expect(days).toBeGreaterThan(29.9);
+    expect(days).toBeLessThan(30.1);
+  });
+
+  it("coupon: no expiry when valid_days is null", async () => {
+    const mock = makeSupabaseMock({
+      programs: { data: { type: "coupon", config: { valid_days: null } } },
+      cards: { data: { id: "card-1" }, error: null },
+    });
+    await issueCard(mock as AnyClient, params);
+    expect(mock.builderFor("cards").insert.mock.calls[0][0]).not.toHaveProperty(
+      "expires_at",
+    );
+  });
+
+  it("membership free: first tier name and valid_until = now + renew_days", async () => {
+    const mock = makeSupabaseMock({
+      programs: {
+        data: {
+          type: "membership",
+          config: {
+            access: "free",
+            renew_days: 30,
+            tiers: [{ name: "Gold", benefits: "x" }, { name: "Silver", benefits: "y" }],
+          },
+        },
+      },
+      cards: { data: { id: "card-1" }, error: null },
+    });
+    await issueCard(mock as AnyClient, params);
+    const arg = mock.builderFor("cards").insert.mock.calls[0][0];
+    expect(arg.tier).toBe("Gold");
+    expect(new Date(arg.valid_until).getTime()).toBeGreaterThan(Date.now() + 29 * 86400000);
+  });
+
+  it("membership staff_activated: valid_until stays null (pending)", async () => {
+    const mock = makeSupabaseMock({
+      programs: {
+        data: { type: "membership", config: { access: "staff_activated", renew_days: 30, tiers: [] } },
+      },
+      cards: { data: { id: "card-1" }, error: null },
+    });
+    await issueCard(mock as AnyClient, params);
+    const arg = mock.builderFor("cards").insert.mock.calls[0][0];
+    expect(arg.tier).toBeNull();
+    expect(arg.valid_until).toBeNull();
+  });
 });

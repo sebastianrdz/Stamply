@@ -19,7 +19,22 @@
     "webLinkText": "Open my card",
     "createdByLabel": "Created by",
     "lastSyncLabel": "Last updated",
-    "offerLabel": "Offer"
+    "offerLabel": "Offer",
+    "nextRewardLabel": "NEXT REWARD",
+    "nextReward": "{points} pts to {reward}",
+    "topTier": "Top reward unlocked",
+    "couponLabel": "COUPON",
+    "discountPercent": "{value}% OFF",
+    "discountFixed": "${value} OFF",
+    "usesLabel": "USES LEFT",
+    "unlimited": "Unlimited",
+    "validUntilLabel": "VALID UNTIL",
+    "expired": "Expired",
+    "pending": "Pending activation",
+    "tierLabel": "TIER",
+    "benefitsLabel": "Benefits",
+    "howToCoupon": "Show this coupon at {business} to redeem: {reward}.",
+    "howToMembership": "Show this card at {business} to check in."
   },
   "common": {
     "save": "Save",
@@ -286,7 +301,47 @@
         "rewardLabel": "Reward",
         "rewardPlaceholder": "A free coffee of your choice",
         "creating": "Creating…",
-        "create": "Create program"
+        "create": "Create program",
+        "typeStampHint": "Collect stamps, get a reward",
+        "typePointsHint": "Earn points, pick rewards",
+        "typeCoupon": "Coupon",
+        "typeCouponHint": "Discount with limited uses",
+        "typeMembership": "Membership",
+        "typeMembershipHint": "Tier, benefits and renewal",
+        "earnLabel": "Earn points by",
+        "earnVisit": "Visit",
+        "earnSpend": "Spend",
+        "pointsPerVisit": "Points per visit",
+        "pointsPerSpend": "Points per $1 spent",
+        "tiersLabel": "Reward tiers (optional)",
+        "tiersHint": "Customers redeem points for these rewards. Leave empty to use a single goal.",
+        "tierAdd": "Add tier",
+        "tierRemove": "Remove",
+        "tierPointsLabel": "Points",
+        "tierRewardLabel": "Reward",
+        "tierRewardPlaceholder": "Free coffee",
+        "discountKindLabel": "Discount",
+        "discountPercent": "Percent off",
+        "discountFixed": "Fixed amount off",
+        "discountItem": "Free item",
+        "discountValueLabel": "Value",
+        "maxUsesLabel": "Max uses",
+        "unlimitedPlaceholder": "Unlimited",
+        "validDaysLabel": "Valid for (days)",
+        "neverPlaceholder": "Never expires",
+        "minSpendLabel": "Minimum spend (optional)",
+        "accessLabel": "Activation",
+        "accessFree": "Active immediately",
+        "accessStaff": "Staff activates",
+        "renewDaysLabel": "Renewal period (days)",
+        "memberTiersLabel": "Membership tiers",
+        "memberTierAdd": "Add tier",
+        "memberTierName": "Name",
+        "memberTierBenefits": "Benefits",
+        "rewardLabelCoupon": "Offer",
+        "rewardPlaceholderCoupon": "20% off any haircut",
+        "rewardLabelMembership": "Membership",
+        "rewardPlaceholderMembership": "Monthly gym pass"
       },
       "detail": {
         "collectPoints": "Collect {goal} points",
@@ -308,7 +363,7 @@
         "metaTitle": "Edit program",
         "title": "Edit program",
         "description": "Update the goal and reward for this program.",
-        "goalChangeHint": "Changing the type or goal affects how existing customers' card progress reads — you can still do it, just give your team a heads up."
+        "goalChangeHint": "The type can't be changed. Changing the goal affects how existing customers' card progress reads — give your team a heads up."
       },
       "delete": {
         "cta": "Delete program",
@@ -330,6 +385,8 @@
         "retroName": "Retro",
         "scanToJoin": "Scan to join",
         "rewardLabel": "Your reward: {reward}",
+        "couponHeadline": "Your coupon: {reward}",
+        "membershipHeadline": "Your membership: {reward}",
         "download": "Download PNG",
         "downloading": "Generating…",
         "downloadError": "Couldn't generate the image. Try again.",
@@ -340,6 +397,7 @@
         "nameRequired": "Give the program a name.",
         "goalMin": "Goal must be at least 1.",
         "stampGoalMax": "Stamp cards can have at most 10 stamps.",
+        "configInvalid": "The card settings are invalid. Please review them.",
         "rewardRequired": "Describe the reward."
       }
     },
@@ -435,10 +493,9 @@
     "scan": {
       "metaTitle": "Scan",
       "title": "Scan a card",
-      "description": "Add a stamp or redeem a reward from the customer's QR.",
-      "modeStamp": "stamp",
+      "description": "Scan a customer's card, then choose what to do.",
       "modeRedeem": "redeem",
-      "pointCameraHint": "Point the camera at a customer's loyalty QR to {mode}.",
+      "pointCameraHint": "Point the camera at a customer's loyalty QR.",
       "startScanning": "Start scanning",
       "cameraError": "Couldn't access the camera. Grant permission and use HTTPS.",
       "rewardRedeemed": "Reward redeemed",
@@ -448,6 +505,22 @@
       "quantityLabel": "Stamps to add",
       "quantityDecrease": "Remove one stamp",
       "quantityIncrease": "Add one stamp",
+      "actionStamp": "Add stamps",
+      "actionVisit": "Register visit",
+      "actionSpend": "Add points",
+      "amountLabel": "Purchase amount",
+      "actionRedeem": "Redeem reward",
+      "actionRedeemTier": "Redeem",
+      "tierPickLabel": "Reward",
+      "actionUseCoupon": "Use coupon",
+      "actionCheckIn": "Check in",
+      "actionRenew": "Renew membership",
+      "renewTierLabel": "Tier",
+      "pointsAdded": "Points added",
+      "couponUsed": "Coupon used",
+      "checkedIn": "Checked in",
+      "renewed": "Membership renewed",
+      "noActions": "Nothing to do with this card right now.",
       "errors": {
         "cooldown": "Just scanned — wait {seconds}s before stamping again.",
         "cooldownFallback": "a few",
@@ -458,7 +531,13 @@
         "unauthorized": "Your session expired. Please sign in again.",
         "network": "Network error. Try again.",
         "generic": "Something went wrong. Try again.",
-        "noPlan": "This business doesn't have an active plan. The owner needs to choose one."
+        "noPlan": "This business doesn't have an active plan. The owner needs to choose one.",
+        "insufficientPoints": "Not enough points for that reward.",
+        "couponExpired": "This coupon has expired.",
+        "couponExhausted": "This coupon has no uses left.",
+        "membershipInactive": "This membership isn't active. Renew it first.",
+        "actionNotAllowed": "This action isn't available for this card.",
+        "invalidAmount": "Enter a valid amount."
       }
     },
     "settings": {
@@ -594,6 +673,7 @@
           "Up to 100 customers",
           "1 loyalty program",
           "Apple & Google Wallet",
+          "All card types included",
           "Basic stats"
         ]
       },
@@ -605,6 +685,7 @@
           "5 employees",
           "Up to 1,000 customers",
           "3 loyalty programs",
+          "All card types included",
           "Analytics dashboard",
           "Custom enrollment fields"
         ]
@@ -617,6 +698,7 @@
           "10+ employees",
           "Up to 10,000 customers",
           "Unlimited programs",
+          "All card types included",
           "Priority support",
           "API access"
         ]
@@ -736,6 +818,7 @@
   "landing": {
     "nav": {
       "how": "How it works",
+      "types": "Card types",
       "examples": "Examples",
       "pricing": "Pricing",
       "signIn": "Sign in",
@@ -745,9 +828,9 @@
       "closeMenu": "Close menu"
     },
     "hero": {
-      "eyebrow": "Digital loyalty cards",
+      "eyebrow": "Digital cards for your business",
       "title": "Give your customers a reason to come back.",
-      "subtitle": "Create a card with your brand, reward every visit and stay with your customers in Apple Wallet and Google Wallet.",
+      "subtitle": "Create stamp, points, coupon or membership cards with your brand and put them in Apple Wallet and Google Wallet. Start with a stamp card.",
       "ctaPrimary": "Start free",
       "ctaSecondary": "See how it works",
       "trial": "First 14 days free · Cancel anytime"
@@ -773,13 +856,40 @@
         },
         {
           "title": "Scan and reward",
-          "body": "Your team adds stamps and the customer sees their progress."
+          "body": "Your team scans: add a stamp or points, redeem a coupon or log a visit. The customer sees their card update."
         }
       ],
       "notes": {
         "enrollment": "The customer signs up from their phone and saves the card to their wallet.",
         "update": "The card updates with every stamp: in the example it goes from 5 to 6.",
         "proximity": "Apple Wallet can show a reminder when the customer is near your location. The system decides, so it is not guaranteed to appear."
+      }
+    },
+    "types": {
+      "title": "A card for every way to reward.",
+      "subtitle": "Pick the type that fits your business. All of them live in Apple Wallet and Google Wallet.",
+      "idealLabel": "Ideal for",
+      "items": {
+        "stamp": {
+          "name": "Stamps",
+          "mechanic": "Every visit adds a stamp; collect enough and the customer earns their reward.",
+          "ideal": "Cafés, restaurants, barbershops"
+        },
+        "points": {
+          "name": "Points",
+          "mechanic": "Earn points per visit or per amount spent and redeem them at different reward tiers.",
+          "ideal": "Bakeries, shops, restaurants"
+        },
+        "coupon": {
+          "name": "Coupons",
+          "mechanic": "A percent or fixed discount, or a free item. Single-use, multi-use or unlimited, plus prepaid packs.",
+          "ideal": "Salons, car washes, shops"
+        },
+        "membership": {
+          "name": "Memberships",
+          "mechanic": "A tier, validity and benefits; your team logs visits and renews from the browser.",
+          "ideal": "Gyms, studios, clubs"
+        }
       }
     },
     "examples": {
@@ -801,6 +911,21 @@
           "name": "Verde Mesa",
           "style": "Fresh, elegant restaurant.",
           "detail": "7 stamps"
+        },
+        "pulso": {
+          "name": "Pulso Gym",
+          "style": "Urban gym with memberships.",
+          "detail": "Gold membership · valid until Dec 31 · front-desk check-in"
+        },
+        "lila": {
+          "name": "Estudio Lila",
+          "style": "Beauty salon with coupons.",
+          "detail": "20% off · 3 uses · expires in 60 days"
+        },
+        "trigo": {
+          "name": "Panadería Trigo",
+          "style": "Neighborhood bakery with points.",
+          "detail": "1 point per $10 · free bread at 200 points"
         }
       }
     },
@@ -809,6 +934,9 @@
       "bruma": "Example Bruma Café card in Apple Wallet, with 2 of 10 stamps and 2 rewards.",
       "alba": "Example Alba Café card in Apple Wallet, with 6 of 10 stamps and 1 reward.",
       "verde": "Example Verde Mesa card in Apple Wallet, with 5 of 7 stamps and 0 rewards.",
+      "pulso": "Example Pulso Gym membership card, Gold tier.",
+      "lila": "Example Estudio Lila coupon card, with 20% off and 3 uses.",
+      "trigo": "Example Panadería Trigo points card, with 140 of 200 points.",
       "enrollment": "Bruma Café sign-up form next to its card saved in Apple Wallet.",
       "update": "The Alba Café card goes from 5 to 6 stamps; the rewards counter stays at 1.",
       "proximity": "Verde Mesa nearby reminder on the phone lock screen."
@@ -832,8 +960,16 @@
           "a": "No. They sign up from their phone and add the card to Apple Wallet or Google Wallet, which are already on their phone."
         },
         {
-          "q": "How are stamps added?",
-          "a": "Your team scans the QR code on the customer's card from the browser of a phone or tablet. The stamp is added and the customer sees their progress on the card."
+          "q": "How are stamps, points or uses added?",
+          "a": "Your team scans the QR code on the customer's card from the browser of a phone or tablet. The action is recorded and the customer sees their card update."
+        },
+        {
+          "q": "What card types can I create?",
+          "a": "Four: stamps (each visit adds a stamp and a full card earns a reward), points (per visit or per amount spent, with several reward tiers), coupons (percent or fixed discount, or a free item) and memberships (with a tier, validity and benefits). Every plan includes all of them."
+        },
+        {
+          "q": "How do single-use and multi-use coupons work?",
+          "a": "You set how many times a coupon can be redeemed: once, a fixed number of times or unlimited, with an optional expiry date. They also work for prepaid packs, like 10 classes. Each time your team scans the coupon one use is deducted, and once it runs out or expires it is no longer valid."
         },
         {
           "q": "Can I use my logo and colors?",
@@ -855,7 +991,7 @@
     },
     "cta": {
       "title": "Give your customers a reason to come back.",
-      "body": "Create your first loyalty card with Stamply.",
+      "body": "Create your first digital card with Stamply.",
       "button": "Start free",
       "trial": "First 14 days free · Cancel anytime"
     },
@@ -865,7 +1001,7 @@
   },
   "seo": {
     "title": "Stamply — Digital Loyalty Cards",
-    "description": "Create branded digital loyalty cards for your café, barbershop or restaurant in Apple Wallet and Google Wallet, no app to install."
+    "description": "Create branded digital cards (stamps, points, coupons and memberships) for your café, gym, salon or shop in Apple Wallet and Google Wallet, no app to install."
   },
   "notFound": {
     "title": "Page not found",

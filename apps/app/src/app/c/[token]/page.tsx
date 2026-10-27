@@ -3,9 +3,10 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getCardByToken,
-  cardProgress,
   getOtherActiveCardsForCustomer,
 } from "@/lib/cards/queries";
+import { cardState } from "@/lib/cards/state";
+import { cardText } from "@/lib/cards/text";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { brandStyle } from "@/lib/brand";
@@ -64,7 +65,13 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   }
   if (!card) notFound();
 
-  const progress = cardProgress(card, card.program);
+  const state = cardState(card, card.program);
+  const text = cardText(state, card.program, dict.wallet, {
+    locale,
+    business: card.business.name,
+    rewards: card.rewards,
+    timeZone: card.business.timezone,
+  });
   const completed = card.status === "completed";
   // Standalone rewards and other-programs are supplementary "what's new"
   // info for the notifications section below — best-effort, matching
@@ -105,7 +112,17 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
         <LoyaltyCard
           businessName={card.business.name}
           program={card.program}
-          progress={progress}
+          progress={state.progress}
+          panel={
+            text.legacy
+              ? undefined
+              : {
+                  header: text.header,
+                  headline: text.headline,
+                  detail: text.detail,
+                  side: text.secondary[0] ?? null,
+                }
+          }
           completed={completed}
           logoUrl={card.business.logo_url}
           backgroundImageUrl={card.business.background_image_url}

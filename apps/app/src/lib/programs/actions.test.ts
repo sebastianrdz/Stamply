@@ -119,7 +119,9 @@ describe("updateProgram", () => {
 
   it("returns a validation error without updating", async () => {
     requireRoleMock.mockResolvedValue(ctx("owner"));
-    const mock = makeSupabaseMock({});
+    const mock = makeSupabaseMock({
+      programs: { data: { type: "stamp" }, error: null },
+    });
     createClientMock.mockResolvedValue(mock);
 
     const state = await updateProgram(
@@ -134,12 +136,17 @@ describe("updateProgram", () => {
     );
 
     expect(state.error).toBe("Ponle un nombre al programa.");
-    expect(mock.from).not.toHaveBeenCalled();
+    expect(mock.builderFor("programs").update).not.toHaveBeenCalled();
   });
 
   it("updates the right row, scoped to the caller's business, then redirects", async () => {
     requireRoleMock.mockResolvedValue(ctx("owner"));
-    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    const mock = makeSupabaseMock({
+      programs: [
+        { data: { type: "points" }, error: null },
+        { data: null, error: null },
+      ],
+    });
     createClientMock.mockResolvedValue(mock);
 
     await expect(
@@ -155,11 +162,10 @@ describe("updateProgram", () => {
       ),
     ).rejects.toThrow("NEXT_REDIRECT:/dashboard/programs/prog-1?updated=1");
 
-    const builder = mock.builderFor("programs");
+    const builder = mock.builderFor("programs", 1);
     expect(builder.update).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Coffee lovers",
-        type: "points",
         goal: 100,
         reward_description: "Free drink",
       }),
@@ -185,7 +191,10 @@ describe("updateProgram", () => {
     requireRoleMock.mockResolvedValue(ctx("owner"));
     createClientMock.mockResolvedValue(
       makeSupabaseMock({
-        programs: { data: null, error: { message: "db down" } },
+        programs: [
+          { data: { type: "stamp" }, error: null },
+          { data: null, error: { message: "db down" } },
+        ],
       }),
     );
     const state = await updateProgram(
@@ -279,7 +288,9 @@ describe("createProgram — stamp goal cap", () => {
 describe("updateProgram — stamp goal cap", () => {
   it("rejects raising a stamp program's goal above 10, without updating", async () => {
     requireRoleMock.mockResolvedValue(ctx("owner"));
-    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    const mock = makeSupabaseMock({
+      programs: { data: { type: "stamp" }, error: null },
+    });
     createClientMock.mockResolvedValue(mock);
 
     const state = await updateProgram(
@@ -294,8 +305,30 @@ describe("updateProgram — stamp goal cap", () => {
     );
 
     expect(state.error).toBe(STAMP_GOAL_MAX_ES);
-    expect(mock.from).not.toHaveBeenCalled();
+    expect(mock.builderFor("programs").update).not.toHaveBeenCalled();
     expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("validates against the stored type, ignoring a submitted type flip", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      programs: { data: { type: "stamp" }, error: null },
+    });
+    createClientMock.mockResolvedValue(mock);
+
+    const state = await updateProgram(
+      "prog-1",
+      {},
+      form({
+        name: "Coffee card",
+        type: "points",
+        goal: "100",
+        reward_description: "Free coffee",
+      }),
+    );
+
+    expect(state.error).toBe(STAMP_GOAL_MAX_ES);
+    expect(mock.builderFor("programs").update).not.toHaveBeenCalled();
   });
 });
 
@@ -448,5 +481,108 @@ describe("toggleProgramActive", () => {
     await toggleProgramActive("prog-1", true);
 
     expect(captureServerEventMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("program config (per-type)", () => {
+  const base = { name: "Card", goal: "1", reward_description: "Offer" };
+  const CONFIG_INVALID_ES =
+    "La configuración de la tarjeta no es válida. Revísala.";
+
+  it("persists a coupon config and forces goal = 1", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+    const config = { discount_kind: "percent", value: 20, max_uses: 5, valid_days: 30 };
+
+    await expect(
+      createProgram(
+        {},
+        form({ ...base, goal: "7", type: "coupon", config: JSON.stringify(config) }),
+      ),
+    ).rejects.toThrow("NEXT_REDIRECT");
+
+    expect(mock.builderFor("programs").insert).toHaveBeenCalledWith(
+      expect.objectContaining({ type: "coupon", goal: 1, config }),
+    );
+  });
+
+  it("persists points tiers and membership config", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+    const points = { earn: "spend", points_per_unit: 2, tiers: [{ points: 100, reward: "Coffee" }] };
+    await expect(
+      createProgram({}, form({ ...base, goal: "100", type: "points", config: JSON.stringify(points) })),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    expect(mock.builderFor("programs", 0).insert).toHaveBeenCalledWith(
+      expect.objectContaining({ config: points }),
+    );
+
+    const membership = { access: "free", renew_days: 30, tiers: [{ name: "Gold", benefits: "x" }] };
+    await expect(
+      createProgram({}, form({ ...base, type: "membership", config: JSON.stringify(membership) })),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    expect(mock.builderFor("programs", 1).insert).toHaveBeenCalledWith(
+      expect.objectContaining({ config: membership, goal: 1 }),
+    );
+  });
+
+  it.each([
+    ["coupon missing discount_kind", "coupon", { value: 5 }],
+    ["percent over 100", "coupon", { discount_kind: "percent", value: 150 }],
+    ["membership renew_days 0", "membership", { access: "free", renew_days: 0 }],
+    ["points with 11 tiers", "points", { tiers: Array.from({ length: 11 }, (_, i) => ({ points: i + 1, reward: "r" })) }],
+  ])("rejects invalid config: %s", async (_n, type, config) => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({ programs: { data: null, error: null } });
+    createClientMock.mockResolvedValue(mock);
+    const state = await createProgram(
+      {},
+      form({ ...base, type, config: JSON.stringify(config) }),
+    );
+    expect(state.error).toBe(CONFIG_INVALID_ES);
+    expect(mock.from).not.toHaveBeenCalled();
+  });
+
+  it("rejects malformed config JSON", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    createClientMock.mockResolvedValue(makeSupabaseMock({}));
+    const state = await createProgram({}, form({ ...base, type: "coupon", config: "{nope" }));
+    expect(state.error).toBe(CONFIG_INVALID_ES);
+  });
+
+  it("update: config is updatable but type stays locked to the stored one", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const mock = makeSupabaseMock({
+      programs: [
+        { data: { type: "coupon", config: {} }, error: null },
+        { data: null, error: null },
+      ],
+    });
+    createClientMock.mockResolvedValue(mock);
+    const config = { discount_kind: "fixed", value: 500, max_uses: null, valid_days: null };
+    await expect(
+      updateProgram("prog-1", {}, form({ ...base, type: "stamp", config: JSON.stringify(config) })),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    expect(mock.builderFor("programs", 1).update).toHaveBeenCalledWith(
+      expect.objectContaining({ goal: 1, config }),
+    );
+  });
+
+  it("update: absent config field keeps the stored config valid", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    const stored = { discount_kind: "item", value: 1, max_uses: 3, valid_days: 10 };
+    const mock = makeSupabaseMock({
+      programs: [
+        { data: { type: "coupon", config: stored }, error: null },
+        { data: null, error: null },
+      ],
+    });
+    createClientMock.mockResolvedValue(mock);
+    await expect(updateProgram("prog-1", {}, form({ ...base }))).rejects.toThrow("NEXT_REDIRECT");
+    expect(mock.builderFor("programs", 1).update).toHaveBeenCalledWith(
+      expect.objectContaining({ config: stored }),
+    );
   });
 });

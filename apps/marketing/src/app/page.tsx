@@ -11,7 +11,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { FaqAccordion } from "@/components/landing/faq-accordion";
 import { ProcessSwitcher, ExamplesSwitcher } from "@/components/landing/visual-switcher";
-import { bruma, heroShowcase } from "@/components/landing/landing-data";
+import { CardMock } from "@/components/landing/card-mock";
+import { bruma, heroShowcase, CARD_TYPES } from "@/components/landing/landing-data";
 import { PricingPlans } from "./pricing-plans";
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -66,7 +67,7 @@ export default async function Home() {
         "@type": "Product",
         name: "Stamply",
         description:
-          "Digital loyalty cards for cafés, barbershops, and restaurants.",
+          "Digital stamp, points, coupon and membership cards for cafés, gyms, salons, and shops.",
         offers: PAID_PLANS.map((plan) => ({
           "@type": "Offer",
           name: plan.name,
@@ -205,7 +206,45 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* 3. Ejemplos */}
+        {/* 3. Tipos de tarjeta */}
+        <section
+          id="tipos-de-tarjeta"
+          aria-labelledby="types-title"
+          className={cn(container, section)}
+        >
+          <div className="mb-10 max-w-2xl">
+            <h2
+              id="types-title"
+              className="text-3xl font-bold tracking-tight text-balance md:text-4xl"
+            >
+              {landing.types.title}
+            </h2>
+            <p className="text-muted-foreground mt-3 text-lg">
+              {landing.types.subtitle}
+            </p>
+          </div>
+          <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {CARD_TYPES.map(({ id, primary, secondary }) => {
+              const c = landing.types.items[id];
+              return (
+                <li
+                  key={id}
+                  className="bg-card border-border flex flex-col gap-4 rounded-2xl border p-5"
+                >
+                  <CardMock kind={id} primary={primary} secondary={secondary} />
+                  <h3 className="text-xl font-semibold">{c.name}</h3>
+                  <p className="text-muted-foreground text-pretty">{c.mechanic}</p>
+                  <p className="mt-auto text-sm">
+                    <span className="font-semibold">{landing.types.idealLabel}: </span>
+                    <span className="text-muted-foreground">{c.ideal}</span>
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        {/* 4. Ejemplos */}
         <section
           id="ejemplos"
           aria-labelledby="examples-title"

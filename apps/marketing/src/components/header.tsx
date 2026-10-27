@@ -20,6 +20,7 @@ export function Header() {
 
   const links = [
     { href: "/#como-funciona", label: nav.how },
+    { href: "/#tipos-de-tarjeta", label: nav.types },
     { href: "/#ejemplos", label: nav.examples },
     { href: "/#precios", label: nav.pricing },
   ];

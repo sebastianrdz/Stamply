@@ -7,7 +7,8 @@ import { appleCertificates, applePassConfig } from "./certificates";
 import { imageBuffer, logoBuffer } from "./assets";
 import { renderPassIconSet } from "./icon";
 import type { CardWithRelations } from "@/lib/cards/queries";
-import { cardProgress } from "@/lib/cards/queries";
+import { cardState } from "@/lib/cards/state";
+import { cardText } from "@/lib/cards/text";
 import { renderStampStrip } from "@/lib/wallet/stamp-image";
 import { cardUrl } from "@/lib/urls";
 import esDict from "@stamply/i18n/dictionaries/es.json";
@@ -44,14 +45,20 @@ export async function buildApplePass(
 ): Promise<Buffer> {
   const { passTypeIdentifier, teamIdentifier } = applePassConfig();
   const bg = card.business.brand_primary_color;
-  const progress = cardProgress(card, card.program);
+  const state = cardState(card, card.program);
+  const progress = state.progress;
   const goal = card.program.goal;
   const isStampProgram = card.program.type === "stamp";
   // The wallet pass is always shown in Spanish (the product's market), and the
   // APNs refetch path has no request locale, so load es directly.
   const w = esDict.wallet;
   const serialNumber = card.apple_serial ?? card.id;
-  const unitWord = isStampProgram ? w.stampsWord : w.pointsWord;
+  const text = cardText(state, card.program, w, {
+    locale: "es-MX",
+    business: card.business.name,
+    rewards: availableRewards,
+    timeZone: card.business.timezone,
+  });
   const webUrl = cardUrl(card.pass_auth_token);
   const lastSync = new Intl.DateTimeFormat("es-MX", {
     dateStyle: "long",
@@ -166,8 +173,8 @@ export async function buildApplePass(
       headerFields: [
         {
           key: "progress",
-          label: isStampProgram ? w.stampsLabel : w.pointsLabel,
-          value: `${progress}/${goal}`,
+          label: text.header.label,
+          value: text.header.value,
         },
       ],
       // Intentional: for stamp programs the strip now renders the stamp
@@ -175,48 +182,36 @@ export async function buildApplePass(
       // of the strip (centered, bold) — that would collide with the grid, so
       // primaryFields is dropped entirely for stamp programs, moving the
       // reward description to backFields only (still reachable via the i
-      // button). Points programs keep the raw-background strip, so the
-      // primary field composes over it exactly as before — unchanged.
-      ...(!isStampProgram && {
-        primaryFields: [
-          {
-            key: "reward",
-            label: w.reward,
-            value: card.program.reward_description,
-          },
-        ],
+      // button). Other types keep the raw-background strip, so the primary
+      // field composes over it.
+      ...(text.primary && {
+        primaryFields: [{ key: "reward", ...text.primary }],
       }),
       // Secondary/auxiliary fields render below the strip (not overlapping
-      // it), so this is unaffected by the stamp grid. Shows customer identity
-      // (name) + how many rewards they can redeem right now — this is about
-      // identity, not stamps, so it applies to both stamp and points
-      // programs. Program name intentionally leaves the front of the card.
-      // Apple lays secondary fields left-to-right; right-aligning REWARDS
-      // pins it to the right edge of the row, mirroring NAME on the left.
+      // it). Customer name on the left; the type's own fields (rewards, uses
+      // left, valid-until...) follow, the last one pinned to the right edge.
       secondaryFields: [
         {
           key: "name",
           label: w.name,
           value: card.customer.full_name ?? w.member,
         },
-        {
-          key: "rewards",
-          label: w.rewards,
-          value: String(availableRewards),
-          textAlignment: "PKTextAlignmentRight" as const,
-        },
+        ...text.secondary.map((f, i, all) =>
+          i === all.length - 1
+            ? { ...f, textAlignment: "PKTextAlignmentRight" as const }
+            : f,
+        ),
       ],
+      ...(text.auxiliary.length > 0 && { auxiliaryFields: text.auxiliary }),
       backFields: [
         {
           key: "howto",
           label: w.howToLabel,
-          value: interpolate(w.howTo, {
-            business: card.business.name,
-            unit: unitWord,
-            goal,
-            reward: card.program.reward_description,
-          }),
+          value: text.howTo,
         },
+        ...(text.benefits
+          ? [{ key: "benefits", label: w.benefitsLabel, value: text.benefits }]
+          : []),
         {
           key: "web",
           label: w.webLinkLabel,

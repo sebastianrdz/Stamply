@@ -39,13 +39,14 @@ test.describe("Landing page (/)", () => {
     ).toHaveAttribute("href", "#como-funciona");
   });
 
-  test("header anchors point at the three sections", async ({ page }) => {
+  test("header anchors point at the four sections", async ({ page }) => {
     await page.goto("/");
     const nav = page.locator("header").getByRole("navigation").first();
     await expect(nav.getByRole("link", { name: L.nav.how })).toHaveAttribute("href", "/#como-funciona");
     await expect(nav.getByRole("link", { name: L.nav.examples })).toHaveAttribute("href", "/#ejemplos");
     await expect(nav.getByRole("link", { name: L.nav.pricing })).toHaveAttribute("href", "/#precios");
-    for (const id of ["como-funciona", "ejemplos", "precios"]) {
+    await expect(nav.getByRole("link", { name: L.nav.types })).toHaveAttribute("href", "/#tipos-de-tarjeta");
+    for (const id of ["como-funciona", "tipos-de-tarjeta", "ejemplos", "precios"]) {
       await expect(page.locator(`#${id}`)).toHaveCount(1);
     }
   });
@@ -66,10 +67,21 @@ test.describe("Landing page (/)", () => {
     const { bruma, alba, verde } = L.examples.businesses;
     await ex.scrollIntoViewIfNeeded();
     await expect(ex.getByRole("button")).toHaveCount(0);
+    await expect(ex.getByRole("listitem")).toHaveCount(Object.keys(L.examples.businesses).length);
     await expect(ex.getByText(bruma.detail)).toBeVisible();
     await expect(ex.getByText(alba.detail)).toBeVisible({ timeout: 10_000 });
     await expect(ex.getByAltText(L.images.alba)).toBeVisible();
     await expect(ex.getByText(verde.detail)).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("card types section lists the four types with their mock and industries", async ({ page }) => {
+    await page.goto("/");
+    const sec = page.locator("#tipos-de-tarjeta");
+    await expect(sec.getByRole("heading", { level: 2, name: L.types.title })).toBeVisible();
+    for (const c of Object.values(L.types.items)) {
+      await expect(sec.getByRole("heading", { level: 3, name: c.name })).toBeVisible();
+      await expect(sec.getByText(c.ideal)).toBeVisible();
+    }
   });
 
   test("pricing: annual default shows MXN, monthly equivalent, annual total and IVA", async ({
