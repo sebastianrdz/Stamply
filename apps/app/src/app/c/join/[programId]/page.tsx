@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Gift } from "lucide-react";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { brandStyle } from "@/lib/brand";
+import { cardDesign } from "@/lib/programs/design";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
@@ -90,7 +91,7 @@ export default async function JoinPage({
   return (
     <div
       className="flex min-h-full flex-col items-center justify-center px-6 py-12"
-      style={brandStyle(business)}
+      style={brandStyle(cardDesign(program, business).primary_color)}
     >
       <div className="w-full max-w-sm">
         <div className="mb-6 text-center">

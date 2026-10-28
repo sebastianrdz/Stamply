@@ -14,7 +14,7 @@ harness (no live DB/session anywhere in this suite).
   crashing or navigating away.
 - `not-found.spec.ts` — custom 404 page content + "Back home" link.
 - `auth-redirect.spec.ts` — proxy.ts's unauthenticated-redirect behavior for
-  `/dashboard` and `/dashboard/billing`, including the raw 307 + `Location`
+  `/dashboard` and `/dashboard/settings/billing`, including the raw 307 + `Location`
   header (not just the client-observed final URL).
 - `public-join-routes.spec.ts` — `/join/<token>` and `/c/join/<programId>`
   for nonexistent ids, which is the only branch of those pages reachable

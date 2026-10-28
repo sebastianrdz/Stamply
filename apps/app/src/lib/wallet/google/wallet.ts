@@ -13,6 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isBirthdayMonth } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
 import { latestOfferForCard } from "@/lib/offers/queries";
+import { cardDesign } from "@/lib/programs/design";
 import esDict from "@stamply/i18n/dictionaries/es.json";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -78,7 +79,14 @@ export function loyaltyFields(card: CardWithRelations, patch = false) {
     ...(text.primary && card.program.type === "points" ? [text.primary] : []),
     ...text.secondary,
   ];
-  const extra = [...rest, ...text.auxiliary];
+  const support = [card.business.support_email, card.business.support_phone]
+    .filter(Boolean)
+    .join(" · ");
+  const extra = [
+    ...rest,
+    ...text.auxiliary,
+    ...(support ? [{ label: esDict.wallet.supportLabel, value: support }] : []),
+  ];
   return {
     loyaltyPoints: {
       label: text.header.label,
@@ -124,13 +132,14 @@ async function renderAndUploadStampHero(
   card: CardWithRelations,
   progress: number,
 ): Promise<string | null> {
+  const design = cardDesign(card.program, card.business);
   try {
     const png = await renderStampStrip({
       progress,
       goal: card.program.goal,
-      brandHex: card.business.brand_primary_color,
-      stampIconUrl: card.business.stamp_icon_url ?? null,
-      backgroundImageUrl: card.business.background_image_url,
+      brandHex: design.primary_color,
+      stampIconUrl: design.stamp_icon_url ?? null,
+      backgroundImageUrl: design.background_image_url,
       width: HERO_WIDTH,
     });
     const path = `${card.business_id}/wallet/hero-${card.id}-${progress}.png`;
@@ -156,11 +165,12 @@ async function heroImageUri(
   card: CardWithRelations,
   progress: number,
 ): Promise<string | undefined> {
+  const design = cardDesign(card.program, card.business);
   if (card.program.type === "stamp") {
     const rendered = await renderAndUploadStampHero(admin, card, progress);
     if (rendered) return rendered;
   }
-  return card.business.background_image_url ?? undefined;
+  return design.background_image_url ?? undefined;
 }
 
 /** Create the LoyaltyClass for a program if it does not already exist. */
@@ -188,23 +198,47 @@ export async function ensureLoyaltyClass(
   // present. So this must NOT be a live per-card stamp-progress render —
   // that would bake one customer's progress into every other customer's
   // fallback image. Use the raw business background (or nothing) instead.
+  const design = cardDesign(card.program, card.business);
   const loyaltyClass = {
     id,
     issuerName: card.business.name,
     programName: card.program.name,
     reviewStatus: "UNDER_REVIEW",
-    hexBackgroundColor: card.business.brand_primary_color,
-    programLogo: card.business.logo_url
-      ? { sourceUri: { uri: card.business.logo_url } }
+    hexBackgroundColor: design.primary_color,
+    programLogo: design.logo_url
+      ? { sourceUri: { uri: design.logo_url } }
       : undefined,
-    heroImage: card.business.background_image_url
-      ? { sourceUri: { uri: card.business.background_image_url } }
+    heroImage: design.background_image_url
+      ? { sourceUri: { uri: design.background_image_url } }
       : undefined,
   };
   await client.request({
     url: `${BASE}/loyaltyClass`,
     method: "POST",
     data: loyaltyClass,
+  });
+}
+
+/** Re-sync a program's class-level look (color/logo/hero) after a design edit. */
+export async function patchLoyaltyClass(
+  card: CardWithRelations,
+): Promise<void> {
+  const design = cardDesign(card.program, card.business);
+  const client = await auth().getClient();
+  await client.request({
+    url: `${BASE}/loyaltyClass/${classId(card.program.id)}`,
+    method: "PATCH",
+    data: {
+      hexBackgroundColor: design.primary_color,
+      // Explicit null clears a removed image (JSON merge-patch semantics);
+      // omitting the key would leave the old one on the class.
+      programLogo: design.logo_url
+        ? { sourceUri: { uri: design.logo_url } }
+        : null,
+      heroImage: design.background_image_url
+        ? { sourceUri: { uri: design.background_image_url } }
+        : null,
+    },
   });
 }
 

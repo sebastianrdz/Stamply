@@ -10,7 +10,12 @@ export type SubscriptionStatus =
 export type ProgramType = "stamp" | "points" | "coupon" | "membership";
 export type CardStatus = "active" | "completed" | "redeemed";
 export type StampKind = "stamp" | "redeem" | "adjust" | "checkin";
-export type RewardType = "birthday";
+export type RewardType =
+  | "welcome"
+  | "birthday"
+  | "unredeemed_reminder"
+  | "win_back"
+  | "almost_there";
 export type StandaloneRewardStatus = "available" | "redeemed" | "expired";
 
 // NOTE: these MUST be `type` aliases, not `interface`s. Supabase's Database
@@ -45,6 +50,10 @@ export type Business = Timestamped & {
   stamp_icon_url?: string | null;
   show_business_name: boolean;
   timezone: string;
+  // Optional for the same fixture reason as `last_billing_event_at` below.
+  support_email?: string | null;
+  support_phone?: string | null;
+  locale?: string | null;
   // Optional (not just nullable) unlike this file's usual convention: a test
   // fixture (src/lib/auth/session.test.ts, off-limits to edit here) builds a
   // full `Business` literal predating this column and can't be updated as
@@ -161,6 +170,33 @@ export type StampEvent = Timestamped & {
   amount_cents?: number | null;
 };
 
+export type ActivityType =
+  | "customer_joined"
+  | "card_issued"
+  | "stamp"
+  | "redeem"
+  | "checkin"
+  | "adjust"
+  | "reward_granted"
+  | "reward_redeemed"
+  | "broadcast"
+  | "automation_sent";
+
+// Row of the read-only `activity_feed` view (migration 0025).
+export type ActivityFeedRow = {
+  id: string;
+  business_id: string;
+  type: ActivityType;
+  occurred_at: string;
+  customer_id: string | null;
+  customer_name: string | null;
+  card_id: string | null;
+  program_name: string | null;
+  location_id: string | null;
+  delta: number | null;
+  detail: string | null;
+};
+
 export type Redemption = Timestamped & {
   id: string;
   business_id: string;
@@ -198,10 +234,23 @@ export type RewardDefinition = Timestamped & {
   id: string;
   business_id: string;
   type: RewardType;
-  reward_description: string;
+  /** Optional gift reward (null = message only). */
+  reward_description: string | null;
+  /** Wallet-push text; supports {name} {business} {days} {remaining}. */
+  message: string | null;
   active: boolean;
   config: Record<string, unknown>;
   updated_at: string;
+};
+
+// One automation message actually sent (migration 0026); unique per period.
+export type AutomationRun = {
+  id: string;
+  business_id: string;
+  automation_id: string;
+  customer_id: string;
+  period_key: string;
+  sent_at: string;
 };
 
 export type StandaloneRewardGrant = Timestamped & {
@@ -222,6 +271,7 @@ export type WalletOffer = Timestamped & {
   // null = sent to every opted-in customer of the business.
   customer_id: string | null;
   body: string;
+  automation_id?: string | null;
   created_by: string | null;
 };
 
@@ -260,6 +310,9 @@ export interface Database {
         | "stamp_icon_url"
         | "show_business_name"
         | "timezone"
+        | "support_email"
+        | "support_phone"
+        | "locale"
         | "last_billing_event_at"
       >;
       memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
@@ -324,8 +377,9 @@ export interface Database {
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,
-        "id" | "created_at" | "updated_at" | "active" | "config"
+        "id" | "created_at" | "updated_at" | "active" | "config" | "message" | "reward_description"
       >;
+      automation_runs: TableDef<AutomationRun, "id" | "sent_at">;
       standalone_reward_grants: TableDef<
         StandaloneRewardGrant,
         | "id"
@@ -336,7 +390,9 @@ export interface Database {
         | "redeemed_by"
       >;
     };
-    Views: Record<string, never>;
+    Views: {
+      activity_feed: { Row: ActivityFeedRow; Relationships: [] };
+    };
     Functions: {
       apply_stamp: {
         Args: {
@@ -396,6 +452,10 @@ export interface Database {
           p_event_created_at: string;
         };
         Returns: boolean;
+      };
+      automation_last_visits: {
+        Args: { p_business_id: string };
+        Returns: { customer_id: string; last_visit: string }[];
       };
       customers_with_birthday_this_month: {
         Args: Record<string, never>;

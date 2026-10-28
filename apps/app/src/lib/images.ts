@@ -3,7 +3,7 @@ import "server-only";
 /**
  * Fetch a remote image and inline it as a `data:` URL.
  *
- * Why: the printable QR templates (src/app/dashboard/programs/[programId]/templates/)
+ * Why: the printable QR templates (src/app/dashboard/marketing/templates/)
  * embed a business's logo/background as an SVG `<image href="...">`, then
  * rasterize that SVG client-side via `new Image()` → `<canvas>` for the PNG
  * download (see download-svg.ts). A remote http(s) `href` is not fetched by

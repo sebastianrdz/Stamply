@@ -71,3 +71,72 @@ export async function getAnalytics(businessId: string): Promise<Analytics> {
     redemptionRate: cardsIssued ? totalRedemptions / cardsIssued : 0,
   };
 }
+
+export interface CardBreakdownRow {
+  programId: string;
+  name: string;
+  cards: number;
+  customers: number;
+  stamps: number; // last DAYS days
+  redemptions: number;
+}
+
+/**
+ * Per-card (program) activity. shortcut: aggregates in JS over rows PostgREST
+ * caps at 1000 per query, so counts saturate on very large businesses; move to
+ * a grouped SQL view/RPC when one needs more.
+ */
+export async function getCardBreakdown(
+  businessId: string,
+): Promise<CardBreakdownRow[]> {
+  const supabase = await createClient();
+  const since = new Date(Date.now() - DAYS * 24 * 60 * 60 * 1000).toISOString();
+
+  const [programs, cards, events, redemptions] = await Promise.all([
+    supabase.from("programs").select("id, name").eq("business_id", businessId),
+    supabase
+      .from("cards")
+      .select("id, program_id, customer_id")
+      .eq("business_id", businessId),
+    supabase
+      .from("stamp_events")
+      .select("card_id")
+      .eq("business_id", businessId)
+      .eq("kind", "stamp")
+      .gte("created_at", since),
+    supabase.from("redemptions").select("card_id").eq("business_id", businessId),
+  ]);
+
+  const programOf = new Map<string, string>();
+  const rows = new Map<string, CardBreakdownRow & { people: Set<string> }>();
+  for (const p of programs.data ?? []) {
+    rows.set(p.id, {
+      programId: p.id,
+      name: p.name,
+      cards: 0,
+      customers: 0,
+      stamps: 0,
+      redemptions: 0,
+      people: new Set(),
+    });
+  }
+  for (const c of cards.data ?? []) {
+    programOf.set(c.id, c.program_id);
+    const r = rows.get(c.program_id);
+    if (!r) continue;
+    r.cards++;
+    r.people.add(c.customer_id);
+  }
+  for (const e of events.data ?? []) {
+    const r = rows.get(programOf.get(e.card_id) ?? "");
+    if (r) r.stamps++;
+  }
+  for (const e of redemptions.data ?? []) {
+    const r = rows.get(programOf.get(e.card_id) ?? "");
+    if (r) r.redemptions++;
+  }
+  return [...rows.values()].map(({ people, ...r }) => ({
+    ...r,
+    customers: people.size,
+  }));
+}

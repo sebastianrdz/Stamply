@@ -5,10 +5,9 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
-import { notifyOffers } from "@/lib/wallet/notify";
+import { sendWalletOffers } from "./send";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
-import type { Database, WalletOffer } from "@/types/database";
 
 export interface OfferFormState {
   error?: string;
@@ -47,51 +46,26 @@ export async function sendOffer(
   }
 
   // Service role: wallet_offers has no insert policy, and the consent check
-  // below must not be skippable from the browser.
-  const admin = createAdminClient();
-  let query = admin
-    .from("customers")
-    .select("id", { count: "exact" })
-    .eq("business_id", businessId)
-    .eq("marketing_consent", true);
-  if (customerIds.length) query = query.in("id", customerIds);
-  const { data: eligible, count, error: lookupError } = await query;
-  if (lookupError) return { error: lookupError.message };
-  if (!count) return { error: dict.errors.noRecipients };
-  if (customerIds.length && count !== customerIds.length) {
-    return { error: dict.errors.notOptedIn };
-  }
-
-  const rows: Database["public"]["Tables"]["wallet_offers"]["Insert"][] =
-    customerIds.length
-      ? (eligible ?? []).map((c) => ({
-          business_id: businessId,
-          customer_id: c.id,
-          body,
-          created_by: user.id,
-        }))
-      : [
-          {
-            business_id: businessId,
-            customer_id: null,
-            body,
-            created_by: user.id,
-          },
-        ];
-  const { data: offers, error } = await admin
-    .from("wallet_offers")
-    .insert(rows)
-    .select("*");
-  if (error) return { error: error.message };
-
-  let sent = 0;
+  // must not be skippable from the browser.
+  let result;
   try {
-    sent = await notifyOffers(admin, offers as WalletOffer[]);
+    result = await sendWalletOffers(createAdminClient(), {
+      businessId,
+      body,
+      customerIds,
+      createdBy: user.id,
+    });
   } catch (e) {
     console.error("[offers] notify failed", { businessId, e });
     return { error: dict.errors.deliveryFailed };
   }
+  if (!result.ok) {
+    if (result.reason === "noRecipients") return { error: dict.errors.noRecipients };
+    if (result.reason === "notOptedIn") return { error: dict.errors.notOptedIn };
+    return { error: result.message ?? dict.errors.deliveryFailed };
+  }
+  const sent = result.sent;
 
-  revalidatePath("/dashboard/offers");
+  revalidatePath("/dashboard/broadcast");
   return { sent };
 }

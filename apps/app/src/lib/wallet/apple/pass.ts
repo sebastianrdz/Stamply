@@ -19,6 +19,7 @@ import {
 } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
 import { latestOfferForCard } from "@/lib/offers/queries";
+import { cardDesign } from "@/lib/programs/design";
 import type { createAdminClient } from "@/lib/supabase/admin";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -44,7 +45,8 @@ export async function buildApplePass(
   admin?: AdminClient,
 ): Promise<Buffer> {
   const { passTypeIdentifier, teamIdentifier } = applePassConfig();
-  const bg = card.business.brand_primary_color;
+  const design = cardDesign(card.program, card.business);
+  const bg = design.primary_color;
   const state = cardState(card, card.program);
   const progress = state.progress;
   const goal = card.program.goal;
@@ -145,7 +147,7 @@ export async function buildApplePass(
     serialNumber,
     // logoText is the business name shown beside the logo on the pass face;
     // omit it when the business opts to show the logo alone.
-    ...(card.business.show_business_name && { logoText: card.business.name }),
+    ...(design.show_business_name && { logoText: card.business.name }),
     backgroundColor: hexToRgbString(bg),
     foregroundColor: readableForeground(bg),
     labelColor: readableForeground(bg),
@@ -218,6 +220,7 @@ export async function buildApplePass(
           value: webUrl,
           attributedValue: `<a href="${webUrl}">${w.webLinkText}</a>`,
         },
+        ...supportFields(card.business, w.supportLabel),
         {
           key: "createdBy",
           label: w.createdByLabel,
@@ -239,12 +242,12 @@ export async function buildApplePass(
     },
   };
 
-  const logo = await logoBuffer(card.business.logo_url);
+  const logo = await logoBuffer(design.logo_url);
   // The pass icon (shown on the lock screen / notifications) is the business
   // logo on a brand-color square; logo.png (below) is the pass-face logo.
   const iconSet = await renderPassIconSet(
-    card.business.logo_url,
-    card.business.brand_primary_color,
+    design.logo_url,
+    design.primary_color,
   );
   // On a storeCard the strip image spans the top of the pass, sitting behind
   // the header/primary fields — this is the "background behind the stamps".
@@ -252,7 +255,7 @@ export async function buildApplePass(
   // the raw business background image, unchanged.
   const strip = isStampProgram
     ? await buildStampStripSet(card, progress, goal)
-    : await legacyStripSet(card.business.background_image_url);
+    : await legacyStripSet(design.background_image_url);
 
   const pass = new PKPass(
     {
@@ -282,15 +285,16 @@ async function buildStampStripSet(
   progress: number,
   goal: number,
 ): Promise<Record<string, Buffer>> {
+  const design = cardDesign(card.program, card.business);
   try {
     const [strip, strip2x, strip3x] = await Promise.all(
       [1, 2, 3].map((scale) =>
         renderStampStrip({
           progress,
           goal,
-          brandHex: card.business.brand_primary_color,
-          stampIconUrl: card.business.stamp_icon_url ?? null,
-          backgroundImageUrl: card.business.background_image_url,
+          brandHex: design.primary_color,
+          stampIconUrl: design.stamp_icon_url ?? null,
+          backgroundImageUrl: design.background_image_url,
           width: STRIP_WIDTH_1X * scale,
         }),
       ),
@@ -302,7 +306,7 @@ async function buildStampStripSet(
     };
   } catch (e) {
     console.error("[apple wallet] stamp strip render failed", e);
-    return legacyStripSet(card.business.background_image_url);
+    return legacyStripSet(design.background_image_url);
   }
 }
 
@@ -312,4 +316,13 @@ async function legacyStripSet(
 ): Promise<Record<string, Buffer>> {
   const strip = await imageBuffer(backgroundImageUrl);
   return strip ? { "strip.png": strip, "strip@2x.png": strip } : {};
+}
+
+/** Support contact as back-field entries; omitted when neither is set. */
+function supportFields(
+  b: { support_email?: string | null; support_phone?: string | null },
+  label: string,
+) {
+  const value = [b.support_email, b.support_phone].filter(Boolean).join(" · ");
+  return value ? [{ key: "support", label, value }] : [];
 }

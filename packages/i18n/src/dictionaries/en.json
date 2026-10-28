@@ -45,7 +45,8 @@
     "howToCoupon": "Show this coupon at {business} to redeem: {reward}.",
     "howToMembership": "Show this card at {business} to check in.",
     "howToPoints": "Show this card at {business} to earn points and redeem them for rewards.",
-    "membershipLabel": "MEMBERSHIP"
+    "membershipLabel": "MEMBERSHIP",
+    "supportLabel": "Contact"
   },
   "common": {
     "save": "Save",
@@ -114,8 +115,15 @@
     }
   },
   "nav": {
-    "overview": "Overview",
-    "scan": "Scan",
+    "overview": "Dashboard",
+    "scan": "Scanner",
+    "cards": "Cards",
+    "broadcast": "Broadcast",
+    "automations": "Automations",
+    "marketing": "Marketing",
+    "activity": "Activity",
+    "settingsGeneral": "General",
+    "settingsBilling": "Plan & Billing",
     "programs": "Programs",
     "customers": "Customers",
     "locations": "Locations",
@@ -384,7 +392,12 @@
         "rewardLabelCoupon": "Offer",
         "rewardPlaceholderCoupon": "20% off any haircut",
         "rewardLabelMembership": "Membership",
-        "rewardPlaceholderMembership": "Monthly gym pass"
+        "rewardPlaceholderMembership": "Monthly gym pass",
+        "designTitle": "Design",
+        "pickFromLibrary": "Pick from library",
+        "libraryEmpty": "No uploads yet.",
+        "removeImage": "Remove",
+        "previewTitle": "Preview"
       },
       "detail": {
         "collectPoints": "Collect {goal} points",
@@ -434,20 +447,26 @@
         "downloading": "Generating…",
         "downloadError": "Couldn't generate the image. Try again.",
         "previewAlt": "Preview of the {name} template for {program}",
-        "logoAlt": "{business} logo"
+        "logoAlt": "{business} logo",
+        "printHeading": "Print",
+        "socialHeading": "Social media",
+        "storyName": "Instagram story",
+        "squareName": "Square post",
+        "a5Name": "A5 counter print"
       },
       "errors": {
         "nameRequired": "Give the program a name.",
         "goalMin": "Goal must be at least 1.",
         "stampGoalMax": "Stamp cards can have at most 10 stamps.",
         "configInvalid": "The card settings are invalid. Please review them.",
-        "rewardRequired": "Describe the reward."
+        "rewardRequired": "Describe the reward.",
+        "assetInvalid": "That image isn't in your library."
       }
     },
     "rewards": {
-      "metaTitle": "Rewards",
-      "title": "Rewards",
-      "description": "Set up rewards that stand on their own outside your programs, like a birthday reward for your customers.",
+      "metaTitle": "Automations",
+      "title": "Automations",
+      "description": "Automatic wallet messages and optional rewards that run on their own.",
       "birthday": {
         "title": "Birthday reward",
         "description": "Automatically grant this reward to your customers throughout their entire birthday month.",
@@ -459,7 +478,52 @@
         "saved": "Changes saved."
       },
       "errors": {
+        "messageRequired": "Write the message to enable this automation.",
+        "settingRange": "That value is out of range.",
         "rewardRequired": "Describe the reward."
+      },
+      "activeLabel": "Enabled",
+      "messageLabel": "Message",
+      "placeholdersHint": "You can use {name}, {business}, {days} and {remaining}. Max 200 characters. Only customers who opted in to marketing are messaged.",
+      "rewardLabel": "Reward (optional)",
+      "rewardPlaceholder": "A free coffee",
+      "saved": "Automation saved.",
+      "save": "Save",
+      "saving": "Saving…",
+      "messageRequired": "Write the message to enable this automation.",
+      "settingRange": "That value is out of range.",
+      "types": {
+        "welcome": {
+          "title": "Welcome",
+          "description": "Greet new customers as soon as their card is created.",
+          "defaultMessage": "Welcome to {business}, {name}! Show this card to start collecting.",
+          "settingLabel": ""
+        },
+        "birthday": {
+          "title": "Birthday",
+          "description": "Message customers before and on their birthday. Add a reward to grant it for their whole birthday month.",
+          "defaultMessage": "Happy birthday, {name}! Your gift from {business} is waiting.",
+          "settingLabel": "Days before the birthday to send a heads-up (0 = only on the day)"
+        },
+        "unredeemed_reminder": {
+          "title": "Unredeemed reward reminder",
+          "description": "Remind customers who have a reward they haven't used yet.",
+          "defaultMessage": "{name}, you have a reward waiting at {business}. Come claim it!",
+          "settingLabel": "Remind every (days)"
+        },
+        "win_back": {
+          "title": "Win back",
+          "description": "Nudge customers who haven't visited in a while. Sent once per lapse.",
+          "defaultMessage": "We miss you, {name}! It's been {days} days. Come back to {business} and keep collecting.",
+          "settingLabel": "Days without a visit",
+          "warning": "Heads up: when you enable this, everyone who has already been inactive for this many days is messaged at once."
+        },
+        "almost_there": {
+          "title": "Almost there",
+          "description": "Sent right after a stamp when a customer is close to their reward.",
+          "defaultMessage": "Only {remaining} to go, {name}! Your reward at {business} is almost yours.",
+          "settingLabel": "Send when this many stamps remain"
+        }
       }
     },
     "locations": {
@@ -617,7 +681,16 @@
         "timezonePlaceholder": "America/New_York",
         "removeCurrentImage": "Remove current image",
         "keepCurrentImage": "Keep current image",
-        "none": "None"
+        "none": "None",
+        "businessInfoHeading": "Business information",
+        "regionalHeading": "Regional preferences",
+        "supportEmailLabel": "Support email",
+        "supportPhoneLabel": "Support phone",
+        "supportHint": "Shown to customers on their card and wallet pass.",
+        "localeLabel": "Default language",
+        "localeNone": "Not set",
+        "localeEn": "English",
+        "localeEs": "Español"
       },
       "errors": {
         "notSignedIn": "You are not signed in.",
@@ -635,7 +708,10 @@
         "storageCleanupFailed": "We couldn't clean up this business's uploaded files. Please try again.",
         "deleteBusinessFailed": "Failed to delete the business. Please try again.",
         "ownsBusinessCantDelete": "You must delete or transfer ownership of {businesses} before deleting your account.",
-        "deleteAccountFailed": "Failed to delete your account. Please try again."
+        "deleteAccountFailed": "Failed to delete your account. Please try again.",
+        "supportEmailInvalid": "Enter a valid support email.",
+        "supportPhoneInvalid": "Enter a valid support phone number.",
+        "localeInvalid": "Choose a supported language."
       },
       "dangerZone": {
         "title": "Danger zone",
@@ -699,6 +775,58 @@
         "noRecipients": "No opted-in customers to send to.",
         "notOptedIn": "Some selected customers have not opted in.",
         "deliveryFailed": "The offer was saved but delivery failed. Try again."
+      }
+    },
+    "marketing": {
+      "metaTitle": "Marketing",
+      "title": "Marketing",
+      "description": "Printable and shareable material for your cards.",
+      "pickCard": "Choose a card",
+      "empty": "Create a card first to get printable material.",
+      "viewCard": "Open card",
+      "byCard": {
+        "title": "Cards at a glance",
+        "customers": "Customers",
+        "cards": "Cards",
+        "stamps": "Stamps (14d)",
+        "redemptions": "Redemptions"
+      }
+    },
+    "activity": {
+      "metaTitle": "Activity",
+      "title": "Activity",
+      "description": "Everything happening across your loyalty program, newest first.",
+      "aCustomer": "a customer",
+      "loadOlder": "Load older",
+      "filterAll": "All",
+      "filterLabel": "Filter by type",
+      "empty": {
+        "title": "No activity yet",
+        "description": "Sign-ups, stamps, redemptions and broadcasts will show up here."
+      },
+      "types": {
+        "customer_joined": "Customers joined",
+        "card_issued": "Cards issued",
+        "stamp": "Stamps",
+        "checkin": "Check-ins",
+        "redeem": "Redemptions",
+        "reward_granted": "Rewards granted",
+        "reward_redeemed": "Rewards redeemed",
+        "broadcast": "Broadcasts",
+        "automation_sent": "Automations"
+      },
+      "events": {
+        "customer_joined": "{customer} joined",
+        "card_issued": "{customer} got a {program} card",
+        "stamp": "{customer} earned {delta} in {program}",
+        "checkin": "{customer} checked in at {program}",
+        "redeem": "{customer} redeemed a reward in {program}",
+        "adjust": "{customer} had a balance adjustment of {delta} in {program}",
+        "reward_granted": "{customer} was granted a reward: {detail}",
+        "reward_redeemed": "{customer} redeemed a reward: {detail}",
+        "broadcast": "Broadcast sent to {customer}: {detail}",
+        "broadcastAll": "Broadcast sent to all opted-in customers: {detail}",
+        "automation_sent": "Automation sent to {customer}: {detail}"
       }
     }
   },

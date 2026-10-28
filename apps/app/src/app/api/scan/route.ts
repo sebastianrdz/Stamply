@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
 import { cardState, type ScanAction } from "@/lib/cards/state";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
+import { triggerAlmostThere } from "@/lib/automations/trigger";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import type { Card, StandaloneRewardGrant } from "@/types/database";
@@ -380,6 +381,9 @@ export async function POST(req: NextRequest) {
   }
   if (updated) {
     await notifyCardUpdated(admin, updated);
+
+    // Best-effort (swallows its own errors): "almost there" nudge after a stamp.
+    if (action === "stamp") await triggerAlmostThere(admin, updated);
 
     // Best-effort: surface this customer's other available standalone
     // rewards (e.g. an unredeemed birthday reward) alongside the scan

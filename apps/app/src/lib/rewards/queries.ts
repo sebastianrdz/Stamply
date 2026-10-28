@@ -1,14 +1,23 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database";
+import type { Database, RewardType } from "@/types/database";
 
 type Client = SupabaseClient<Database>;
+
+/** Shown when the owner later clears an automation's reward text. */
+const FALLBACK_TITLE: Record<RewardType, string> = {
+  welcome: "Welcome reward",
+  birthday: "Birthday reward",
+  unredeemed_reminder: "Reward",
+  win_back: "Welcome-back reward",
+  almost_there: "Reward",
+};
 
 export interface StandaloneReward {
   id: string;
   rewardDefinitionId: string;
-  type: "birthday";
+  type: RewardType;
   title: string;
   status: "available" | "redeemed" | "expired";
   isAvailableNow: boolean;
@@ -48,14 +57,16 @@ export async function getAvailableStandaloneRewardsForCustomer(
     status: "available" | "redeemed" | "expired";
     granted_at: string;
     redeemed_at: string | null;
-    reward_definition: { type: "birthday"; reward_description: string } | null;
+    reward_definition: { type: RewardType; reward_description: string | null } | null;
   };
 
   return ((data ?? []) as unknown as RowWithDefinition[]).map((row) => ({
     id: row.id,
     rewardDefinitionId: row.reward_definition_id,
     type: row.reward_definition?.type ?? "birthday",
-    title: row.reward_definition?.reward_description ?? "",
+    title:
+      row.reward_definition?.reward_description ||
+      (row.reward_definition?.type ? FALLBACK_TITLE[row.reward_definition.type] : "Reward"),
     status: row.status,
     isAvailableNow: true,
     grantedAt: row.granted_at,
@@ -83,7 +94,7 @@ export async function getBirthdayRewardDefinition(
     });
     throw error;
   }
-  if (!data) return null;
+  if (!data?.reward_description) return null;
   return { id: data.id, rewardDescription: data.reward_description };
 }
 

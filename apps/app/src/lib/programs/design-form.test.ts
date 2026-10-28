@@ -1,0 +1,55 @@
+import { describe, expect, it } from "vitest";
+import { designFromForm } from "./design-form";
+import esDict from "@stamply/i18n/dictionaries/es.json";
+
+const folder = "https://x.supabase.co/storage/v1/object/public/business-assets/biz-1/";
+const supabase = {
+  storage: { from: () => ({ getPublicUrl: () => ({ data: { publicUrl: folder } }) }) },
+} as never;
+const id = "123e4567-e89b-12d3-a456-426614174000";
+const current = {
+  primary_color: "#111111",
+  secondary_color: "#222222",
+  logo_url: "https://old/logo.png",
+  background_image_url: "https://old/bg.png",
+  stamp_icon_url: "https://old/s.svg",
+  show_business_name: true,
+};
+const run = (o: Record<string, string>) => {
+  const f = new FormData();
+  f.set("primary_color", "#abcdef");
+  f.set("secondary_color", "#000000");
+  for (const [k, v] of Object.entries(o)) f.set(k, v);
+  return designFromForm(supabase, "biz-1", f, current, esDict as never);
+};
+
+describe("designFromForm", () => {
+  it("returns null without design fields", async () => {
+    expect(
+      await designFromForm(supabase, "biz-1", new FormData(), current, esDict as never),
+    ).toBeNull();
+  });
+  it("keeps untouched images", async () => {
+    const r = (await run({})) as { design: typeof current };
+    expect(r.design.logo_url).toBe(current.logo_url);
+    expect(r.design.primary_color).toBe("#abcdef");
+    expect(r.design.show_business_name).toBe(false);
+  });
+  it("clears images on remove_*", async () => {
+    const r = (await run({
+      remove_logo: "1",
+      remove_background: "1",
+      remove_stamp: "1",
+    })) as { design: typeof current | never };
+    expect(r.design.logo_url).toBeNull();
+    expect(r.design.background_image_url).toBeNull();
+    expect(r.design.stamp_icon_url).toBeNull();
+  });
+  it("applies a valid pick and errors on a foreign one", async () => {
+    const url = `${folder}logo-${id}.png`;
+    const ok = (await run({ logo_pick: url })) as { design: typeof current };
+    expect(ok.design.logo_url).toBe(url);
+    const bad = await run({ logo_pick: `https://evil.com/logo-${id}.png` });
+    expect(bad).toEqual({ error: esDict.dashboard.programs.errors.assetInvalid });
+  });
+});

@@ -17,12 +17,12 @@ test.describe("Auth-gated redirects (unauthenticated)", () => {
     ).toBeVisible();
   });
 
-  test("/dashboard/billing redirects to /login?next=%2Fdashboard%2Fbilling", async ({
+  test("/dashboard/settings/billing redirects to /login?next=%2Fdashboard%2Fsettings%2Fbilling", async ({
     page,
   }) => {
-    await page.goto("/dashboard/billing");
+    await page.goto("/dashboard/settings/billing");
     await expect(page).toHaveURL(
-      "http://localhost:3100/login?next=%2Fdashboard%2Fbilling",
+      "http://localhost:3100/login?next=%2Fdashboard%2Fsettings%2Fbilling",
     );
   });
 
