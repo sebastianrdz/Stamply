@@ -8,15 +8,13 @@ import { imageBuffer, logoBuffer } from "./assets";
 import { renderPassIconSet } from "./icon";
 import type { CardWithRelations } from "@/lib/cards/queries";
 import { cardState } from "@/lib/cards/state";
+import { redeemableCount, slotColors, slotIcons } from "@/lib/cards/milestones";
 import { cardText } from "@/lib/cards/text";
-import { renderStampStrip } from "@/lib/wallet/stamp-image";
+import { renderOverlayStrip, renderStampStrip } from "@/lib/wallet/stamp-image";
 import { cardUrl } from "@/lib/urls";
 import esDict from "@stamply/i18n/dictionaries/es.json";
 import { interpolate } from "@stamply/i18n/format";
-import {
-  isBirthdayMonth,
-  birthdayMonthWindow,
-} from "@/lib/customers/birthday";
+import { isBirthdayMonth, birthdayMonthWindow } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
 import { latestOfferForCard } from "@/lib/offers/queries";
 import { cardDesign } from "@/lib/programs/design";
@@ -58,7 +56,10 @@ export async function buildApplePass(
   const text = cardText(state, card.program, w, {
     locale: "es-MX",
     business: card.business.name,
-    rewards: availableRewards,
+    rewards: redeemableCount(
+      { ...card, rewards: availableRewards },
+      card.program,
+    ),
     timeZone: card.business.timezone,
   });
   const webUrl = cardUrl(card.pass_auth_token);
@@ -84,8 +85,7 @@ export async function buildApplePass(
   // birthday month, not just the exact day.
   let relevantDates: { startDate: string; endDate: string }[] | undefined;
   let birthdayBackField:
-    | { key: string; label: string; value: string }
-    | undefined;
+    { key: string; label: string; value: string } | undefined;
   if (admin) {
     try {
       if (
@@ -166,7 +166,9 @@ export async function buildApplePass(
     locations: locations.slice(0, 10).map((l) => ({
       latitude: l.lat,
       longitude: l.lng,
-      relevantText: l.name ? interpolate(w.nearby, { name: l.name }) : undefined,
+      relevantText: l.name
+        ? interpolate(w.nearby, { name: l.name })
+        : undefined,
     })),
     // Lock-screen relevance: pass surfaces on the customer's birthday, for the
     // 24h window computed in the business's own timezone.
@@ -255,7 +257,7 @@ export async function buildApplePass(
   // the raw business background image, unchanged.
   const strip = isStampProgram
     ? await buildStampStripSet(card, progress, goal)
-    : await legacyStripSet(design.background_image_url);
+    : await legacyStripSet(design.background_image_url, design.overlay_opacity);
 
   const pass = new PKPass(
     {
@@ -294,6 +296,10 @@ async function buildStampStripSet(
           goal,
           brandHex: design.primary_color,
           stampIconUrl: design.stamp_icon_url ?? null,
+          slotIconUrls: slotIcons(card.program.config, goal),
+          slotColors: slotColors(card.program.config, goal),
+          iconColor: design.stamp_color,
+          overlayOpacity: design.overlay_opacity,
           backgroundImageUrl: design.background_image_url,
           width: STRIP_WIDTH_1X * scale,
         }),
@@ -313,7 +319,30 @@ async function buildStampStripSet(
 /** Points programs keep the previous behavior: the raw background image, unscaled. */
 async function legacyStripSet(
   backgroundImageUrl: string | null,
+  overlayOpacity = 0,
 ): Promise<Record<string, Buffer>> {
+  if (backgroundImageUrl && overlayOpacity > 0) {
+    try {
+      const [strip, strip2x, strip3x] = await Promise.all(
+        [1, 2, 3].map((scale) =>
+          renderOverlayStrip({
+            backgroundImageUrl,
+            overlayOpacity,
+            width: STRIP_WIDTH_1X * scale,
+          }),
+        ),
+      );
+      if (strip && strip2x && strip3x)
+        return {
+          "strip.png": strip,
+          "strip@2x.png": strip2x,
+          "strip@3x.png": strip3x,
+        };
+    } catch (e) {
+      // Never break pass generation over the overlay: fall back to the raw image.
+      console.error("[apple wallet] overlay strip render failed", e);
+    }
+  }
   const strip = await imageBuffer(backgroundImageUrl);
   return strip ? { "strip.png": strip, "strip@2x.png": strip } : {};
 }

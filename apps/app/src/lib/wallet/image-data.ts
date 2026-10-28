@@ -3,7 +3,8 @@ import "server-only";
 /** Sniff enough of an image buffer to build a correct data: URI mime type. */
 export function sniffMime(buf: Buffer): string {
   if (buf.length >= 8 && buf[0] === 0x89 && buf[1] === 0x50) return "image/png";
-  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8) return "image/jpeg";
+  if (buf.length >= 3 && buf[0] === 0xff && buf[1] === 0xd8)
+    return "image/jpeg";
   if (
     buf.length >= 12 &&
     buf.toString("ascii", 0, 4) === "RIFF" &&

@@ -6,6 +6,7 @@ import {
   getOtherActiveCardsForCustomer,
 } from "@/lib/cards/queries";
 import { cardState } from "@/lib/cards/state";
+import { redeemableCount, slotColors, slotIcons } from "@/lib/cards/milestones";
 import { cardText } from "@/lib/cards/text";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import { qrDataUrl } from "@/lib/qr";
@@ -14,7 +15,7 @@ import { cardDesign } from "@/lib/programs/design";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
-import { LoyaltyCard } from "@/components/loyalty-card";
+import { AppleWalletCardPreview } from "@stamply/ui/apple-wallet-card-preview";
 import { WalletButtons } from "./wallet-buttons";
 import { NotificationsSection } from "./notifications-section";
 
@@ -103,7 +104,7 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   ]);
   // Rewards are per-program: this card's own banked count, not a sum across the
   // customer's cards in other programs.
-  const availableRewards = card.rewards;
+  const availableRewards = redeemableCount(card, card.program);
 
   return (
     <div
@@ -111,33 +112,56 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
       style={brandStyle(design.primary_color)}
     >
       <div className="flex w-full max-w-sm flex-col gap-6">
-        <LoyaltyCard
-          businessName={card.business.name}
-          program={card.program}
-          progress={state.progress}
-          panel={
-            text.legacy
-              ? undefined
-              : {
-                  header: text.header,
-                  headline: text.headline,
-                  detail: text.detail,
-                  side: text.secondary[0] ?? null,
-                }
-          }
-          completed={completed}
+        <AppleWalletCardPreview
+          backgroundColor={design.primary_color}
           logoUrl={design.logo_url}
-          backgroundImageUrl={design.background_image_url}
-          stampIconUrl={design.stamp_icon_url}
-          showBusinessName={design.show_business_name}
-          customerName={card.customer.full_name}
-          availableRewards={availableRewards}
-          qrImageUrl={qr}
-          stampsLabel={text.header.label}
-          nameLabel={dict.card.name}
-          rewardsLabel={dict.card.rewards}
-          guestLabel={dict.card.guest}
-          rewardReadyLabel={dict.card.rewardReady}
+          logoText={design.show_business_name ? card.business.name : null}
+          headerFields={[
+            completed && card.program.type === "stamp"
+              ? { label: text.header.label, value: dict.card.rewardReady }
+              : text.header,
+          ]}
+          strip={
+            card.program.type === "stamp"
+              ? {
+                  imageUrl: design.background_image_url,
+                  overlayOpacity: design.overlay_opacity,
+                  stamps: {
+                    progress: state.progress,
+                    goal: card.program.goal,
+                    iconUrl: design.stamp_icon_url,
+                    iconColor: design.stamp_color,
+                    slotIcons: slotIcons(
+                      card.program.config,
+                      card.program.goal,
+                    ),
+                    slotColors: slotColors(
+                      card.program.config,
+                      card.program.goal,
+                    ),
+                  },
+                }
+              : design.background_image_url
+                ? {
+                    imageUrl: design.background_image_url,
+                    overlayOpacity: design.overlay_opacity,
+                  }
+                : null
+          }
+          primaryField={text.primary}
+          secondaryFields={[
+            {
+              label: dict.card.name,
+              value: card.customer.full_name || dict.card.guest,
+            },
+            ...text.secondary.map((f) =>
+              text.legacy
+                ? { ...f, label: dict.card.rewards, value: availableRewards }
+                : f,
+            ),
+          ]}
+          auxiliaryFields={text.auxiliary}
+          barcode={{ src: qr }}
         />
 
         <WalletButtons

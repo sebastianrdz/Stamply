@@ -13,6 +13,8 @@ const current = {
   logo_url: "https://old/logo.png",
   background_image_url: "https://old/bg.png",
   stamp_icon_url: "https://old/s.svg",
+  stamp_color: null,
+  overlay_opacity: 0.4,
   show_business_name: true,
 };
 const run = (o: Record<string, string>) => {
@@ -34,6 +36,20 @@ describe("designFromForm", () => {
     expect(r.design.logo_url).toBe(current.logo_url);
     expect(r.design.primary_color).toBe("#abcdef");
     expect(r.design.show_business_name).toBe(false);
+  });
+  it("saves a valid stamp color, clears an empty one, rejects a bad one", async () => {
+    const ok = (await run({ stamp_color: "#ff0000" })) as { design: typeof current };
+    expect(ok.design.stamp_color).toBe("#ff0000");
+    const none = (await run({ stamp_color: "" })) as { design: typeof current };
+    expect(none.design.stamp_color).toBeNull();
+    expect(await run({ stamp_color: "red" })).toHaveProperty("error");
+  });
+  it("saves the overlay percent as 0..1, keeps it when absent, rejects out of range", async () => {
+    const r = (await run({ overlay_opacity: "65" })) as { design: typeof current };
+    expect(r.design.overlay_opacity).toBe(0.65);
+    const kept = (await run({})) as { design: typeof current };
+    expect(kept.design.overlay_opacity).toBe(0.4);
+    expect(await run({ overlay_opacity: "150" })).toHaveProperty("error");
   });
   it("clears images on remove_*", async () => {
     const r = (await run({

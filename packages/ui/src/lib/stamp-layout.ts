@@ -12,6 +12,8 @@
 
 export interface StampSlot {
   filled: boolean;
+  /** 1-based stamp number (position in the grid, left-to-right, top-to-bottom). */
+  index: number;
 }
 
 export interface StampGridLayout {
@@ -52,11 +54,12 @@ export function computeStampGrid(
       : [Math.ceil(slotCount / 2), Math.floor(slotCount / 2)];
 
   let remaining = filledCount;
+  let index = 0;
   const rows: StampSlot[][] = rowCounts.map((count) =>
     Array.from({ length: count }, () => {
       const filled = remaining > 0;
       if (filled) remaining--;
-      return { filled };
+      return { filled, index: ++index };
     }),
   );
 

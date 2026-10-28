@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildStampSvg, FALLBACK_BG } from "./stamp-image";
-import { computeStampGrid } from "./stamp-layout";
+import { computeStampGrid } from "@stamply/ui/stamp-layout";
 
 // Pure unit tests for the SVG string builder only — no network, no native
 // rasterizer. `renderStampStrip` (which fetches images and calls Resvg) is
@@ -23,7 +23,9 @@ describe("buildStampSvg", () => {
       grid: computeStampGrid(3, 8),
     });
 
-    expect(svg.startsWith("<svg xmlns=\"http://www.w3.org/2000/svg\"")).toBe(true);
+    expect(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg"')).toBe(
+      true,
+    );
     expect(svg).toContain(`width="${W}"`);
     expect(svg).toContain(`height="${H}"`);
     expect(svg).toContain(`viewBox="0 0 ${W} ${H}"`);
@@ -55,7 +57,9 @@ describe("buildStampSvg", () => {
       grid: computeStampGrid(1, 4),
     });
 
-    expect(svg).toContain(`<image href="data:image/png;base64,${bgBuf.toString("base64")}"`);
+    expect(svg).toContain(
+      `<image href="data:image/png;base64,${bgBuf.toString("base64")}"`,
+    );
     // No brand-color background rect should be drawn when a bg image exists.
     expect(svg).not.toContain('fill="#7c5cfc"');
   });
@@ -119,7 +123,9 @@ describe("buildStampSvg", () => {
   });
 
   it("draws <image> icons (with a backing circle only when filled) when an icon buffer is given", () => {
-    const iconBuf = Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'></svg>");
+    const iconBuf = Buffer.from(
+      "<svg xmlns='http://www.w3.org/2000/svg'></svg>",
+    );
     const grid = computeStampGrid(1, 2); // 1 filled, 1 unfilled, single row
     const svg = buildStampSvg({
       width: W,
@@ -147,5 +153,64 @@ describe("buildStampSvg", () => {
       grid,
     });
     expect(svg.match(/<circle/g)?.length).toBe(8);
+  });
+});
+
+describe("buildStampSvg stamp color", () => {
+  const base = {
+    width: 375,
+    height: 185,
+    brandHex: "#336699",
+    bgBuf: null,
+    iconBuf: Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#00ff00"/></svg>',
+    ),
+    grid: computeStampGrid(2, 4),
+  };
+  it("tints icons with a flat-color filter only when a color is set", () => {
+    const tinted = buildStampSvg({ ...base, iconColor: "#ff0000" });
+    expect(tinted).toContain('flood-color="#ff0000"');
+    expect(tinted).toContain('filter="url(#tint-ff0000)"');
+    const plain = buildStampSvg(base);
+    expect(plain).not.toContain("tint");
+  });
+  it("tints individual slots with their own color, falling back to the card color", () => {
+    const svg = buildStampSvg({
+      ...base,
+      iconColor: "#ff0000",
+      slotColors: { 2: "#00aa00" },
+    });
+    expect(svg).toContain('id="tint-ff0000"');
+    expect(svg).toContain('id="tint-00aa00"');
+    expect(svg.match(/url\(#tint-00aa00\)/g)).toHaveLength(1);
+    expect(svg.match(/url\(#tint-ff0000\)/g)).toHaveLength(3);
+  });
+  it("falls back to white for a malformed color (no SVG injection)", () => {
+    expect(buildStampSvg({ ...base, iconColor: '"><script>' })).not.toContain(
+      "<script>",
+    );
+  });
+});
+
+describe("buildStampSvg overlay", () => {
+  const base = {
+    width: 375,
+    height: 185,
+    brandHex: "#336699",
+    bgBuf: null,
+    iconBuf: null,
+    grid: computeStampGrid(1, 4),
+  };
+  it("defaults to a 40% shade and honors a custom opacity, clamped to 0..1", () => {
+    expect(buildStampSvg(base)).toContain('opacity="0.4"');
+    expect(buildStampSvg({ ...base, overlayOpacity: 0.75 })).toContain(
+      'opacity="0.75"',
+    );
+    expect(buildStampSvg({ ...base, overlayOpacity: 3 })).toContain(
+      'fill="#000000" opacity="1"',
+    );
+    expect(buildStampSvg({ ...base, overlayOpacity: 0 })).toContain(
+      'fill="#000000" opacity="0"',
+    );
   });
 });

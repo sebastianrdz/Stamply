@@ -397,7 +397,39 @@
         "pickFromLibrary": "Elegir de la biblioteca",
         "libraryEmpty": "Aún no hay archivos subidos.",
         "removeImage": "Quitar",
-        "previewTitle": "Vista previa"
+        "previewTitle": "Vista previa",
+        "milestonesLabel": "Premios",
+        "milestonesHint": "El último sello siempre tiene un premio. Agrega más en sellos anteriores.",
+        "milestoneAdd": "Agregar un premio",
+        "milestoneRemove": "Quitar",
+        "milestoneAtLabel": "En el sello",
+        "milestoneRewardLabel": "ej. Café gratis",
+        "milestoneIconLabel": "Ícono de este premio",
+        "rewardIconLabel": "Ícono del premio final",
+        "rewardIconHint": "Se muestra en el último sello. Solo SVG.",
+        "uploadImage": "Subir",
+        "replaceImage": "Cambiar",
+        "rewardAtPrefix": "En",
+        "rewardAtSuffix": "sellos, obtén",
+        "tabUploaded": "Subidos",
+        "tabIcons": "Íconos",
+        "uploadNew": "Subir nuevo",
+        "chooseIcon": "Elegir ícono",
+        "removeIcon": "Quitar ícono",
+        "chooseImage": "Elegir imagen",
+        "stepsLabel": "Pasos",
+        "stepType": "Tipo de tarjeta",
+        "stepConfig": "Configuración",
+        "stepDesign": "Diseño",
+        "stepNext": "Siguiente",
+        "milestoneDuplicate": "Otro premio ya usa este sello.",
+        "milestoneRange": "Usa un sello anterior al último (sello {goal}).",
+        "overlayLabel": "Capa sobre el fondo",
+        "overlayHint": "Oscurece la imagen de fondo para que resalten los sellos. 0% la deja sin cambios.",
+        "iconColorLabel": "Color",
+        "iconColorOriginal": "Colores originales",
+        "iconColorReset": "Restablecer",
+        "previewStampsLabel": "Vista previa de sellos llenos"
       },
       "detail": {
         "collectPoints": "Junta {goal} puntos",
@@ -460,7 +492,8 @@
         "stampGoalMax": "Las tarjetas de sellos pueden tener como máximo 10 sellos.",
         "configInvalid": "La configuración de la tarjeta no es válida. Revísala.",
         "rewardRequired": "Describe la recompensa.",
-        "assetInvalid": "Esa imagen no está en tu biblioteca."
+        "assetInvalid": "Esa imagen no está en tu biblioteca.",
+        "milestoneInvalid": "Las recompensas necesitan un número de sello único menor al total y un premio."
       }
     },
     "rewards": {
@@ -647,7 +680,9 @@
         "membershipInactive": "Esta membresía no está activa. Renuévala primero.",
         "actionNotAllowed": "Esta acción no está disponible para esta tarjeta.",
         "invalidAmount": "Ingresa un monto válido."
-      }
+      },
+      "milestonePickLabel": "Premio de sello",
+      "actionRedeemMilestone": "Canjear"
     },
     "settings": {
       "metaTitle": "Configuración",

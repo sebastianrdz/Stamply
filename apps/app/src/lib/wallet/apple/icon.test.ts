@@ -52,7 +52,11 @@ describe("buildIconSvg", () => {
   });
 
   it("sanitizes an invalid brand color", () => {
-    const svg = buildIconSvg({ logoBuf: null, brandHex: "javascript:x", size: 29 });
+    const svg = buildIconSvg({
+      logoBuf: null,
+      brandHex: "javascript:x",
+      size: 29,
+    });
     expect(svg).toContain('fill="#7c5cfc"');
     expect(svg).not.toContain("javascript");
   });

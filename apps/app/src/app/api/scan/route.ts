@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
 import { cardState, type ScanAction } from "@/lib/cards/state";
+import { availableMilestones } from "@/lib/cards/milestones";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
 import { triggerAlmostThere } from "@/lib/automations/trigger";
 import { captureServerEvent } from "@/lib/posthog/server";
@@ -23,6 +24,7 @@ const schema = z.object({
     "spend",
     "redeem",
     "redeem_tier",
+    "redeem_milestone",
     "use_coupon",
     "check_in",
     "renew",
@@ -33,6 +35,7 @@ const schema = z.object({
   // Spend amount in cents; the server derives the points delta from it.
   amount_cents: z.number().int().min(1).max(10_000_000).optional(),
   tier_index: z.number().int().min(0).optional(),
+  milestone_at: z.number().int().min(1).max(10).optional(),
   tier: z.string().min(1).max(60).optional(),
   location_id: z.string().uuid().nullish(),
   // Only used by (and required for) action === "redeem_standalone_reward".
@@ -46,6 +49,8 @@ const RPC_ERRORS: Record<string, number> = {
   coupon_exhausted: 409,
   membership_inactive: 409,
   tier_not_found: 404,
+  milestone_not_found: 404,
+  card_not_redeemable: 409,
   card_not_found: 404,
   invalid_days: 400,
 };
@@ -71,15 +76,26 @@ export async function POST(req: NextRequest) {
     });
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });
   }
-  const { barcode, action, location_id, grant_id, amount_cents, tier_index, tier } =
-    parsed.data;
+  const {
+    barcode,
+    action,
+    location_id,
+    grant_id,
+    amount_cents,
+    tier_index,
+    milestone_at,
+    tier,
+  } = parsed.data;
   let { delta } = parsed.data;
   if (
     (action === "redeem_standalone_reward" && !grant_id) ||
     (action === "spend" && amount_cents === undefined) ||
-    (action === "redeem_tier" && tier_index === undefined)
+    (action === "redeem_tier" && tier_index === undefined) ||
+    (action === "redeem_milestone" && milestone_at === undefined)
   ) {
-    console.warn("[scan] request missing required field for action", { action });
+    console.warn("[scan] request missing required field for action", {
+      action,
+    });
     return err("invalid_request", 400);
   }
 
@@ -131,9 +147,12 @@ export async function POST(req: NextRequest) {
       return err("not_redeemable", 409);
     }
     // Specific codes for the expired/exhausted cases, generic one otherwise.
-    if (action === "use_coupon" && state.expired) return err("coupon_expired", 409);
-    if (action === "use_coupon" && state.usesLeft === 0) return err("coupon_exhausted", 409);
-    if (action === "check_in" && state.expired) return err("membership_inactive", 409);
+    if (action === "use_coupon" && state.expired)
+      return err("coupon_expired", 409);
+    if (action === "use_coupon" && state.usesLeft === 0)
+      return err("coupon_exhausted", 409);
+    if (action === "check_in" && state.expired)
+      return err("membership_inactive", 409);
     if (!state.actions.includes(action as ScanAction)) {
       return err("action_not_allowed", 409);
     }
@@ -151,9 +170,19 @@ export async function POST(req: NextRequest) {
       if (state.available < t.points) return err("insufficient_points", 409);
     }
 
+    if (action === "redeem_milestone") {
+      if (
+        !availableMilestones(card, card.program).some(
+          (m) => m.at === milestone_at,
+        )
+      )
+        return err("milestone_not_found", 404);
+    }
+
     if (action === "set_tier") {
       if (!tier) return err("invalid_request", 400);
-      if (!pointsTiers.some((t) => t.name === tier)) return err("tier_not_found", 404);
+      if (!pointsTiers.some((t) => t.name === tier))
+        return err("tier_not_found", 404);
     }
 
     if (action === "renew") {
@@ -235,30 +264,38 @@ export async function POST(req: NextRequest) {
       : action === "redeem"
         ? admin.rpc("redeem_card", common)
         : action === "redeem_tier"
-          ? admin.rpc("redeem_points_tier", { ...common, p_tier_index: tier_index! })
-          : action === "use_coupon"
-            ? admin.rpc("use_coupon", common)
-            : action === "check_in"
-              ? admin.rpc("membership_check_in", common)
-              : action === "renew"
-                ? admin.rpc("renew_membership", {
-                    p_card_id: card.id,
-                    p_days: Number(config.renew_days),
-                  })
-                : action === "set_tier"
-                  ? // Single-column change: no RPC needed; card was already scoped to the caller's business.
-                    admin
-                      .from("cards")
-                      .update({ tier })
-                      .eq("id", card.id)
-                      .eq("business_id", card.business_id)
-                      .select()
-                      .single()
-                  : admin.rpc("redeem_standalone_reward", {
-                    p_grant_id: grant_id!,
-                    p_employee_id: user.id,
-                    p_location_id: location_id ?? null,
-                  });
+          ? admin.rpc("redeem_points_tier", {
+              ...common,
+              p_tier_index: tier_index!,
+            })
+          : action === "redeem_milestone"
+            ? admin.rpc("redeem_stamp_milestone", {
+                ...common,
+                p_at: milestone_at!,
+              })
+            : action === "use_coupon"
+              ? admin.rpc("use_coupon", common)
+              : action === "check_in"
+                ? admin.rpc("membership_check_in", common)
+                : action === "renew"
+                  ? admin.rpc("renew_membership", {
+                      p_card_id: card.id,
+                      p_days: Number(config.renew_days),
+                    })
+                  : action === "set_tier"
+                    ? // Single-column change: no RPC needed; card was already scoped to the caller's business.
+                      admin
+                        .from("cards")
+                        .update({ tier })
+                        .eq("id", card.id)
+                        .eq("business_id", card.business_id)
+                        .select()
+                        .single()
+                    : admin.rpc("redeem_standalone_reward", {
+                        p_grant_id: grant_id!,
+                        p_employee_id: user.id,
+                        p_location_id: location_id ?? null,
+                      });
 
   const { data: mutated, error: rpcError } = await rpc;
   if (rpcError) {
@@ -277,7 +314,9 @@ export async function POST(req: NextRequest) {
       details: rpcError.details,
       hint: rpcError.hint,
     });
-    const known = Object.keys(RPC_ERRORS).find((k) => rpcError.message?.includes(k));
+    const known = Object.keys(RPC_ERRORS).find((k) =>
+      rpcError.message?.includes(k),
+    );
     if (known) return err(known, RPC_ERRORS[known]);
     return NextResponse.json(
       { error: "rpc_failed", detail: rpcError.message, code: rpcError.code },
@@ -298,7 +337,10 @@ export async function POST(req: NextRequest) {
         .limit(1)
         .maybeSingle();
       if (ev) {
-        await admin.from("stamp_events").update({ amount_cents }).eq("id", ev.id);
+        await admin
+          .from("stamp_events")
+          .update({ amount_cents })
+          .eq("id", ev.id);
       }
     } catch (e) {
       console.error("[scan] failed to record amount_cents", e);
@@ -331,6 +373,7 @@ export async function POST(req: NextRequest) {
     } else if (
       action === "redeem" ||
       action === "redeem_tier" ||
+      action === "redeem_milestone" ||
       action === "use_coupon"
     ) {
       captureServerEvent({
@@ -343,7 +386,11 @@ export async function POST(req: NextRequest) {
         },
         groups: { business: card.business_id },
       });
-    } else if (action === "check_in" || action === "renew" || action === "set_tier") {
+    } else if (
+      action === "check_in" ||
+      action === "renew" ||
+      action === "set_tier"
+    ) {
       captureServerEvent({
         distinctId: user.id,
         event:
@@ -352,7 +399,10 @@ export async function POST(req: NextRequest) {
             : action === "renew"
               ? "membership_renewed"
               : "membership_tier_changed",
-        properties: { program_id: card.program_id, location_id: location_id ?? null },
+        properties: {
+          program_id: card.program_id,
+          location_id: location_id ?? null,
+        },
         groups: { business: card.business_id },
       });
     } else {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeStampGrid } from "./stamp-layout";
+import { computeStampGrid } from "@stamply/ui/stamp-layout";
 
 describe("computeStampGrid", () => {
   it("lays out goal <= 5 as a single row of `goal` slots", () => {
@@ -7,7 +7,12 @@ describe("computeStampGrid", () => {
     expect(grid.proportional).toBe(false);
     expect(grid.totalSlots).toBe(4);
     expect(grid.rows).toEqual([
-      [{ filled: true }, { filled: true }, { filled: false }, { filled: false }],
+      [
+        { filled: true, index: 1 },
+        { filled: true, index: 2 },
+        { filled: false, index: 3 },
+        { filled: false, index: 4 },
+      ],
     ]);
   });
 
@@ -24,8 +29,18 @@ describe("computeStampGrid", () => {
     expect(grid.totalSlots).toBe(8);
     expect(grid.rows.map((r) => r.length)).toEqual([4, 4]);
     // 3 filled, filled left-to-right, row-major (top row first)
-    expect(grid.rows[0].map((s) => s.filled)).toEqual([true, true, true, false]);
-    expect(grid.rows[1].map((s) => s.filled)).toEqual([false, false, false, false]);
+    expect(grid.rows[0].map((s) => s.filled)).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ]);
+    expect(grid.rows[1].map((s) => s.filled)).toEqual([
+      false,
+      false,
+      false,
+      false,
+    ]);
   });
 
   it("gives the top row the extra slot for an odd goal in 6..10", () => {
@@ -58,7 +73,11 @@ describe("computeStampGrid", () => {
   });
 
   it("clamps negative/zero/fractional progress and goal defensively", () => {
-    expect(computeStampGrid(-5, 4).rows.flat().filter((s) => s.filled).length).toBe(0);
+    expect(
+      computeStampGrid(-5, 4)
+        .rows.flat()
+        .filter((s) => s.filled).length,
+    ).toBe(0);
     expect(() => computeStampGrid(2, 0)).not.toThrow();
     expect(computeStampGrid(2.9, 4.9).totalSlots).toBe(4);
   });

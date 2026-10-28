@@ -1,3 +1,4 @@
+import { availableMilestones } from "./milestones";
 import type { Card, Program } from "@/types/database";
 
 export type ScanAction =
@@ -5,6 +6,7 @@ export type ScanAction =
   | "spend"
   | "redeem"
   | "redeem_tier"
+  | "redeem_milestone"
   | "use_coupon"
   | "check_in"
   | "renew"
@@ -36,13 +38,24 @@ export interface CardState {
   tier: string | null;
   expired: boolean;
   actions: ScanAction[];
+  /** Stamp: milestone rewards earned and not yet redeemed. */
+  milestones?: { at: number; reward: string; available: number }[];
 }
 
 type CardIn = Pick<Card, "stamps" | "points" | "rewards"> &
   Partial<
-    Pick<Card, "points_redeemed" | "uses_count" | "expires_at" | "tier" | "valid_until">
+    Pick<
+      Card,
+      | "points_redeemed"
+      | "milestones_redeemed"
+      | "uses_count"
+      | "expires_at"
+      | "tier"
+      | "valid_until"
+    >
   >;
-type ProgramIn = Pick<Program, "type" | "goal"> & Partial<Pick<Program, "config">>;
+type ProgramIn = Pick<Program, "type" | "goal"> &
+  Partial<Pick<Program, "config">>;
 
 export function cardState(
   card: CardIn,
@@ -67,15 +80,24 @@ export function cardState(
     !!iso && new Date(iso).getTime() < now.getTime();
 
   switch (program.type) {
-    case "stamp":
-      return {
-        ...base,
-        progress: card.stamps % goal,
-        actions: card.rewards > 0 ? ["stamp", "redeem"] : ["stamp"],
-      };
+    case "stamp": {
+      const actions: ScanAction[] =
+        card.rewards > 0 ? ["stamp", "redeem"] : ["stamp"];
+      const milestones = availableMilestones(card, program).map(
+        ({ at, reward, available }) => ({
+          at,
+          reward,
+          available,
+        }),
+      );
+      if (milestones.length > 0) actions.push("redeem_milestone");
+      return { ...base, progress: card.stamps % goal, actions, milestones };
+    }
 
     case "points": {
-      const tiers = (Array.isArray(config.tiers) ? config.tiers : []) as PointsTier[];
+      const tiers = (
+        Array.isArray(config.tiers) ? config.tiers : []
+      ) as PointsTier[];
       const available = card.points - (card.points_redeemed ?? 0);
       const earn: ScanAction = config.earn === "spend" ? "spend" : "stamp";
       // No tiers configured = legacy single goal, banked in cards.rewards.
@@ -101,7 +123,8 @@ export function cardState(
     case "coupon": {
       const raw = config.max_uses;
       const max = typeof raw === "number" ? raw : null;
-      const usesLeft = max === null ? null : Math.max(0, max - (card.uses_count ?? 0));
+      const usesLeft =
+        max === null ? null : Math.max(0, max - (card.uses_count ?? 0));
       const expired = past(card.expires_at);
       return {
         ...base,

@@ -52,8 +52,8 @@ vi.mock("./icon", () => ({
 
 // Mocked so tests stay hermetic and don't hit the native rasterizer; returns
 // a buffer tagged with the requested width so callers can tell scales apart.
-const renderStampStripMock = vi.fn(
-  async ({ width }: { width: number }) => Buffer.from(`stamp-strip-${width}`),
+const renderStampStripMock = vi.fn(async ({ width }: { width: number }) =>
+  Buffer.from(`stamp-strip-${width}`),
 );
 vi.mock("@/lib/wallet/stamp-image", () => ({
   renderStampStrip: (...args: [{ width: number }]) =>
@@ -184,7 +184,9 @@ async function buildPassBuffers(
 
 describe("buildApplePass", () => {
   it("derives backgroundColor/labelColor/foregroundColor from the brand color", async () => {
-    const json = await buildPassJson(cardWithRelations({}, { brand_primary_color: "#ffffff" }));
+    const json = await buildPassJson(
+      cardWithRelations({}, { brand_primary_color: "#ffffff" }),
+    );
     expect(json.backgroundColor).toBe("rgb(255, 255, 255)");
     // white background -> dark foreground/label text
     expect(json.foregroundColor).toBe("rgb(17, 19, 26)");
@@ -192,14 +194,19 @@ describe("buildApplePass", () => {
   });
 
   it("uses white foreground/label text on a dark brand color", async () => {
-    const json = await buildPassJson(cardWithRelations({}, { brand_primary_color: "#000000" }));
+    const json = await buildPassJson(
+      cardWithRelations({}, { brand_primary_color: "#000000" }),
+    );
     expect(json.foregroundColor).toBe("rgb(255, 255, 255)");
     expect(json.labelColor).toBe("rgb(255, 255, 255)");
   });
 
   it("includes logoText when show_business_name is true", async () => {
     const json = await buildPassJson(
-      cardWithRelations({}, { show_business_name: true, name: "The Coffee Spot" }),
+      cardWithRelations(
+        {},
+        { show_business_name: true, name: "The Coffee Spot" },
+      ),
     );
     expect(json.logoText).toBe("The Coffee Spot");
   });
@@ -240,7 +247,9 @@ describe("buildApplePass", () => {
     const json = await buildPassJson(
       cardWithRelations({ stamps: 4 }, {}, { type: "stamp", goal: 10 }),
     );
-    const storeCard = json.storeCard as { headerFields: Array<Record<string, unknown>> };
+    const storeCard = json.storeCard as {
+      headerFields: Array<Record<string, unknown>>;
+    };
     expect(storeCard.headerFields[0].label).toBe("SELLOS");
     expect(storeCard.headerFields[0].value).toBe("4/10");
   });
@@ -249,7 +258,9 @@ describe("buildApplePass", () => {
     const json = await buildPassJson(
       cardWithRelations({ points: 250 }, {}, { type: "points", goal: 500 }),
     );
-    const storeCard = json.storeCard as { headerFields: Array<Record<string, unknown>> };
+    const storeCard = json.storeCard as {
+      headerFields: Array<Record<string, unknown>>;
+    };
     expect(storeCard.headerFields[0].label).toBe("PUNTOS");
     expect(storeCard.headerFields[0].value).toBe("250/500");
   });
@@ -356,7 +367,9 @@ describe("buildApplePass", () => {
       3,
     );
     for (const json of [stampJson, pointsJson]) {
-      const storeCard = json.storeCard as { secondaryFields: Array<Record<string, unknown>> };
+      const storeCard = json.storeCard as {
+        secondaryFields: Array<Record<string, unknown>>;
+      };
       expect(storeCard.secondaryFields).toEqual([
         { key: "name", label: "NOMBRE", value: "Jane Doe" },
         {
@@ -373,7 +386,9 @@ describe("buildApplePass", () => {
     const c = cardWithRelations();
     c.customer.full_name = null;
     const json = await buildPassJson(c);
-    const storeCard = json.storeCard as { secondaryFields: Array<Record<string, unknown>> };
+    const storeCard = json.storeCard as {
+      secondaryFields: Array<Record<string, unknown>>;
+    };
     expect(storeCard.secondaryFields[0]).toEqual({
       key: "name",
       label: "NOMBRE",
@@ -429,7 +444,10 @@ describe("buildApplePass", () => {
   });
 
   it("adds the current offer as a back field with changeMessage so Wallet notifies", async () => {
-    latestOfferMock.mockResolvedValueOnce({ id: "off-1", body: "2x1 on coffee" });
+    latestOfferMock.mockResolvedValueOnce({
+      id: "off-1",
+      body: "2x1 on coffee",
+    });
     await buildApplePass(
       cardWithRelations(),
       undefined,
@@ -449,9 +467,9 @@ describe("buildApplePass", () => {
 
   it("has no offer field when there is no offer", async () => {
     const json = await buildPassJson(cardWithRelations());
-    const keys = (json.storeCard as { backFields: { key: string }[] }).backFields.map(
-      (f) => f.key,
-    );
+    const keys = (
+      json.storeCard as { backFields: { key: string }[] }
+    ).backFields.map((f) => f.key);
     expect(keys).not.toContain("offer");
   });
 });

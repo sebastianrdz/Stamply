@@ -15,6 +15,7 @@ import {
 } from "@/lib/billing/entitlements";
 import { cardDesign } from "./design";
 import { designFromForm } from "./design-form";
+import { milestoneIcons } from "./milestone-icons";
 import { notifyProgramDesignChanged } from "@/lib/wallet/notify";
 
 export interface ProgramFormState {
@@ -43,6 +44,25 @@ const pointsConfig = z.object({
     .optional(),
 });
 
+// icon_url / reward_icon_url are never trusted from the client: milestoneIcons()
+// overwrites them from the uploaded/picked form fields.
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
+const stampConfig = z.object({
+  milestones: z
+    .array(
+      z.object({
+        at: z.number().int().min(1).max(MAX_STAMP_GOAL),
+        reward: z.string().trim().min(1).max(120),
+        icon_url: z.string().nullable().optional(),
+        icon_color: hexColor.nullable().optional(),
+      }),
+    )
+    .max(MAX_STAMP_GOAL)
+    .optional(),
+  reward_icon_url: z.string().nullable().optional(),
+  reward_icon_color: hexColor.nullable().optional(),
+});
+
 const couponConfig = z
   .object({
     discount_kind: z.enum(["percent", "fixed", "item"]),
@@ -51,7 +71,9 @@ const couponConfig = z
     valid_days: z.number().int().min(1).max(3650).nullable().default(null),
     min_spend_cents: money.optional(),
   })
-  .refine((c) => c.discount_kind !== "percent" || (c.value > 0 && c.value <= 100));
+  .refine(
+    (c) => c.discount_kind !== "percent" || (c.value > 0 && c.value <= 100),
+  );
 
 const membershipConfig = z.object({
   access: z.enum(["free", "staff_activated"]),
@@ -74,7 +96,7 @@ function programSchema(dict: Dictionary) {
   };
   return z
     .discriminatedUnion("type", [
-      z.object({ ...base, type: z.literal("stamp"), config: z.object({}) }),
+      z.object({ ...base, type: z.literal("stamp"), config: stampConfig }),
       z.object({ ...base, type: z.literal("points"), config: pointsConfig }),
       z.object({
         ...base,
@@ -94,6 +116,19 @@ function programSchema(dict: Dictionary) {
           path: ["goal"],
           message: e.stampGoalMax,
         });
+      }
+      if (val.type === "stamp") {
+        const ats = (val.config.milestones ?? []).map((m) => m.at);
+        if (
+          new Set(ats).size !== ats.length ||
+          ats.some((at) => at >= val.goal)
+        ) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["config"],
+            message: e.milestoneInvalid,
+          });
+        }
       }
     })
     .transform((val) =>
@@ -167,13 +202,27 @@ export async function createProgram(
   if (designResult && "error" in designResult)
     return { error: designResult.error };
 
+  let config: Record<string, unknown> = parsed.data.config;
+  if (parsed.data.type === "stamp") {
+    const icons = await milestoneIcons(
+      supabase,
+      business.id,
+      formData,
+      parsed.data.config,
+      null,
+      dict,
+    );
+    if ("error" in icons) return { error: icons.error };
+    config = icons.config;
+  }
+
   const { error } = await supabase.from("programs").insert({
     business_id: business.id,
     name: parsed.data.name,
     type: parsed.data.type,
     goal: parsed.data.goal,
     reward_description: parsed.data.reward_description,
-    config: parsed.data.config,
+    config,
     // No design fields submitted = inherit the business look (cardDesign fallback).
     design: designResult?.design ?? {},
   });
@@ -259,13 +308,32 @@ export async function updateProgram(
     !!designResult &&
     JSON.stringify(designResult.design) !== JSON.stringify(before);
 
+  // Stamp programs: resolve milestone icons only when the form sent a config
+  // (absent = keep the stored one, icons included).
+  let config: Record<string, unknown> = parsed.data.config;
+  if (parsed.data.type === "stamp" && formData.has("config")) {
+    const icons = await milestoneIcons(
+      supabase,
+      business.id,
+      formData,
+      parsed.data.config,
+      existing.config,
+      dict,
+    );
+    if ("error" in icons) return { error: icons.error };
+    config = icons.config;
+  }
+  const configChanged =
+    parsed.data.type === "stamp" &&
+    JSON.stringify(config) !== JSON.stringify(existing.config ?? {});
+
   const { error } = await supabase
     .from("programs")
     .update({
       name: parsed.data.name,
       goal: parsed.data.goal,
       reward_description: parsed.data.reward_description,
-      config: parsed.data.config,
+      config,
       ...(designResult && { design: designResult.design }),
     })
     .eq("id", programId)
@@ -274,7 +342,7 @@ export async function updateProgram(
 
   // Wallet passes bake in the design; push it to every card of this program.
   // Best-effort: the edit itself already succeeded.
-  if (designChanged)
+  if (designChanged || configChanged)
     await notifyProgramDesignChanged(supabase, programId).catch((e) =>
       console.error("[programs] design wallet push failed", e),
     );

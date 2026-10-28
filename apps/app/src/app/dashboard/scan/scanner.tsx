@@ -1,14 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import {
-  Check,
-  Gift,
-  XCircle,
-  RotateCcw,
-  Minus,
-  Plus,
-} from "lucide-react";
+import { Check, Gift, XCircle, RotateCcw, Minus, Plus } from "lucide-react";
 import type { Html5Qrcode } from "html5-qrcode";
 import { Button } from "@stamply/ui/button";
 import { Card, CardContent } from "@stamply/ui/card";
@@ -248,18 +241,29 @@ function CardActions({
   const [quantity, setQuantity] = useState(1);
   const [amount, setAmount] = useState("");
   const [tierIndex, setTierIndex] = useState(affordable[0]?.index ?? 0);
+  const milestones = state.milestones ?? [];
+  const [milestoneAt, setMilestoneAt] = useState(milestones[0]?.at ?? 0);
   const [newTier, setNewTier] = useState(state.tier ?? tiers[0]?.name ?? "");
 
   const text = program
-    ? cardText(state, { ...program, goal: program.goal ?? state.goal }, dict.wallet, {
-        locale,
-        business: "",
-        rewards: 0,
-      })
+    ? cardText(
+        state,
+        { ...program, goal: program.goal ?? state.goal },
+        dict.wallet,
+        {
+          locale,
+          business: "",
+          rewards: 0,
+        },
+      )
     : null;
   const cents = Math.round(Number(amount) * 100);
   const has = (a: ScanAction) => state.actions.includes(a);
-  const earn: ScanAction | null = has("spend") ? "spend" : has("stamp") ? "stamp" : null;
+  const earn: ScanAction | null = has("spend")
+    ? "spend"
+    : has("stamp")
+      ? "stamp"
+      : null;
 
   return (
     <div className="flex flex-col gap-4 p-5">
@@ -309,7 +313,10 @@ function CardActions({
               <Plus className="size-4" />
             </Button>
           </div>
-          <Button disabled={busy} onClick={() => onAct("stamp", { delta: quantity })}>
+          <Button
+            disabled={busy}
+            onClick={() => onAct("stamp", { delta: quantity })}
+          >
             {state.type === "points" ? s.actionVisit : s.actionStamp}
           </Button>
         </div>
@@ -363,6 +370,43 @@ function CardActions({
             onClick={() => onAct("redeem_tier", { tier_index: tierIndex })}
           >
             {s.actionRedeemTier}
+          </Button>
+        </div>
+      )}
+
+      {has("redeem_milestone") && milestones.length > 0 && (
+        <div className="flex items-end gap-3">
+          <div className="flex flex-1 flex-col gap-1.5">
+            <label htmlFor="scan-milestone" className="text-sm font-medium">
+              {s.milestonePickLabel}
+            </label>
+            <Select
+              id="scan-milestone"
+              value={
+                milestones.some((m) => m.at === milestoneAt)
+                  ? milestoneAt
+                  : milestones[0].at
+              }
+              onChange={(e) => setMilestoneAt(Number(e.target.value))}
+            >
+              {milestones.map((m) => (
+                <option key={m.at} value={m.at}>
+                  {m.reward} ({m.at}){m.available > 1 ? ` ×${m.available}` : ""}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button
+            disabled={busy}
+            onClick={() =>
+              onAct("redeem_milestone", {
+                milestone_at: milestones.some((m) => m.at === milestoneAt)
+                  ? milestoneAt
+                  : milestones[0].at,
+              })
+            }
+          >
+            {s.actionRedeemMilestone}
           </Button>
         </div>
       )}
@@ -466,6 +510,7 @@ function ResultView({
   const title: Record<string, string> = {
     redeem: s.rewardRedeemed,
     redeem_tier: s.rewardRedeemed,
+    redeem_milestone: s.rewardRedeemed,
     spend: s.pointsAdded,
     use_coupon: s.couponUsed,
     check_in: s.checkedIn,
@@ -478,7 +523,9 @@ function ResultView({
     <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
       {success ? (
         <div className="bg-success/15 text-success grid size-16 place-items-center rounded-full">
-          {result.action === "redeem" || result.action === "redeem_tier" ? (
+          {result.action === "redeem" ||
+          result.action === "redeem_tier" ||
+          result.action === "redeem_milestone" ? (
             <Gift className="size-8" />
           ) : (
             <Check className="size-8" strokeWidth={3} />
@@ -609,7 +656,7 @@ function StandaloneRewards({
   if (rewards.length === 0) return null;
   return (
     <div className="flex w-full flex-col gap-2 text-left">
-      <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+      <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
         {dict.card.availableRewards}
       </p>
       {rewards.map((reward) => (
@@ -634,7 +681,9 @@ function StandaloneRewards({
             </Button>
           </div>
           {rewardErrors[reward.id] && (
-            <p className="text-destructive text-xs">{rewardErrors[reward.id]}</p>
+            <p className="text-destructive text-xs">
+              {rewardErrors[reward.id]}
+            </p>
           )}
         </div>
       ))}
@@ -651,6 +700,8 @@ function errorMessage(result: ScanResult, dict: Dictionary): string {
       });
     case "card_not_found":
       return dict.dashboard.scan.errors.cardNotFound;
+    case "card_not_redeemable":
+    case "milestone_not_found":
     case "not_redeemable":
       return dict.dashboard.scan.errors.notRedeemable;
     case "program_disabled":

@@ -108,7 +108,9 @@ export async function notifyProgramDesignChanged(
   if (error) throw error;
   const { data, error: selError } = await supabase
     .from("cards")
-    .select("*, program:programs(*), business:businesses(*), customer:customers(*)")
+    .select(
+      "*, program:programs(*), business:businesses(*), customer:customers(*)",
+    )
     .eq("program_id", programId);
   if (selError) throw selError;
   const cards = (data ?? []) as unknown as CardWithRelations[];

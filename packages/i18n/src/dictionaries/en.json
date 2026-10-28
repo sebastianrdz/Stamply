@@ -397,7 +397,39 @@
         "pickFromLibrary": "Pick from library",
         "libraryEmpty": "No uploads yet.",
         "removeImage": "Remove",
-        "previewTitle": "Preview"
+        "previewTitle": "Preview",
+        "milestonesLabel": "Rewards",
+        "milestonesHint": "The last stamp always has a reward. Add more at earlier stamps.",
+        "milestoneAdd": "Add a reward",
+        "milestoneRemove": "Remove",
+        "milestoneAtLabel": "At stamp",
+        "milestoneRewardLabel": "e.g. Free coffee",
+        "milestoneIconLabel": "Icon for this reward",
+        "rewardIconLabel": "Final reward icon",
+        "rewardIconHint": "Shown on the last stamp. SVG only.",
+        "uploadImage": "Upload",
+        "replaceImage": "Replace",
+        "rewardAtPrefix": "At",
+        "rewardAtSuffix": "stamps, get",
+        "tabUploaded": "Uploaded",
+        "tabIcons": "Icons",
+        "uploadNew": "Upload new",
+        "chooseIcon": "Choose icon",
+        "removeIcon": "Remove icon",
+        "chooseImage": "Choose image",
+        "stepsLabel": "Steps",
+        "stepType": "Card type",
+        "stepConfig": "Configuration",
+        "stepDesign": "Design",
+        "stepNext": "Next",
+        "milestoneDuplicate": "Another reward already uses this stamp.",
+        "milestoneRange": "Use a stamp before the last one (stamp {goal}).",
+        "overlayLabel": "Background overlay",
+        "overlayHint": "Darkens the background image so the stamps stand out. 0% shows it untouched.",
+        "iconColorLabel": "Color",
+        "iconColorOriginal": "Icon's own colors",
+        "iconColorReset": "Reset",
+        "previewStampsLabel": "Preview filled stamps"
       },
       "detail": {
         "collectPoints": "Collect {goal} points",
@@ -460,7 +492,8 @@
         "stampGoalMax": "Stamp cards can have at most 10 stamps.",
         "configInvalid": "The card settings are invalid. Please review them.",
         "rewardRequired": "Describe the reward.",
-        "assetInvalid": "That image isn't in your library."
+        "assetInvalid": "That image isn't in your library.",
+        "milestoneInvalid": "Milestones need a unique stamp number below the total, and a reward."
       }
     },
     "rewards": {
@@ -647,7 +680,9 @@
         "membershipInactive": "This membership isn't active. Renew it first.",
         "actionNotAllowed": "This action isn't available for this card.",
         "invalidAmount": "Enter a valid amount."
-      }
+      },
+      "milestonePickLabel": "Stamp reward",
+      "actionRedeemMilestone": "Redeem"
     },
     "settings": {
       "metaTitle": "Settings",
