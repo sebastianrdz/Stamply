@@ -87,6 +87,7 @@ export default async function BillingPage() {
                 ` · ${interpolate(dict.dashboard.billing.freeUntil, {
                   date: new Intl.DateTimeFormat(locale, {
                     dateStyle: "medium",
+                    timeZone: business.timezone,
                   }).format(new Date(trialEnd)),
                 })}`}
             </p>

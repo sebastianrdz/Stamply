@@ -9,6 +9,7 @@ import { Button } from "@stamply/ui/button";
 import { Input } from "@stamply/ui/input";
 import { Label } from "@stamply/ui/label";
 import { Select } from "@stamply/ui/select";
+import { timezoneOptions } from "@/lib/timezones";
 import { useTranslations } from "@stamply/i18n/provider";
 import type { Business } from "@/types/database";
 
@@ -59,12 +60,17 @@ export function SettingsForm({ business }: { business: Business }) {
         </legend>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="timezone">{bf.timezoneLabel}</Label>
-          <Input
+          <Select
             id="timezone"
             name="timezone"
             defaultValue={business.timezone}
-            placeholder={bf.timezonePlaceholder}
-          />
+          >
+            {timezoneOptions(business.timezone).map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.replaceAll("_", " ")}
+              </option>
+            ))}
+          </Select>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="locale">{bf.localeLabel}</Label>

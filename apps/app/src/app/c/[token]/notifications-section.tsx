@@ -19,11 +19,13 @@ import type { ActiveProgramSummary } from "@/lib/cards/queries";
 export function NotificationsSection({
   dict,
   locale,
+  timeZone,
   standaloneRewards,
   otherPrograms,
 }: {
   dict: Dictionary;
   locale: Locale;
+  timeZone: string;
   standaloneRewards: StandaloneReward[];
   otherPrograms: ActiveProgramSummary[];
 }) {
@@ -39,6 +41,7 @@ export function NotificationsSection({
             rewards={standaloneRewards}
             dict={dict}
             locale={locale}
+            timeZone={timeZone}
           />
         </CardContent>
       </Card>
@@ -56,10 +59,12 @@ function AvailableRewardsList({
   rewards,
   dict,
   locale,
+  timeZone,
 }: {
   rewards: StandaloneReward[];
   dict: Dictionary;
   locale: Locale;
+  timeZone: string;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -88,6 +93,7 @@ function AvailableRewardsList({
                       {
                         date: new Intl.DateTimeFormat(locale, {
                           dateStyle: "medium",
+                          timeZone,
                         }).format(new Date(reward.validUntil)),
                       },
                     )}

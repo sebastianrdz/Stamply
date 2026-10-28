@@ -711,7 +711,8 @@
         "deleteAccountFailed": "No se pudo eliminar tu cuenta. Inténtalo de nuevo.",
         "supportEmailInvalid": "Ingresa un correo de soporte válido.",
         "supportPhoneInvalid": "Ingresa un teléfono de soporte válido.",
-        "localeInvalid": "Elige un idioma compatible."
+        "localeInvalid": "Elige un idioma compatible.",
+        "timezoneInvalid": "Elige una zona horaria válida."
       },
       "dangerZone": {
         "title": "Zona de peligro",

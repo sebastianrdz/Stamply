@@ -74,6 +74,7 @@ export default async function ActivityPage({
   const fmt = new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: membership.business.timezone,
   });
 
   // Filters other than the cursor survive "load older" and chip clicks.

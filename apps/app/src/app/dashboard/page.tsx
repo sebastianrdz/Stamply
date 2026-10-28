@@ -17,7 +17,7 @@ export default async function DashboardOverview() {
   const { membership } = await requireBusiness();
   const [stats, a, breakdown] = await Promise.all([
     getOverviewStats(membership.business.id),
-    getAnalytics(membership.business.id),
+    getAnalytics(membership.business.id, membership.business.timezone),
     getCardBreakdown(membership.business.id),
   ]);
   const dict = await getDictionary(await getLocale());

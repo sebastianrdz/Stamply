@@ -711,7 +711,8 @@
         "deleteAccountFailed": "Failed to delete your account. Please try again.",
         "supportEmailInvalid": "Enter a valid support email.",
         "supportPhoneInvalid": "Enter a valid support phone number.",
-        "localeInvalid": "Choose a supported language."
+        "localeInvalid": "Choose a supported language.",
+        "timezoneInvalid": "Choose a valid timezone."
       },
       "dangerZone": {
         "title": "Danger zone",

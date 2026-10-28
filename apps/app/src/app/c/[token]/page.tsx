@@ -175,6 +175,7 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
         <NotificationsSection
           dict={dict}
           locale={locale}
+          timeZone={card.business.timezone}
           standaloneRewards={standaloneRewards}
           otherPrograms={otherPrograms}
         />
