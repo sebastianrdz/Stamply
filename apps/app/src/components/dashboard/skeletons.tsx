@@ -109,16 +109,16 @@ export function ActionCardSkeleton() {
 /** Mirrors a program card: title/badge, description, reward box, and CTA. */
 export function ProgramCardSkeleton() {
   return (
-    <Card>
-      <CardContent className="flex flex-col gap-3 p-6">
-        <div className="flex items-start justify-between gap-3">
-          <Skeleton className="h-5 w-32" />
-          <Skeleton className="h-5 w-16 rounded-full" />
-        </div>
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-9 w-full rounded-lg" />
-        <Skeleton className="h-9 w-full rounded-lg" />
-      </CardContent>
+    <Card className="overflow-hidden">
+      <div className="bg-muted/40 p-4 sm:p-6">
+        <Skeleton className="mx-auto aspect-[1186/1668] w-full max-w-[16rem] rounded-xl" />
+      </div>
+      <div className="flex flex-col gap-3 p-5">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-4 w-56" />
+        <Skeleton className="h-8 w-28 rounded-lg" />
+        <Skeleton className="h-5 w-32 rounded-full" />
+      </div>
     </Card>
   );
 }
