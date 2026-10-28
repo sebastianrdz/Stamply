@@ -24,6 +24,10 @@ vi.mock("@/lib/cards/queries", async (orig) => ({
 
 const notifyMock = vi.fn(async () => undefined);
 vi.mock("@/lib/wallet/notify", () => ({ notifyCardUpdated: () => notifyMock() }));
+const almostThereMock = vi.fn(async (..._a: unknown[]) => undefined);
+vi.mock("@/lib/automations/trigger", () => ({
+  triggerAlmostThere: (...a: unknown[]) => almostThereMock(...a),
+}));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 vi.mock("@/lib/rewards/queries", () => ({
   getAvailableStandaloneRewardsForCustomer: vi.fn(async () => []),

@@ -9,6 +9,7 @@ import {
   LimitExceededError,
 } from "@/lib/billing/entitlements";
 import { issueCard } from "@/lib/cards/issue";
+import { triggerWelcome } from "@/lib/automations/trigger";
 import { rateLimit } from "@/lib/rate-limit";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
@@ -222,6 +223,9 @@ export async function enroll(
     },
     groups: { business: business.id },
   });
+
+  // Never fails the enrollment (triggerWelcome swallows and logs its errors).
+  await triggerWelcome(admin, { businessId: business.id, customerId });
 
   redirect(`/c/${card.pass_auth_token}`);
 }

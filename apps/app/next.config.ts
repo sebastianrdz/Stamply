@@ -62,6 +62,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Dashboard sections were renamed/merged; keep old bookmarks and any
+  // in-flight Stripe return URLs working.
+  async redirects() {
+    return [
+      { source: "/dashboard/programs/:path*", destination: "/dashboard/cards/:path*", permanent: true },
+      { source: "/dashboard/offers", destination: "/dashboard/broadcast", permanent: true },
+      { source: "/dashboard/rewards", destination: "/dashboard/automations", permanent: true },
+      { source: "/dashboard/analytics", destination: "/dashboard", permanent: true },
+      { source: "/dashboard/billing", destination: "/dashboard/settings/billing", permanent: true },
+    ];
+  },
   skipTrailingSlashRedirect: true,
 };
 

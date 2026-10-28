@@ -7,7 +7,7 @@ import { interpolate } from "@stamply/i18n/format";
 import { Badge } from "@stamply/ui/badge";
 import { Button } from "@stamply/ui/button";
 import { Card, CardContent } from "@stamply/ui/card";
-import { OfferForm } from "../offers/offer-form";
+import { OfferForm } from "../broadcast/offer-form";
 import type { Customer } from "@/types/database";
 
 /** Customer rows; owners/admins can tick opted-in customers to send an offer. */

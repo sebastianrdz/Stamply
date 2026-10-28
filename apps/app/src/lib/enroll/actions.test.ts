@@ -40,6 +40,11 @@ vi.mock("@/lib/cards/issue", () => ({
   issueCard: (...args: unknown[]) => issueCardMock(...args),
 }));
 
+const triggerWelcomeMock = vi.fn(async (..._args: unknown[]) => undefined);
+vi.mock("@/lib/automations/trigger", () => ({
+  triggerWelcome: (...args: unknown[]) => triggerWelcomeMock(...args),
+}));
+
 const captureServerEventMock = vi.fn();
 vi.mock("@/lib/posthog/server", () => ({
   captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),

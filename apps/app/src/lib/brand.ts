@@ -47,16 +47,12 @@ function foregroundTripletFor(hex: string): string {
   return luminance > 0.6 ? "222 18% 9%" : "0 0% 100%";
 }
 
-/** Inline style that themes a subtree with a business's brand color. */
-export function brandStyle(business: {
-  brand_primary_color: string;
-}): CSSProperties {
-  const triplet = hexToHslTriplet(business.brand_primary_color);
+/** Inline style that themes a subtree with a card's primary color. */
+export function brandStyle(primaryColor: string): CSSProperties {
+  const triplet = hexToHslTriplet(primaryColor);
   if (!triplet) return {};
   return {
     ["--brand" as string]: triplet,
-    ["--brand-foreground" as string]: foregroundTripletFor(
-      business.brand_primary_color,
-    ),
+    ["--brand-foreground" as string]: foregroundTripletFor(primaryColor),
   } as CSSProperties;
 }

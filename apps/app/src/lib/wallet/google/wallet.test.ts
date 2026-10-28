@@ -304,6 +304,40 @@ describe("ensureLoyaltyClass", () => {
   });
 });
 
+describe("patchLoyaltyClass", () => {
+  it("sets the design look, and clears removed images with null", async () => {
+    stubCoreEnv();
+    stubGoogleEnv();
+    requestMock.mockResolvedValue({});
+    const { patchLoyaltyClass } = await freshWallet();
+
+    const withImages = cardWithRelations();
+    withImages.program = program({
+      design: {
+        primary_color: "#112233",
+        logo_url: "https://cdn.example/l.png",
+        background_image_url: "https://cdn.example/b.png",
+      },
+    });
+    await patchLoyaltyClass(withImages);
+    expect(requestMock.mock.calls[0][0].data).toEqual({
+      hexBackgroundColor: "#112233",
+      programLogo: { sourceUri: { uri: "https://cdn.example/l.png" } },
+      heroImage: { sourceUri: { uri: "https://cdn.example/b.png" } },
+    });
+
+    const removed = cardWithRelations();
+    removed.program = program({
+      design: { logo_url: null, background_image_url: null },
+    });
+    await patchLoyaltyClass(removed);
+    const data = requestMock.mock.calls[1][0].data;
+    expect(requestMock.mock.calls[1][0].method).toBe("PATCH");
+    expect(data.programLogo).toBeNull();
+    expect(data.heroImage).toBeNull();
+  });
+});
+
 describe("ensureLoyaltyObject", () => {
   it("POSTs the loyalty object when the GET 404s", async () => {
     stubCoreEnv();

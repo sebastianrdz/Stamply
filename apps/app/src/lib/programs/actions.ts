@@ -13,6 +13,9 @@ import {
   assertWithinLimit,
   LimitExceededError,
 } from "@/lib/billing/entitlements";
+import { cardDesign } from "./design";
+import { designFromForm } from "./design-form";
+import { notifyProgramDesignChanged } from "@/lib/wallet/notify";
 
 export interface ProgramFormState {
   error?: string;
@@ -154,6 +157,16 @@ export async function createProgram(
     throw e;
   }
 
+  const designResult = await designFromForm(
+    supabase,
+    business.id,
+    formData,
+    cardDesign({}, business),
+    dict,
+  );
+  if (designResult && "error" in designResult)
+    return { error: designResult.error };
+
   const { error } = await supabase.from("programs").insert({
     business_id: business.id,
     name: parsed.data.name,
@@ -161,6 +174,8 @@ export async function createProgram(
     goal: parsed.data.goal,
     reward_description: parsed.data.reward_description,
     config: parsed.data.config,
+    // No design fields submitted = inherit the business look (cardDesign fallback).
+    design: designResult?.design ?? {},
   });
   if (error) return { error: error.message };
 
@@ -171,8 +186,8 @@ export async function createProgram(
     groups: { business: business.id },
   });
 
-  revalidatePath("/dashboard/programs");
-  redirect("/dashboard/programs?created=1");
+  revalidatePath("/dashboard/cards");
+  redirect("/dashboard/cards?created=1");
 }
 
 export async function toggleProgramActive(programId: string, active: boolean) {
@@ -193,8 +208,8 @@ export async function toggleProgramActive(programId: string, active: boolean) {
     });
   }
 
-  revalidatePath("/dashboard/programs");
-  revalidatePath(`/dashboard/programs/${programId}`);
+  revalidatePath("/dashboard/cards");
+  revalidatePath(`/dashboard/cards/${programId}`);
 }
 
 export async function updateProgram(
@@ -212,7 +227,7 @@ export async function updateProgram(
   // counter column. Validate against the stored type, never the submitted one.
   const { data: existing } = await supabase
     .from("programs")
-    .select("type, config")
+    .select("type, config, design")
     .eq("id", programId)
     .eq("business_id", business.id)
     .maybeSingle();
@@ -230,6 +245,20 @@ export async function updateProgram(
   });
   if (!parsed.success) return { error: firstError(parsed.error.issues, dict) };
 
+  const before = cardDesign(existing, business);
+  const designResult = await designFromForm(
+    supabase,
+    business.id,
+    formData,
+    before,
+    dict,
+  );
+  if (designResult && "error" in designResult)
+    return { error: designResult.error };
+  const designChanged =
+    !!designResult &&
+    JSON.stringify(designResult.design) !== JSON.stringify(before);
+
   const { error } = await supabase
     .from("programs")
     .update({
@@ -237,10 +266,18 @@ export async function updateProgram(
       goal: parsed.data.goal,
       reward_description: parsed.data.reward_description,
       config: parsed.data.config,
+      ...(designResult && { design: designResult.design }),
     })
     .eq("id", programId)
     .eq("business_id", business.id);
   if (error) return { error: error.message };
+
+  // Wallet passes bake in the design; push it to every card of this program.
+  // Best-effort: the edit itself already succeeded.
+  if (designChanged)
+    await notifyProgramDesignChanged(supabase, programId).catch((e) =>
+      console.error("[programs] design wallet push failed", e),
+    );
 
   captureServerEvent({
     distinctId: user.id,
@@ -253,9 +290,9 @@ export async function updateProgram(
     groups: { business: business.id },
   });
 
-  revalidatePath("/dashboard/programs");
-  revalidatePath(`/dashboard/programs/${programId}`);
-  redirect(`/dashboard/programs/${programId}?updated=1`);
+  revalidatePath("/dashboard/cards");
+  revalidatePath(`/dashboard/cards/${programId}`);
+  redirect(`/dashboard/cards/${programId}?updated=1`);
 }
 
 /**
@@ -317,6 +354,6 @@ export async function deleteProgram(
     groups: { business: membership.business.id },
   });
 
-  revalidatePath("/dashboard/programs");
-  redirect("/dashboard/programs?deleted=1");
+  revalidatePath("/dashboard/cards");
+  redirect("/dashboard/cards?deleted=1");
 }

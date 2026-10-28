@@ -45,7 +45,8 @@
     "howToCoupon": "Muestra este cupón en {business} para canjear: {reward}.",
     "howToMembership": "Muestra esta tarjeta en {business} para registrar tu visita.",
     "howToPoints": "Muestra esta tarjeta en {business} para acumular puntos y canjéalos por premios.",
-    "membershipLabel": "MEMBRESÍA"
+    "membershipLabel": "MEMBRESÍA",
+    "supportLabel": "Contacto"
   },
   "common": {
     "save": "Guardar",
@@ -114,8 +115,15 @@
     }
   },
   "nav": {
-    "overview": "Resumen",
-    "scan": "Escanear",
+    "overview": "Panel",
+    "scan": "Escáner",
+    "cards": "Tarjetas",
+    "broadcast": "Difusión",
+    "automations": "Automatizaciones",
+    "marketing": "Marketing",
+    "activity": "Actividad",
+    "settingsGeneral": "General",
+    "settingsBilling": "Plan y facturación",
     "programs": "Programas",
     "customers": "Clientes",
     "locations": "Sucursales",
@@ -384,7 +392,12 @@
         "rewardLabelCoupon": "Oferta",
         "rewardPlaceholderCoupon": "20% de descuento en cualquier corte",
         "rewardLabelMembership": "Membresía",
-        "rewardPlaceholderMembership": "Pase mensual al gimnasio"
+        "rewardPlaceholderMembership": "Pase mensual al gimnasio",
+        "designTitle": "Diseño",
+        "pickFromLibrary": "Elegir de la biblioteca",
+        "libraryEmpty": "Aún no hay archivos subidos.",
+        "removeImage": "Quitar",
+        "previewTitle": "Vista previa"
       },
       "detail": {
         "collectPoints": "Junta {goal} puntos",
@@ -434,20 +447,26 @@
         "downloading": "Generando…",
         "downloadError": "No se pudo generar la imagen. Intenta de nuevo.",
         "previewAlt": "Vista previa de la plantilla {name} para {program}",
-        "logoAlt": "Logo de {business}"
+        "logoAlt": "Logo de {business}",
+        "printHeading": "Impresión",
+        "socialHeading": "Redes sociales",
+        "storyName": "Historia de Instagram",
+        "squareName": "Publicación cuadrada",
+        "a5Name": "Impreso A5 para mostrador"
       },
       "errors": {
         "nameRequired": "Ponle un nombre al programa.",
         "goalMin": "La meta debe ser al menos 1.",
         "stampGoalMax": "Las tarjetas de sellos pueden tener como máximo 10 sellos.",
         "configInvalid": "La configuración de la tarjeta no es válida. Revísala.",
-        "rewardRequired": "Describe la recompensa."
+        "rewardRequired": "Describe la recompensa.",
+        "assetInvalid": "Esa imagen no está en tu biblioteca."
       }
     },
     "rewards": {
-      "metaTitle": "Recompensas",
-      "title": "Recompensas",
-      "description": "Configura recompensas independientes de tus programas, como una recompensa de cumpleaños para tus clientes.",
+      "metaTitle": "Automatizaciones",
+      "title": "Automatizaciones",
+      "description": "Mensajes automáticos a la wallet y recompensas opcionales que se ejecutan solos.",
       "birthday": {
         "title": "Recompensa de cumpleaños",
         "description": "Otorga automáticamente esta recompensa a tus clientes durante todo su mes de cumpleaños.",
@@ -459,7 +478,52 @@
         "saved": "Cambios guardados."
       },
       "errors": {
+        "messageRequired": "Escribe el mensaje para activar esta automatización.",
+        "settingRange": "Ese valor está fuera de rango.",
         "rewardRequired": "Describe la recompensa."
+      },
+      "activeLabel": "Activada",
+      "messageLabel": "Mensaje",
+      "placeholdersHint": "Puedes usar {name}, {business}, {days} y {remaining}. Máximo 200 caracteres. Solo se escribe a clientes que aceptaron marketing.",
+      "rewardLabel": "Recompensa (opcional)",
+      "rewardPlaceholder": "Un café gratis",
+      "saved": "Automatización guardada.",
+      "save": "Guardar",
+      "saving": "Guardando…",
+      "messageRequired": "Escribe el mensaje para activar esta automatización.",
+      "settingRange": "Ese valor está fuera de rango.",
+      "types": {
+        "welcome": {
+          "title": "Bienvenida",
+          "description": "Saluda a los clientes nuevos en cuanto se crea su tarjeta.",
+          "defaultMessage": "¡Bienvenido a {business}, {name}! Muestra esta tarjeta para empezar a acumular.",
+          "settingLabel": ""
+        },
+        "birthday": {
+          "title": "Cumpleaños",
+          "description": "Escribe a tus clientes antes y el día de su cumpleaños. Añade una recompensa para otorgarla todo el mes de su cumpleaños.",
+          "defaultMessage": "¡Feliz cumpleaños, {name}! Tu regalo de {business} te espera.",
+          "settingLabel": "Días antes del cumpleaños para avisar (0 = solo el día)"
+        },
+        "unredeemed_reminder": {
+          "title": "Recordatorio de recompensa",
+          "description": "Recuerda a los clientes que tienen una recompensa sin canjear.",
+          "defaultMessage": "{name}, tienes una recompensa esperándote en {business}. ¡Ven por ella!",
+          "settingLabel": "Recordar cada (días)"
+        },
+        "win_back": {
+          "title": "Recuperar clientes",
+          "description": "Avisa a quienes llevan tiempo sin venir. Se envía una vez por ausencia.",
+          "defaultMessage": "¡Te extrañamos, {name}! Han pasado {days} días. Vuelve a {business} y sigue acumulando.",
+          "settingLabel": "Días sin visitar",
+          "warning": "Ojo: al activarla, se escribirá de una vez a todos los que ya llevan esta cantidad de días sin visitar."
+        },
+        "almost_there": {
+          "title": "Casi lo logras",
+          "description": "Se envía justo después de un sello cuando el cliente está cerca de su recompensa.",
+          "defaultMessage": "¡Solo te faltan {remaining}, {name}! Tu recompensa en {business} está casi lista.",
+          "settingLabel": "Enviar cuando falten estos sellos"
+        }
       }
     },
     "locations": {
@@ -617,7 +681,16 @@
         "timezonePlaceholder": "America/Mexico_City",
         "removeCurrentImage": "Quitar imagen actual",
         "keepCurrentImage": "Mantener imagen actual",
-        "none": "Ninguna"
+        "none": "Ninguna",
+        "businessInfoHeading": "Información del negocio",
+        "regionalHeading": "Preferencias regionales",
+        "supportEmailLabel": "Correo de soporte",
+        "supportPhoneLabel": "Teléfono de soporte",
+        "supportHint": "Se muestra a tus clientes en su tarjeta y pase de wallet.",
+        "localeLabel": "Idioma predeterminado",
+        "localeNone": "Sin definir",
+        "localeEn": "English",
+        "localeEs": "Español"
       },
       "errors": {
         "notSignedIn": "No has iniciado sesión.",
@@ -635,7 +708,10 @@
         "storageCleanupFailed": "No pudimos eliminar los archivos subidos de este negocio. Inténtalo de nuevo.",
         "deleteBusinessFailed": "No se pudo eliminar el negocio. Inténtalo de nuevo.",
         "ownsBusinessCantDelete": "Debes eliminar o transferir la propiedad de {businesses} antes de eliminar tu cuenta.",
-        "deleteAccountFailed": "No se pudo eliminar tu cuenta. Inténtalo de nuevo."
+        "deleteAccountFailed": "No se pudo eliminar tu cuenta. Inténtalo de nuevo.",
+        "supportEmailInvalid": "Ingresa un correo de soporte válido.",
+        "supportPhoneInvalid": "Ingresa un teléfono de soporte válido.",
+        "localeInvalid": "Elige un idioma compatible."
       },
       "dangerZone": {
         "title": "Zona de peligro",
@@ -699,6 +775,58 @@
         "noRecipients": "No hay clientes que hayan aceptado marketing.",
         "notOptedIn": "Algunos clientes seleccionados no han aceptado marketing.",
         "deliveryFailed": "La oferta se guardó pero falló el envío. Inténtalo de nuevo."
+      }
+    },
+    "marketing": {
+      "metaTitle": "Marketing",
+      "title": "Marketing",
+      "description": "Material imprimible y compartible para tus tarjetas.",
+      "pickCard": "Elige una tarjeta",
+      "empty": "Crea una tarjeta primero para obtener material imprimible.",
+      "viewCard": "Abrir tarjeta",
+      "byCard": {
+        "title": "Tarjetas de un vistazo",
+        "customers": "Clientes",
+        "cards": "Tarjetas",
+        "stamps": "Sellos (14d)",
+        "redemptions": "Canjes"
+      }
+    },
+    "activity": {
+      "metaTitle": "Actividad",
+      "title": "Actividad",
+      "description": "Todo lo que ocurre en tu programa de lealtad, lo más reciente primero.",
+      "aCustomer": "un cliente",
+      "loadOlder": "Cargar anteriores",
+      "filterAll": "Todo",
+      "filterLabel": "Filtrar por tipo",
+      "empty": {
+        "title": "Aún no hay actividad",
+        "description": "Los registros, sellos, canjes y difusiones aparecerán aquí."
+      },
+      "types": {
+        "customer_joined": "Clientes nuevos",
+        "card_issued": "Tarjetas emitidas",
+        "stamp": "Sellos",
+        "checkin": "Check-ins",
+        "redeem": "Canjes",
+        "reward_granted": "Recompensas otorgadas",
+        "reward_redeemed": "Recompensas canjeadas",
+        "broadcast": "Difusiones",
+        "automation_sent": "Automatizaciones"
+      },
+      "events": {
+        "customer_joined": "{customer} se unió",
+        "card_issued": "{customer} obtuvo una tarjeta {program}",
+        "stamp": "{customer} ganó {delta} en {program}",
+        "checkin": "{customer} hizo check-in en {program}",
+        "redeem": "{customer} canjeó una recompensa en {program}",
+        "adjust": "{customer} tuvo un ajuste de saldo de {delta} en {program}",
+        "reward_granted": "{customer} recibió una recompensa: {detail}",
+        "reward_redeemed": "{customer} canjeó una recompensa: {detail}",
+        "broadcast": "Difusión enviada a {customer}: {detail}",
+        "broadcastAll": "Difusión enviada a todos los clientes suscritos: {detail}",
+        "automation_sent": "Automatización enviada a {customer}: {detail}"
       }
     }
   },

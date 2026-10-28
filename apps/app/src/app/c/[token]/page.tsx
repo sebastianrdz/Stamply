@@ -10,6 +10,7 @@ import { cardText } from "@/lib/cards/text";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { brandStyle } from "@/lib/brand";
+import { cardDesign } from "@/lib/programs/design";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
@@ -65,6 +66,7 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   }
   if (!card) notFound();
 
+  const design = cardDesign(card.program, card.business);
   const state = cardState(card, card.program);
   const text = cardText(state, card.program, dict.wallet, {
     locale,
@@ -106,7 +108,7 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   return (
     <div
       className="flex min-h-full flex-col items-center px-6 py-10"
-      style={brandStyle(card.business)}
+      style={brandStyle(design.primary_color)}
     >
       <div className="flex w-full max-w-sm flex-col gap-6">
         <LoyaltyCard
@@ -124,10 +126,10 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
                 }
           }
           completed={completed}
-          logoUrl={card.business.logo_url}
-          backgroundImageUrl={card.business.background_image_url}
-          stampIconUrl={card.business.stamp_icon_url}
-          showBusinessName={card.business.show_business_name}
+          logoUrl={design.logo_url}
+          backgroundImageUrl={design.background_image_url}
+          stampIconUrl={design.stamp_icon_url}
+          showBusinessName={design.show_business_name}
           customerName={card.customer.full_name}
           availableRewards={availableRewards}
           qrImageUrl={qr}
@@ -144,6 +146,31 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           appleLabel={dict.card.addAppleWallet}
           googleLabel={dict.card.addGoogleWallet}
         />
+
+        {(card.business.support_email || card.business.support_phone) && (
+          <p className="text-muted-foreground text-center text-sm">
+            {dict.wallet.supportLabel}:{" "}
+            {card.business.support_email && (
+              <a
+                className="underline"
+                href={`mailto:${card.business.support_email}`}
+              >
+                {card.business.support_email}
+              </a>
+            )}
+            {card.business.support_email &&
+              card.business.support_phone &&
+              " · "}
+            {card.business.support_phone && (
+              <a
+                className="underline"
+                href={`tel:${card.business.support_phone.replace(/[^\d+]/g, "")}`}
+              >
+                {card.business.support_phone}
+              </a>
+            )}
+          </p>
+        )}
 
         <NotificationsSection
           dict={dict}

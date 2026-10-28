@@ -324,7 +324,7 @@ describe("changePlan", () => {
       });
 
       await expect(changePlan("medium")).rejects.toThrow(
-        "NEXT_REDIRECT:https://app.stamply.test/dashboard/billing?status=nochange",
+        "NEXT_REDIRECT:https://app.stamply.test/dashboard/settings/billing?status=nochange",
       );
 
       expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
@@ -368,13 +368,13 @@ describe("changePlan", () => {
 });
 
 describe("openBillingPortal", () => {
-  it("redirects to /dashboard/billing without calling Stripe when there is no customer id", async () => {
+  it("redirects to /dashboard/settings/billing without calling Stripe when there is no customer id", async () => {
     requireRoleMock.mockResolvedValue(
       ctx("owner", business({ stripe_customer_id: null })),
     );
 
     await expect(openBillingPortal()).rejects.toThrow(
-      "NEXT_REDIRECT:/dashboard/billing",
+      "NEXT_REDIRECT:/dashboard/settings/billing",
     );
     expect(fakeStripe.billingPortal.sessions.create).not.toHaveBeenCalled();
   });
@@ -389,7 +389,7 @@ describe("openBillingPortal", () => {
     );
     expect(fakeStripe.billingPortal.sessions.create).toHaveBeenCalledWith({
       customer: "cus_existing",
-      return_url: "https://app.stamply.test/dashboard/billing",
+      return_url: "https://app.stamply.test/dashboard/settings/billing",
     });
   });
 });

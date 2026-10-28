@@ -6,14 +6,14 @@ import {
   LayoutDashboard,
   ScanLine,
   CreditCard,
-  Gift,
   Users,
   UserCog,
   MapPin,
-  BarChart3,
   Settings,
-  Receipt,
   Megaphone,
+  Zap,
+  Printer,
+  Activity,
 } from "lucide-react";
 import { cn } from "@stamply/ui/utils";
 import { useTranslations } from "@stamply/i18n/provider";
@@ -22,15 +22,17 @@ import type { MembershipRole } from "@/types/database";
 type NavKey =
   | "overview"
   | "scan"
-  | "programs"
-  | "rewards"
+  | "cards"
   | "customers"
-  | "offers"
   | "locations"
-  | "analytics"
+  | "broadcast"
+  | "automations"
+  | "marketing"
+  | "activity"
   | "team"
-  | "billing"
   | "settings";
+
+const staff: MembershipRole[] = ["owner", "admin"];
 
 // `allow` lists the roles that may see an item; omit to allow everyone.
 const items: {
@@ -42,50 +44,15 @@ const items: {
 }[] = [
   { href: "/dashboard", key: "overview", icon: LayoutDashboard, exact: true },
   { href: "/dashboard/scan", key: "scan", icon: ScanLine },
-  {
-    href: "/dashboard/programs",
-    key: "programs",
-    icon: CreditCard,
-    allow: ["owner", "admin"],
-  },
-  {
-    href: "/dashboard/rewards",
-    key: "rewards",
-    icon: Gift,
-    allow: ["owner", "admin"],
-  },
+  { href: "/dashboard/cards", key: "cards", icon: CreditCard, allow: staff },
   { href: "/dashboard/customers", key: "customers", icon: Users },
-  {
-    href: "/dashboard/offers",
-    key: "offers",
-    icon: Megaphone,
-    allow: ["owner", "admin"],
-  },
-  {
-    href: "/dashboard/locations",
-    key: "locations",
-    icon: MapPin,
-    allow: ["owner", "admin"],
-  },
-  {
-    href: "/dashboard/analytics",
-    key: "analytics",
-    icon: BarChart3,
-    allow: ["owner", "admin"],
-  },
-  {
-    href: "/dashboard/team",
-    key: "team",
-    icon: UserCog,
-    allow: ["owner", "admin"],
-  },
-  {
-    href: "/dashboard/billing",
-    key: "billing",
-    icon: Receipt,
-    allow: ["owner"],
-  },
-  // Everyone can open Settings; only the owner sees the Business Profile inside.
+  { href: "/dashboard/locations", key: "locations", icon: MapPin, allow: staff },
+  { href: "/dashboard/broadcast", key: "broadcast", icon: Megaphone, allow: staff },
+  { href: "/dashboard/automations", key: "automations", icon: Zap, allow: staff },
+  { href: "/dashboard/marketing", key: "marketing", icon: Printer, allow: staff },
+  { href: "/dashboard/activity", key: "activity", icon: Activity, allow: staff },
+  { href: "/dashboard/team", key: "team", icon: UserCog, allow: staff },
+  // Everyone can open Settings; Business Profile and Plan & Billing inside are owner-only.
   { href: "/dashboard/settings", key: "settings", icon: Settings },
 ];
 
@@ -119,14 +86,14 @@ export function DashboardNav({
   const labelFor: Record<NavKey, string> = {
     overview: dict.nav.overview,
     scan: dict.nav.scan,
-    programs: dict.nav.programs,
-    rewards: dict.nav.rewards,
+    cards: dict.nav.cards,
     customers: dict.nav.customers,
-    offers: dict.nav.offers,
     locations: dict.nav.locations,
-    analytics: dict.nav.analytics,
+    broadcast: dict.nav.broadcast,
+    automations: dict.nav.automations,
+    marketing: dict.nav.marketing,
+    activity: dict.nav.activity,
     team: dict.nav.team,
-    billing: dict.nav.billing,
     settings: dict.nav.settings,
   };
   const visible = items.filter((i) => !i.allow || i.allow.includes(role));

@@ -167,13 +167,13 @@ export async function changePlan(
     // Short-circuit that no-op instead of sending a same-price update to
     // Stripe, which would error.
     if (item.price.id === targetPrice) {
-      redirect(`${appUrlBase()}/dashboard/billing?status=nochange`);
+      redirect(`${appUrlBase()}/dashboard/settings/billing?status=nochange`);
       return;
     }
 
     const portalSession = await client.billingPortal.sessions.create({
       customer: customerId,
-      return_url: `${appUrlBase()}/dashboard/billing?status=success`,
+      return_url: `${appUrlBase()}/dashboard/settings/billing?status=success`,
       flow_data: {
         type: "subscription_update_confirm",
         subscription_update_confirm: {
@@ -218,11 +218,11 @@ export async function changePlan(
 export async function openBillingPortal() {
   const { membership } = await requireRole(["owner"]);
   const business = membership.business;
-  if (!business.stripe_customer_id) redirect("/dashboard/billing");
+  if (!business.stripe_customer_id) redirect("/dashboard/settings/billing");
 
   const session = await stripe().billingPortal.sessions.create({
     customer: business.stripe_customer_id,
-    return_url: `${appUrlBase()}/dashboard/billing`,
+    return_url: `${appUrlBase()}/dashboard/settings/billing`,
   });
   redirect(session.url);
 }

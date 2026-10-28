@@ -7,6 +7,7 @@ import type { PassLocation } from "@/lib/wallet/apple/pass";
 import { pushToDevices } from "@/lib/wallet/apple/apns";
 import {
   addOfferMessage,
+  patchLoyaltyClass,
   patchLoyaltyObject,
 } from "@/lib/wallet/google/wallet";
 import type { WalletOffer } from "@/types/database";
@@ -86,6 +87,38 @@ export async function notifyCardUpdatedForBirthday(
     .eq("id", card.id);
   if (error) throw error;
   await notifyCardUpdated(supabase, card);
+}
+
+/**
+ * A program's design changed: bump `updated_at` on its cards (so Apple's
+ * refetch sees a change), patch the Google class once, then notify every card
+ * in batches of 20 (same bounded concurrency as notifyOffers).
+ *
+ * shortcut: inline in the server action; move to a queue past a few thousand
+ * cards per program (function timeout).
+ */
+export async function notifyProgramDesignChanged(
+  supabase: Client,
+  programId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("cards")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("program_id", programId);
+  if (error) throw error;
+  const { data, error: selError } = await supabase
+    .from("cards")
+    .select("*, program:programs(*), business:businesses(*), customer:customers(*)")
+    .eq("program_id", programId);
+  if (selError) throw selError;
+  const cards = (data ?? []) as unknown as CardWithRelations[];
+  const google = cards.find((c) => c.google_object_id);
+  if (google)
+    await patchLoyaltyClass(google).catch((e) =>
+      console.error("[notify] google class patch failed", e),
+    );
+  for (const part of chunk(cards, 20))
+    await Promise.all(part.map((c) => notifyCardUpdated(supabase, c)));
 }
 
 function chunk<T>(items: T[], size: number): T[][] {

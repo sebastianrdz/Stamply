@@ -5,100 +5,87 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
+import { AUTOMATION_TYPES, CONFIG_FIELDS } from "@/lib/automations/config";
 import { getLocale } from "@stamply/i18n/locale";
-import { getDictionary, type Dictionary } from "@stamply/i18n/dictionaries";
+import { getDictionary } from "@stamply/i18n/dictionaries";
+import type { RewardType } from "@/types/database";
 
-export interface RewardDefinitionFormState {
+export interface AutomationFormState {
   error?: string;
+  saved?: boolean;
 }
 
-/**
- * `dict.dashboard.rewards.*` is out of scope here (a sibling frontend
- * package owns those keys and will add them later) — reusing
- * `dashboard.programs.errors.rewardRequired` ("Describe the reward." /
- * "Describe la recompensa.") since it's semantically the same validation as
- * the reward-description field on this form, rather than adding a new
- * `dashboard.rewards.*` key myself.
- */
-function rewardDefinitionSchema(dict: Dictionary) {
-  return z.object({
-    reward_description: z
-      .string()
-      .min(2, dict.dashboard.programs.errors.rewardRequired)
-      .max(200),
-    active: z.union([z.literal("on"), z.null()]).transform((v) => v === "on"),
-  });
-}
-
-export async function upsertRewardDefinition(
-  _prev: RewardDefinitionFormState,
+/** Create or update one automation (a reward_definitions row) of this business. */
+export async function saveAutomation(
+  _prev: AutomationFormState,
   formData: FormData,
-): Promise<RewardDefinitionFormState> {
+): Promise<AutomationFormState> {
   const { user, membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
 
-  const parsed = rewardDefinitionSchema(dict).safeParse({
-    reward_description: formData.get("reward_description"),
-    active: formData.get("active"),
-  });
+  const parsed = z
+    .object({
+      type: z.enum(AUTOMATION_TYPES as [RewardType, ...RewardType[]]),
+      active: z.union([z.literal("on"), z.null()]).transform((v) => v === "on"),
+      message: z.string().trim().max(200),
+      reward_description: z.string().trim().max(200),
+      setting: z.coerce.number().int().optional(),
+    })
+    .safeParse({
+      type: formData.get("type"),
+      active: formData.get("active"),
+      message: formData.get("message") ?? "",
+      reward_description: formData.get("reward_description") ?? "",
+      setting: formData.get("setting") ?? undefined,
+    });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  const { type, active, message, reward_description, setting } = parsed.data;
+  if (active && !message) {
+    return { error: dict.dashboard.rewards.errors.messageRequired };
+  }
 
   const supabase = await createClient();
-
   const { data: existing } = await supabase
     .from("reward_definitions")
-    .select("id")
+    .select("id, config")
     .eq("business_id", business.id)
-    .eq("type", "birthday")
+    .eq("type", type)
     .maybeSingle();
 
-  if (existing) {
-    const { error } = await supabase
-      .from("reward_definitions")
-      .update({
-        reward_description: parsed.data.reward_description,
-        active: parsed.data.active,
-      })
-      .eq("id", existing.id)
-      .eq("business_id", business.id);
-    if (error) return { error: error.message };
-  } else {
-    const { error } = await supabase.from("reward_definitions").insert({
-      business_id: business.id,
-      type: "birthday",
-      reward_description: parsed.data.reward_description,
-      active: parsed.data.active,
-      config: {},
-    });
-    if (error) return { error: error.message };
+  const config = { ...(existing?.config ?? {}) } as Record<string, unknown>;
+  const field = CONFIG_FIELDS[type];
+  if (field && setting !== undefined) {
+    if (setting < field.min || setting > field.max) {
+      return { error: dict.dashboard.rewards.errors.settingRange };
+    }
+    config[field.key] = setting;
   }
+
+  const row = {
+    active,
+    message: message || null,
+    reward_description: reward_description || null,
+    config,
+  };
+  const { error } = existing
+    ? await supabase
+        .from("reward_definitions")
+        .update(row)
+        .eq("id", existing.id)
+        .eq("business_id", business.id)
+    : await supabase
+        .from("reward_definitions")
+        .insert({ business_id: business.id, type, ...row });
+  if (error) return { error: error.message };
 
   captureServerEvent({
     distinctId: user.id,
     event: "reward_definition_saved",
-    properties: {
-      reward_type: "birthday",
-      active: parsed.data.active,
-    },
+    properties: { reward_type: type, active },
     groups: { business: business.id },
   });
 
-  revalidatePath("/dashboard/rewards");
-  return {};
-}
-
-export async function toggleRewardDefinitionActive(
-  id: string,
-  active: boolean,
-): Promise<void> {
-  const { membership } = await requireRole(["owner", "admin"]);
-  const supabase = await createClient();
-  await supabase
-    .from("reward_definitions")
-    .update({ active })
-    .eq("id", id)
-    .eq("business_id", membership.business.id);
-
-  revalidatePath("/dashboard/rewards");
+  revalidatePath("/dashboard/automations");
+  return { saved: true };
 }
