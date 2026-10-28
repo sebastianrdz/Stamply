@@ -21,7 +21,19 @@ export async function designFromForm(
   if (!formData.has("primary_color")) return null;
   const primary = formData.get("primary_color");
   const secondary = formData.get("secondary_color");
-  if (!isHex(primary) || !isHex(secondary))
+  // Optional: empty = keep each icon's own colors.
+  const stampColor = formData.get("stamp_color") || null;
+  // Slider sends a whole percent; absent (non-stamp card) = keep the current value.
+  const overlayRaw = formData.get("overlay_opacity");
+  const overlay =
+    overlayRaw === null ? current.overlay_opacity : Number(overlayRaw) / 100;
+  if (!(overlay >= 0 && overlay <= 1))
+    return { error: dict.dashboard.settings.errors.colorFormat };
+  if (
+    !isHex(primary) ||
+    !isHex(secondary) ||
+    (stampColor !== null && !isHex(stampColor))
+  )
     return { error: dict.dashboard.settings.errors.colorFormat };
 
   try {
@@ -49,6 +61,8 @@ export async function designFromForm(
           current.background_image_url,
         ),
         stamp_icon_url: await pick("stamp", current.stamp_icon_url),
+        stamp_color: stampColor,
+        overlay_opacity: overlay,
         // An unchecked checkbox is absent from the form data.
         show_business_name: formData.get("show_business_name") === "1",
       },

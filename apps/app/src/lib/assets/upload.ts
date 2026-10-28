@@ -83,17 +83,19 @@ export async function resolveImageField(
   formData: FormData,
   current: string | null | undefined,
   dict: Dictionary,
+  /** Form field name; defaults to `kind` (several fields can share one kind). */
+  field: string = kind,
 ): Promise<string | null | undefined> {
   const uploaded = await uploadAsset(
     supabase,
     businessId,
     kind,
-    formData.get(kind),
+    formData.get(field),
     dict,
   );
   if (uploaded) return uploaded;
 
-  const pick = formData.get(`${kind}_pick`);
+  const pick = formData.get(`${field}_pick`);
   if (typeof pick === "string" && pick !== "") {
     const folder = supabase.storage
       .from(ASSET_BUCKET)
@@ -102,6 +104,6 @@ export async function resolveImageField(
       throw new Error(dict.dashboard.programs.errors.assetInvalid);
     return pick;
   }
-  if (formData.get(`remove_${kind}`) === "1") return null;
+  if (formData.get(`remove_${field}`) === "1") return null;
   return undefined;
 }

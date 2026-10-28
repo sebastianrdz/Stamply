@@ -31,7 +31,9 @@ vi.mock("@/lib/wallet/stamp-image", () => ({
   renderStampStrip: (input: { width: number }) => renderStampStripMock(input),
 }));
 
-const uploadMock = vi.fn(async () => ({ error: null as { message: string } | null }));
+const uploadMock = vi.fn(async () => ({
+  error: null as { message: string } | null,
+}));
 const getPublicUrlMock = vi.fn(() => ({
   data: { publicUrl: "https://cdn.example/business-assets/hero.png" },
 }));
@@ -60,12 +62,15 @@ function stubCoreEnv() {
 
 function stubGoogleEnv(issuerId = "3388000000012345678") {
   vi.stubEnv("GOOGLE_WALLET_ISSUER_ID", issuerId);
-  vi.stubEnv("GOOGLE_WALLET_SA_EMAIL", "sa@stamply-project.iam.gserviceaccount.com");
+  vi.stubEnv(
+    "GOOGLE_WALLET_SA_EMAIL",
+    "sa@stamply-project.iam.gserviceaccount.com",
+  );
   vi.stubEnv(
     "GOOGLE_WALLET_SA_KEY_BASE64",
-    Buffer.from("-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----").toString(
-      "base64",
-    ),
+    Buffer.from(
+      "-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----",
+    ).toString("base64"),
   );
 }
 
@@ -166,7 +171,9 @@ function card(overrides: Partial<Card> = {}): Card {
   };
 }
 
-function cardWithRelations(cardOverrides: Partial<Card> = {}): CardWithRelations {
+function cardWithRelations(
+  cardOverrides: Partial<Card> = {},
+): CardWithRelations {
   return {
     ...card(cardOverrides),
     business: business(),
@@ -242,7 +249,9 @@ describe("ensureLoyaltyClass", () => {
     const { ensureLoyaltyClass } = await freshWallet();
     const c: CardWithRelations = {
       ...cardWithRelations(),
-      business: business({ background_image_url: "https://cdn.example/bg.jpg" }),
+      business: business({
+        background_image_url: "https://cdn.example/bg.jpg",
+      }),
     };
     await ensureLoyaltyClass(c);
 
@@ -364,7 +373,10 @@ describe("ensureLoyaltyObject", () => {
     expect(data.classId).toBe(classId(program().id));
     expect(data.state).toBe("ACTIVE");
     expect(data.barcode).toEqual({ type: "QR_CODE", value: "stmp_abc123" });
-    expect(data.loyaltyPoints).toEqual({ label: "SELLOS", balance: { int: 4 } });
+    expect(data.loyaltyPoints).toEqual({
+      label: "SELLOS",
+      balance: { int: 4 },
+    });
     expect(data.secondaryLoyaltyPoints).toEqual({
       label: "PREMIOS",
       balance: { int: 2 },
@@ -507,7 +519,9 @@ describe("googleSaveUrl", () => {
     expect(url).toBe("https://pay.google.com/gp/v/save/signed.jwt.token");
     expect(jwtSignMock).toHaveBeenCalledTimes(1);
     const [claims] = jwtSignMock.mock.calls[0];
-    expect((claims as { payload: { loyaltyObjects: Array<{ id: string }> } }).payload
-      .loyaltyObjects[0].id).toBe(objectId(card().id));
+    expect(
+      (claims as { payload: { loyaltyObjects: Array<{ id: string }> } }).payload
+        .loyaltyObjects[0].id,
+    ).toBe(objectId(card().id));
   });
 });

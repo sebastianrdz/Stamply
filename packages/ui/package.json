@@ -4,6 +4,8 @@
   "private": true,
   "exports": {
     "./utils": "./src/lib/utils.ts",
+    "./stamp-layout": "./src/lib/stamp-layout.ts",
+    "./apple-wallet-card-preview": "./src/components/apple-wallet-card-preview.tsx",
     "./logo": "./src/brand/logo.tsx",
     "./button": "./src/components/button.tsx",
     "./card": "./src/components/card.tsx",
@@ -11,6 +13,8 @@
     "./input": "./src/components/input.tsx",
     "./label": "./src/components/label.tsx",
     "./select": "./src/components/select.tsx",
+    "./popover": "./src/components/popover.tsx",
+    "./tabs": "./src/components/tabs.tsx",
     "./skeleton": "./src/components/skeleton.tsx",
     "./interval-toggle": "./src/components/interval-toggle.tsx",
     "./pricing-panel": "./src/components/pricing-panel.tsx",
@@ -19,6 +23,8 @@
     "./toast": "./src/toast.tsx"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.3.1",
+    "@radix-ui/react-tabs": "^1.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "sonner": "^2.0.8",

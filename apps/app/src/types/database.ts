@@ -152,6 +152,8 @@ export type Card = Timestamped & {
   updated_at: string;
   // Optional (migration 0023): same fixture-compat reason as Customer.birthday.
   points_redeemed?: number;
+  /** Migration 0028: stamp milestone rewards redeemed, per stamp number. */
+  milestones_redeemed?: Record<string, number>;
   uses_count?: number;
   expires_at?: string | null;
   tier?: string | null;
@@ -407,6 +409,15 @@ export interface Database {
         Args: {
           p_card_id: string;
           p_employee_id: string;
+          p_location_id?: string | null;
+        };
+        Returns: Card;
+      };
+      redeem_stamp_milestone: {
+        Args: {
+          p_card_id: string;
+          p_employee_id: string;
+          p_at: number;
           p_location_id?: string | null;
         };
         Returns: Card;

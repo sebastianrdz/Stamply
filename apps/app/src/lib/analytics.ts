@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
+import { addDays, localDate } from "@/lib/automations/dates";
 
 export interface DailyPoint {
   date: string; // YYYY-MM-DD
@@ -17,11 +18,15 @@ export interface Analytics {
 }
 
 const DAYS = 14;
+const DAY_MS = 86_400_000;
 
-export async function getAnalytics(businessId: string): Promise<Analytics> {
+export async function getAnalytics(
+  businessId: string,
+  timezone = "UTC",
+): Promise<Analytics> {
   const supabase = await createClient();
-  const since = new Date(Date.now() - DAYS * 24 * 60 * 60 * 1000);
-  since.setHours(0, 0, 0, 0);
+  // One spare day so the first local day is fully covered whatever the offset.
+  const since = new Date(Date.now() - (DAYS + 1) * DAY_MS);
 
   const [events, redemptions, cards] = await Promise.all([
     supabase
@@ -40,22 +45,19 @@ export async function getAnalytics(businessId: string): Promise<Analytics> {
       .eq("business_id", businessId),
   ]);
 
-  // Bucket stamps by day.
+  // Bucket stamps by the business's local day, ending today.
+  const today = localDate(timezone, new Date());
   const buckets = new Map<string, number>();
-  for (let i = 0; i < DAYS; i++) {
-    const d = new Date(since);
-    d.setDate(since.getDate() + i);
-    buckets.set(d.toISOString().slice(0, 10), 0);
-  }
+  for (let i = DAYS - 1; i >= 0; i--) buckets.set(addDays(today, -i), 0);
   for (const e of events.data ?? []) {
-    const key = new Date(e.created_at).toISOString().slice(0, 10);
+    const key = localDate(timezone, new Date(e.created_at));
     if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
   }
 
   const weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const daily: DailyPoint[] = [...buckets.entries()].map(([date, stamps]) => ({
     date,
-    label: weekday[new Date(date + "T00:00:00").getDay()],
+    label: weekday[new Date(date + "T00:00:00Z").getUTCDay()],
     stamps,
   }));
 

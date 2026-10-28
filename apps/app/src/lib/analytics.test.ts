@@ -13,16 +13,11 @@ const createClientMock = createClient as any;
 
 const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-/** Mirrors the exact date arithmetic `getAnalytics` uses to bucket days, so
- * expectations stay correct regardless of the host machine's timezone. */
-function expectedBuckets(now: Date) {
-  const since = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
-  since.setHours(0, 0, 0, 0);
+/** 14 UTC days ending on the fake "today" (2026-08-15). */
+function expectedBuckets() {
   return Array.from({ length: 14 }, (_, i) => {
-    const d = new Date(since);
-    d.setDate(since.getDate() + i);
-    const date = d.toISOString().slice(0, 10);
-    return { date, label: WEEKDAY[new Date(date + "T00:00:00").getDay()] };
+    const date = new Date(Date.UTC(2026, 7, 15 - 13 + i)).toISOString().slice(0, 10);
+    return { date, label: WEEKDAY[new Date(date + "T00:00:00Z").getUTCDay()] };
   });
 }
 
@@ -37,7 +32,7 @@ afterEach(() => {
 
 describe("getAnalytics", () => {
   it("produces exactly 14 daily points with dates/labels matching the 14-day window", async () => {
-    const buckets = expectedBuckets(new Date());
+    const buckets = expectedBuckets();
     const mock = makeSupabaseMock({
       stamp_events: { data: [] },
       redemptions: { count: 0 },
@@ -57,7 +52,7 @@ describe("getAnalytics", () => {
   });
 
   it("buckets stamp events onto the correct day and sums totalStamps", async () => {
-    const buckets = expectedBuckets(new Date());
+    const buckets = expectedBuckets();
     const firstDay = buckets[0].date;
     const midDay = buckets[5].date;
     const lastDay = buckets[13].date;
@@ -126,5 +121,18 @@ describe("getAnalytics", () => {
     expect(analytics.activeCards).toBe(0);
     expect(analytics.totalStamps).toBe(0);
     expect(analytics.redemptionRate).toBe(0);
+  });
+
+  it("buckets by the business timezone, not UTC", async () => {
+    // 02:00Z on the 15th is still the 14th in Mexico City (UTC-6).
+    const mock = makeSupabaseMock({
+      stamp_events: { data: [{ created_at: "2026-08-15T02:00:00.000Z", kind: "stamp" }] },
+      redemptions: { count: 0 },
+      cards: { count: 0 },
+    });
+    createClientMock.mockResolvedValue(mock);
+    const a = await getAnalytics("biz-1", "America/Mexico_City");
+    expect(a.daily.find((d) => d.date === "2026-08-14")?.stamps).toBe(1);
+    expect(a.daily.find((d) => d.date === "2026-08-15")?.stamps).toBe(0);
   });
 });

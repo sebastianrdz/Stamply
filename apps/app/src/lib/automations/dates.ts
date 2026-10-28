@@ -19,7 +19,7 @@ export function localDate(timezone: string, instant: Date): string {
   }).format(instant);
 }
 
-function addDays(ymd: string, n: number): string {
+export function addDays(ymd: string, n: number): string {
   const [y, m, d] = ymd.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
 }

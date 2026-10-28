@@ -1,11 +1,13 @@
 import { z } from "zod";
 import { locales } from "@stamply/i18n/config";
+import { isValidTimezone } from "@/lib/timezones";
 
 type Msgs = {
   businessNameRequired: string;
   supportEmailInvalid: string;
   supportPhoneInvalid: string;
   localeInvalid: string;
+  timezoneInvalid: string;
 };
 
 /** Empty string -> null so cleared inputs wipe the column. */
@@ -18,7 +20,7 @@ const optional = (s: z.ZodType<string>) =>
 export function settingsSchema(m: Msgs) {
   return z.object({
     name: z.string().min(2, m.businessNameRequired).max(80),
-    timezone: z.string().min(1).max(64),
+    timezone: z.string().refine(isValidTimezone, m.timezoneInvalid),
     support_email: optional(
       z.string().trim().max(254).email(m.supportEmailInvalid),
     ),

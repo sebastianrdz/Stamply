@@ -6,9 +6,10 @@ import { requireEnv } from "@/lib/env";
 import { appUrlBase } from "@/lib/wallet/shared";
 import type { CardWithRelations } from "@/lib/cards/queries";
 import { cardState } from "@/lib/cards/state";
+import { redeemableCount, slotColors, slotIcons } from "@/lib/cards/milestones";
 import { cardText } from "@/lib/cards/text";
 import type { PassLocation } from "@/lib/wallet/apple/pass";
-import { renderStampStrip } from "@/lib/wallet/stamp-image";
+import { renderOverlayStrip, renderStampStrip } from "@/lib/wallet/stamp-image";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isBirthdayMonth } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
@@ -58,7 +59,7 @@ export function loyaltyFields(card: CardWithRelations, patch = false) {
   const text = cardText(state, card.program, esDict.wallet, {
     locale: "es-MX",
     business: card.business.name,
-    rewards: card.rewards,
+    rewards: redeemableCount(card, card.program),
     timeZone: card.business.timezone,
   });
   if (text.legacy) {
@@ -71,7 +72,7 @@ export function loyaltyFields(card: CardWithRelations, patch = false) {
       // Mirrors Apple's REWARDS field — rewards this customer can redeem now.
       secondaryLoyaltyPoints: {
         label: esDict.wallet.rewards,
-        balance: { int: card.rewards },
+        balance: { int: redeemableCount(card, card.program) },
       },
     };
   }
@@ -139,6 +140,10 @@ async function renderAndUploadStampHero(
       goal: card.program.goal,
       brandHex: design.primary_color,
       stampIconUrl: design.stamp_icon_url ?? null,
+      slotIconUrls: slotIcons(card.program.config, card.program.goal),
+      slotColors: slotColors(card.program.config, card.program.goal),
+      iconColor: design.stamp_color,
+      overlayOpacity: design.overlay_opacity,
       backgroundImageUrl: design.background_image_url,
       width: HERO_WIDTH,
     });
@@ -151,6 +156,33 @@ async function renderAndUploadStampHero(
       .publicUrl;
   } catch (e) {
     console.error("[google wallet] stamp hero render/upload failed", e);
+    return null;
+  }
+}
+
+/** Non-stamp hero: the background under the overlay; null on any failure (raw image is used). */
+async function renderAndUploadOverlayHero(
+  admin: AdminClient,
+  card: CardWithRelations,
+): Promise<string | null> {
+  const design = cardDesign(card.program, card.business);
+  try {
+    const png = await renderOverlayStrip({
+      backgroundImageUrl: design.background_image_url,
+      overlayOpacity: design.overlay_opacity,
+      width: HERO_WIDTH,
+    });
+    if (!png) return null;
+    // Opacity in the path: Google caches by URL, so a changed overlay needs a new one.
+    const path = `${card.business_id}/wallet/hero-${card.id}-o${Math.round(design.overlay_opacity * 100)}.png`;
+    const { error } = await admin.storage
+      .from(HERO_ASSET_BUCKET)
+      .upload(path, png, { contentType: "image/png", upsert: true });
+    if (error) throw new Error(error.message);
+    return admin.storage.from(HERO_ASSET_BUCKET).getPublicUrl(path).data
+      .publicUrl;
+  } catch (e) {
+    console.error("[google wallet] overlay hero render/upload failed", e);
     return null;
   }
 }
@@ -168,6 +200,9 @@ async function heroImageUri(
   const design = cardDesign(card.program, card.business);
   if (card.program.type === "stamp") {
     const rendered = await renderAndUploadStampHero(admin, card, progress);
+    if (rendered) return rendered;
+  } else if (design.background_image_url && design.overlay_opacity > 0) {
+    const rendered = await renderAndUploadOverlayHero(admin, card);
     if (rendered) return rendered;
   }
   return design.background_image_url ?? undefined;

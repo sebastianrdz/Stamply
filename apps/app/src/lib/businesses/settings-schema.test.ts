@@ -6,6 +6,7 @@ const s = settingsSchema({
   supportEmailInvalid: "email",
   supportPhoneInvalid: "phone",
   localeInvalid: "locale",
+  timezoneInvalid: "tz",
 });
 const base = { name: "Cafe", timezone: "UTC" };
 
@@ -39,5 +40,9 @@ describe("settingsSchema", () => {
   ])("rejects %j", (extra, msg) => {
     const r = s.safeParse({ ...base, ...extra });
     expect(r.success ? "" : r.error.issues[0].message).toBe(msg);
+  });
+  it("rejects an unknown timezone", () => {
+    expect(s.safeParse({ ...base, timezone: "Mars/Olympus" }).success).toBe(false);
+    expect(s.safeParse({ ...base, timezone: "America/Mexico_City" }).success).toBe(true);
   });
 });
