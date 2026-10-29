@@ -1,9 +1,11 @@
 import type { ProgramType } from "@/types/database";
+import { DEFAULT_CURRENCY, isCurrency } from "./currency";
 
 /** Form-side (string) state for the per-type program settings. */
 export interface ConfigDraft {
   earn: "visit" | "spend";
   pointsPerUnit: string;
+  currency: string;
   pointTiers: { points: string; reward: string }[];
   discountKind: "percent" | "fixed" | "item";
   value: string;
@@ -31,6 +33,7 @@ export const MAX_TIERS = 10;
 export const emptyDraft: ConfigDraft = {
   earn: "visit",
   pointsPerUnit: "1",
+  currency: DEFAULT_CURRENCY,
   pointTiers: [],
   discountKind: "percent",
   value: "10",
@@ -73,8 +76,9 @@ export function buildConfig(
         .filter((t) => t.reward.trim() !== "")
         .map((t) => ({ points: num(t.points), reward: t.reward.trim() }));
       return {
-        earn: d.earn,
+        earn: "spend",
         points_per_unit: num(d.pointsPerUnit),
+        currency: d.currency,
         ...(tiers.length > 0 && { tiers }),
       };
     }
@@ -112,6 +116,7 @@ export function draftFromConfig(
   return {
     earn: c.earn === "spend" ? "spend" : "visit",
     pointsPerUnit: s(c.points_per_unit, emptyDraft.pointsPerUnit),
+    currency: isCurrency(c.currency) ? c.currency : DEFAULT_CURRENCY,
     pointTiers: arr(c.tiers).map((t) => ({
       points: s(t.points),
       reward: s(t.reward),

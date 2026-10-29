@@ -511,7 +511,7 @@ describe("program config (per-type)", () => {
     requireRoleMock.mockResolvedValue(ctx("owner"));
     const mock = makeSupabaseMock({ programs: { data: null, error: null } });
     createClientMock.mockResolvedValue(mock);
-    const points = { earn: "spend", points_per_unit: 2, tiers: [{ points: 100, reward: "Coffee" }] };
+    const points = { earn: "spend", points_per_unit: 2, currency: "USD", tiers: [{ points: 100, reward: "Coffee" }] };
     await expect(
       createProgram({}, form({ ...base, goal: "100", type: "points", config: JSON.stringify(points) })),
     ).rejects.toThrow("NEXT_REDIRECT");

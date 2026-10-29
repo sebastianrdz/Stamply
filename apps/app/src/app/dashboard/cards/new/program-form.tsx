@@ -12,6 +12,7 @@ import { Button } from "@stamply/ui/button";
 import { Input } from "@stamply/ui/input";
 import { Label } from "@stamply/ui/label";
 import { Select } from "@stamply/ui/select";
+import { CURRENCIES } from "@/lib/programs/currency";
 import { cn } from "@stamply/ui/utils";
 import { interpolate } from "@stamply/i18n/format";
 import type { Program, ProgramType } from "@/types/database";
@@ -53,12 +54,23 @@ export function ProgramForm({
   );
   const [type, setType] = useState<ProgramType>(program?.type ?? "stamp");
   const [name, setName] = useState(program?.name ?? "");
-  const [draft, setDraft] = useState<ConfigDraft>(() =>
-    draftFromConfig(program?.config),
-  );
+  const [draft, setDraft] = useState<ConfigDraft>(() => {
+    const d = draftFromConfig(program?.config);
+    // Legacy single-goal points program: its goal/reward become the first tier.
+    if (program?.type === "points" && d.pointTiers.length === 0)
+      d.pointTiers = [
+        { points: String(program.goal), reward: program.reward_description },
+      ];
+    return d;
+  });
   const [d, setD] = useState(design);
   const [goal, setGoal] = useState(program?.goal ?? 10);
   const [reward, setReward] = useState(program?.reward_description ?? "");
+  // Points cards earn by spend: the input is money per point; the config stores points per $1.
+  const [spendPerPoint, setSpendPerPoint] = useState(() => {
+    const ppu = Number(draft.pointsPerUnit);
+    return ppu > 0 ? String(Number((1 / ppu).toPrecision(8))) : "1";
+  });
   // Stamps shown as filled in the preview only; never saved.
   const [previewStamps, setPreviewStamps] = useState(3);
   const f = dict.dashboard.programs.form;
@@ -66,7 +78,18 @@ export function ProgramForm({
   const set = (patch: Partial<ConfigDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
   // Sample card for the chosen type, built by the same code as the real card.
-  const goalForType = hasGoalOf(type) && goal > 0 ? goal : 1;
+  // Points cards: the first (mandatory) tier is the initial goal and reward.
+  const firstTier = draft.pointTiers[0] ?? { points: "", reward: "" };
+  const pointsGoal = Number(firstTier.points);
+  const goalForType =
+    type === "points"
+      ? pointsGoal > 0
+        ? pointsGoal
+        : 1
+      : hasGoalOf(type) && goal > 0
+        ? goal
+        : 1;
+  const rewardForType = type === "points" ? firstTier.reward : reward;
   const previewProgress = Math.min(previewStamps, goalForType);
   const config = buildConfig(type, draft);
   const tiers = (config.tiers ?? []) as {
@@ -93,7 +116,7 @@ export function ProgramForm({
     {
       type,
       goal: goalForType,
-      reward_description: reward || f.rewardPlaceholder,
+      reward_description: rewardForType || f.rewardPlaceholder,
       config,
     },
     dict.wallet,
@@ -199,11 +222,9 @@ export function ProgramForm({
             </span>
             {stepLabels[1]}
           </h2>
-          {hasGoal ? (
+          {type === "stamp" ? (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="goal">
-                {type === "points" ? f.goalLabelPoints : f.goalLabelStamps}
-              </Label>
+              <Label htmlFor="goal">{f.goalLabelStamps}</Label>
               <Input
                 id="goal"
                 name="goal"
@@ -211,8 +232,8 @@ export function ProgramForm({
                 min={1}
                 // Stamp cards render at most 10 slots, so stamp goals are capped
                 // at 10 (enforced server-side in programSchema too).
-                max={type === "stamp" ? MAX_STAMPS : 1000}
-                defaultValue={program?.goal ?? (type === "points" ? 100 : 10)}
+                max={MAX_STAMPS}
+                defaultValue={program?.goal ?? 10}
                 onChange={(e) => setGoal(Number(e.target.value))}
                 aria-invalid={goalTooHigh}
                 required
@@ -224,8 +245,12 @@ export function ProgramForm({
               )}
             </div>
           ) : (
-            // Coupon/membership don't accumulate: goal is fixed at 1.
-            <input type="hidden" name="goal" value={1} />
+            // Coupon/membership: goal fixed at 1. Points: the first tier's points.
+            <input
+              type="hidden"
+              name="goal"
+              value={type === "points" ? goalForType : 1}
+            />
           )}
 
           {type === "stamp" && (
@@ -400,43 +425,46 @@ export function ProgramForm({
 
           {type === "points" && (
             <fieldset className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="earn">{f.earnLabel}</Label>
-                  <Select
-                    id="earn"
-                    value={draft.earn}
-                    onChange={(e) =>
-                      set({ earn: e.target.value as ConfigDraft["earn"] })
-                    }
-                  >
-                    <option value="visit">{f.earnVisit}</option>
-                    <option value="spend">{f.earnSpend}</option>
-                  </Select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="points_per_unit">
-                    {draft.earn === "spend"
-                      ? f.pointsPerSpend
-                      : f.pointsPerVisit}
-                  </Label>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="spend_per_point">{f.spendPerPointLabel}</Label>
+                <div className="flex gap-2">
                   <Input
-                    id="points_per_unit"
+                    id="spend_per_point"
                     type="number"
                     min={0.01}
                     step="any"
-                    value={draft.pointsPerUnit}
-                    onChange={(e) => set({ pointsPerUnit: e.target.value })}
+                    value={spendPerPoint}
+                    onChange={(e) => {
+                      setSpendPerPoint(e.target.value);
+                      const n = Number(e.target.value);
+                      set({ pointsPerUnit: n > 0 ? String(1 / n) : "" });
+                    }}
                     required
                   />
+                  <Select
+                    aria-label={f.currencyLabel}
+                    className="w-28 shrink-0"
+                    value={draft.currency}
+                    onChange={(e) => set({ currency: e.target.value })}
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </Select>
                 </div>
+                <p className="text-muted-foreground text-xs">
+                  {f.spendPerPointHint}
+                </p>
               </div>
               <Repeater
                 label={f.tiersLabel}
                 hint={f.tiersHint}
                 addLabel={f.tierAdd}
                 removeLabel={f.tierRemove}
-                rows={draft.pointTiers}
+                rows={draft.pointTiers.length ? draft.pointTiers : [firstTier]}
+                minRows={1}
                 onChange={(pointTiers) => set({ pointTiers })}
                 blank={{ points: "", reward: "" }}
                 fields={[
@@ -590,7 +618,15 @@ export function ProgramForm({
             </p>
           )}
 
-          {type !== "stamp" && (
+          {type === "points" && (
+            <input
+              type="hidden"
+              name="reward_description"
+              value={firstTier.reward}
+            />
+          )}
+
+          {(type === "coupon" || type === "membership") && (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="reward_description">
                 {type === "coupon"
@@ -735,6 +771,7 @@ function Repeater<R extends Record<string, string>>({
   onChange,
   blank,
   fields,
+  minRows = 0,
 }: {
   label: string;
   hint?: string;
@@ -744,6 +781,8 @@ function Repeater<R extends Record<string, string>>({
   onChange: (rows: R[]) => void;
   blank: R;
   fields: RepeaterField[];
+  /** Leading rows that can't be removed. */
+  minRows?: number;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -766,6 +805,7 @@ function Repeater<R extends Record<string, string>>({
                 placeholder={fld.placeholder}
                 value={row[fld.key]}
                 aria-label={fld.label}
+                required={i < minRows}
                 onChange={(e) =>
                   onChange(
                     rows.map((r, j) =>
@@ -776,15 +816,17 @@ function Repeater<R extends Record<string, string>>({
               />
             </div>
           ))}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={removeLabel}
-            onClick={() => onChange(rows.filter((_, j) => j !== i))}
-          >
-            <X className="size-4" />
-          </Button>
+          {i >= minRows && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={removeLabel}
+              onClick={() => onChange(rows.filter((_, j) => j !== i))}
+            >
+              <X className="size-4" />
+            </Button>
+          )}
         </div>
       ))}
       {rows.length < MAX_TIERS && (

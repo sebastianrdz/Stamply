@@ -1,4 +1,5 @@
 import type { Card, Program } from "@/types/database";
+import { DEFAULT_CURRENCY, oneOf } from "./currency";
 import { interpolate } from "@stamply/i18n/format";
 import type { Dictionary } from "@stamply/i18n/dictionaries";
 
@@ -34,7 +35,7 @@ export function programRules(p: Program, d: SummaryDict): Row[] {
       const rate = n(c.points_per_unit) ?? 1;
       const earn =
         c.earn === "spend"
-          ? interpolate(d.earnSpend, { points: rate })
+          ? interpolate(d.earnSpend, { points: rate, amount: oneOf(typeof c.currency === "string" ? c.currency : DEFAULT_CURRENCY) })
           : interpolate(d.earnVisit, { points: rate });
       const rewards =
         tiers.length > 0

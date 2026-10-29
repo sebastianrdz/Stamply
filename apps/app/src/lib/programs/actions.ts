@@ -1,5 +1,6 @@
 "use server";
 
+import { CURRENCIES, DEFAULT_CURRENCY } from "./currency";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -32,6 +33,7 @@ const money = z.number().int().min(0).max(10_000_000);
 const pointsConfig = z.object({
   earn: z.enum(["visit", "spend"]).default("visit"),
   points_per_unit: z.number().positive().max(10_000).default(1),
+  currency: z.enum(CURRENCIES).default(DEFAULT_CURRENCY),
   tiers: z
     .array(
       z.object({
