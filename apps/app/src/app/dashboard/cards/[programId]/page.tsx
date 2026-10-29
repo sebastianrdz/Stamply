@@ -126,6 +126,12 @@ export default async function ProgramDetailPage({
               programId={program.id}
               active={program.active}
             />
+            <DeleteProgramDialog
+              programId={program.id}
+              programName={program.name}
+              active={program.active}
+              cardCount={cardCount}
+            />
           </div>
         }
       />
@@ -134,7 +140,7 @@ export default async function ProgramDetailPage({
         {dict.dashboard.programs.detail.disableHint}
       </p>
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_16rem_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem_minmax(0,1fr)]">
         <Card>
           <CardHeader>
             <CardTitle>{t.detailsTitle}</CardTitle>
@@ -206,25 +212,6 @@ export default async function ProgramDetailPage({
           </CardContent>
         </Card>
       </div>
-
-      <Card className="border-destructive/30 mt-8">
-        <CardHeader>
-          <CardTitle>
-            {dict.dashboard.programs.detail.deleteSectionTitle}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
-          <p className="text-muted-foreground text-sm">
-            {dict.dashboard.programs.detail.deleteSectionDescription}
-          </p>
-          <DeleteProgramDialog
-            programId={program.id}
-            programName={program.name}
-            active={program.active}
-            cardCount={cardCount}
-          />
-        </CardContent>
-      </Card>
     </>
   );
 }

@@ -36,22 +36,18 @@ export function DeleteProgramDialog({
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex flex-col gap-1">
-        <Button
-          type="button"
-          variant="destructive"
-          disabled={active}
-          onClick={() => dialogRef.current?.showModal()}
-        >
-          {dict.dashboard.programs.delete.cta}
-        </Button>
-        {active && (
-          <p className="text-muted-foreground text-xs">
-            {dict.dashboard.programs.delete.disabledHint}
-          </p>
-        )}
-      </div>
+    <>
+      {/* Disabled hint is a tooltip: this sits in the page header's action row. */}
+      <Button
+        type="button"
+        variant="destructive"
+        size="sm"
+        disabled={active}
+        title={active ? dict.dashboard.programs.delete.disabledHint : undefined}
+        onClick={() => dialogRef.current?.showModal()}
+      >
+        {dict.dashboard.programs.delete.cta}
+      </Button>
 
       <dialog
         ref={dialogRef}
@@ -116,6 +112,6 @@ export function DeleteProgramDialog({
           background-color: hsl(var(--foreground) / 0.6);
         }
       `}</style>
-    </div>
+    </>
   );
 }
