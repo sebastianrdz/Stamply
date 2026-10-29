@@ -1,0 +1,105 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - banner [ref=f4e3]:
+      - button "Mostrar u ocultar el menú lateral" [ref=f4e4]
+      - link "Stamply" [ref=f4e6] [cursor=pointer]:
+        - /url: /dashboard
+      - button "Menú de usuario" [ref=f4e17]
+    - generic [ref=f4e21]:
+      - generic [ref=f4e22]:
+        - button "Alba Café" [ref=f4e25]
+        - navigation [ref=f4e31]:
+          - link "Panel" [ref=f4e32] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Escáner" [ref=f4e39] [cursor=pointer]:
+            - /url: /dashboard/scan
+          - link "Tarjetas" [ref=f4e46] [cursor=pointer]:
+            - /url: /dashboard/cards
+          - link "Clientes" [ref=f4e50] [cursor=pointer]:
+            - /url: /dashboard/customers
+          - link "Sucursales" [ref=f4e57] [cursor=pointer]:
+            - /url: /dashboard/locations
+          - link "Difusión" [ref=f4e62] [cursor=pointer]:
+            - /url: /dashboard/broadcast
+          - link "Automatizaciones" [ref=f4e67] [cursor=pointer]:
+            - /url: /dashboard/automations
+          - link "Marketing" [ref=f4e71] [cursor=pointer]:
+            - /url: /dashboard/marketing
+          - link "Actividad" [ref=f4e77] [cursor=pointer]:
+            - /url: /dashboard/activity
+          - link "Equipo" [ref=f4e81] [cursor=pointer]:
+            - /url: /dashboard/team
+          - link "Configuración" [ref=f4e95] [cursor=pointer]:
+            - /url: /dashboard/settings
+      - main [ref=f4e100]:
+        - generic [ref=f4e101]:
+          - generic [ref=f4e102]:
+            - generic [ref=f4e103]:
+              - heading "Café Gratis" [level=1] [ref=f4e104]
+              - paragraph [ref=f4e105]: Junta 10 sellos
+            - generic [ref=f4e106]:
+              - generic [ref=f4e107]: Activo
+              - link "Editar programa" [ref=f4e108] [cursor=pointer]:
+                - /url: /dashboard/cards/9dd5292a-26e0-4647-a430-1d8bfdd452f7/edit
+              - button "Desactivar programa" [ref=f4e112]
+          - paragraph [ref=f4e113]: Mientras esté desactivado, los clientes no podrán inscribirse ni sellar o canjear su tarjeta.
+          - generic [ref=f4e114]:
+            - generic [ref=f4e115]:
+              - heading "Detalles del programa" [level=3] [ref=f4e117]
+              - generic [ref=f4e119]:
+                - generic [ref=f4e120]:
+                  - term [ref=f4e121]: Nombre de la tarjeta
+                  - definition [ref=f4e122]: Café Gratis
+                - generic [ref=f4e123]:
+                  - term [ref=f4e124]: Tipo de tarjeta
+                  - definition [ref=f4e125]: Tarjeta de sellos
+                - generic [ref=f4e126]:
+                  - term [ref=f4e127]: Creada
+                  - definition [ref=f4e128]: 10 oct 2026
+                - generic [ref=f4e129]:
+                  - term [ref=f4e130]: Meta
+                  - definition [ref=f4e131]: 10 sellos
+                - generic [ref=f4e132]:
+                  - term [ref=f4e133]: Recompensa
+                  - definition [ref=f4e134]: Un café gratis a escoger!
+                - generic [ref=f4e135]:
+                  - term [ref=f4e136]: Tarjetas emitidas
+                  - definition [ref=f4e137]: "1"
+                - generic [ref=f4e138]:
+                  - term [ref=f4e139]: Premios por canjear
+                  - definition [ref=f4e140]: "0"
+            - generic [ref=f4e142]:
+              - generic [ref=f4e143]:
+                - generic [ref=f4e144]: Alba Café
+                - generic [ref=f4e147]:
+                  - paragraph [ref=f4e148]: SELLOS
+                  - generic [ref=f4e149]: 3/10
+              - generic [ref=f4e155]:
+                - generic [ref=f4e156]:
+                  - paragraph [ref=f4e157]: Nombre
+                  - generic [ref=f4e158]: Invitado
+                - generic [ref=f4e159]:
+                  - paragraph [ref=f4e160]: PREMIOS
+                  - generic [ref=f4e161]: "0"
+            - generic [ref=f4e166]:
+              - heading "Enlace para unirse" [level=3] [ref=f4e168]
+              - generic [ref=f4e169]:
+                - code [ref=f4e170]: http://localhost:3000/c/join/9dd5292a-26e0-4647-a430-1d8bfdd452f7
+                - img "Código QR de inscripción" [ref=f4e172]
+                - generic [ref=f4e173]:
+                  - button "Copiar enlace" [ref=f4e174]
+                  - link "Abrir enlace" [ref=f4e178] [cursor=pointer]:
+                    - /url: http://localhost:3000/c/join/9dd5292a-26e0-4647-a430-1d8bfdd452f7
+                  - button "Descargar QR (PNG)" [ref=f4e183]
+                  - link "Marketing" [ref=f4e187] [cursor=pointer]:
+                    - /url: /dashboard/marketing?card=9dd5292a-26e0-4647-a430-1d8bfdd452f7
+          - generic [ref=f4e192]:
+            - heading "Zona de peligro" [level=3] [ref=f4e194]
+            - generic [ref=f4e195]:
+              - paragraph [ref=f4e196]: Eliminar un programa es permanente. Primero debes desactivarlo.
+              - generic [ref=f4e198]:
+                - button "Eliminar programa" [disabled]
+                - paragraph [ref=f4e199]: Desactiva el programa antes de poder eliminarlo.
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f4e205] [cursor=pointer]
+  - alert [ref=f4e209]

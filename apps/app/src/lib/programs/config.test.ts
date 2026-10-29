@@ -8,7 +8,7 @@ describe("program config draft", () => {
 
   it("points: drops blank tiers, omits tiers when none", () => {
     const d = { ...emptyDraft, earn: "spend" as const, pointsPerUnit: "2" };
-    expect(buildConfig("points", d)).toEqual({ earn: "spend", points_per_unit: 2 });
+    expect(buildConfig("points", d)).toEqual({ earn: "spend", points_per_unit: 2, currency: "USD" });
     const withTiers = { ...d, pointTiers: [{ points: "100", reward: " Coffee " }, { points: "5", reward: "" }] };
     expect(buildConfig("points", withTiers).tiers).toEqual([{ points: 100, reward: "Coffee" }]);
   });

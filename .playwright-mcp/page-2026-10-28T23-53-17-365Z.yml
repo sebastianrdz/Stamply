@@ -1,0 +1,153 @@
+- generic [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - banner [ref=f6e3]:
+      - button "Mostrar u ocultar el menú lateral" [ref=f6e4]
+      - link "Stamply" [ref=f6e6] [cursor=pointer]:
+        - /url: /dashboard
+      - button "Menú de usuario" [ref=f6e17]
+    - generic [ref=f6e21]:
+      - generic [ref=f6e22]:
+        - button "Alba Café" [ref=f6e25]
+        - navigation [ref=f6e31]:
+          - link "Panel" [ref=f6e32] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Escáner" [ref=f6e39] [cursor=pointer]:
+            - /url: /dashboard/scan
+          - link "Tarjetas" [ref=f6e46] [cursor=pointer]:
+            - /url: /dashboard/cards
+          - link "Clientes" [ref=f6e50] [cursor=pointer]:
+            - /url: /dashboard/customers
+          - link "Sucursales" [ref=f6e57] [cursor=pointer]:
+            - /url: /dashboard/locations
+          - link "Difusión" [ref=f6e62] [cursor=pointer]:
+            - /url: /dashboard/broadcast
+          - link "Automatizaciones" [ref=f6e67] [cursor=pointer]:
+            - /url: /dashboard/automations
+          - link "Marketing" [ref=f6e71] [cursor=pointer]:
+            - /url: /dashboard/marketing
+          - link "Actividad" [ref=f6e77] [cursor=pointer]:
+            - /url: /dashboard/activity
+          - link "Equipo" [ref=f6e81] [cursor=pointer]:
+            - /url: /dashboard/team
+          - link "Configuración" [ref=f6e95] [cursor=pointer]:
+            - /url: /dashboard/settings
+      - main [ref=f6e100]:
+        - generic [ref=f6e101]:
+          - generic [ref=f6e103]:
+            - heading "Nuevo programa" [level=1] [ref=f6e104]
+            - paragraph [ref=f6e105]: Define la meta y la recompensa que ganan tus clientes.
+          - generic [ref=f6e106]:
+            - generic [ref=f6e107]:
+              - generic [ref=f6e108]:
+                - heading "1 Tipo de tarjeta" [level=2] [ref=f6e109]:
+                  - generic [ref=f6e110]: "1"
+                  - text: Tipo de tarjeta
+                - generic [ref=f6e111]:
+                  - generic [ref=f6e112]: Nombre del programa
+                  - textbox "Nombre del programa" [active] [ref=f6e113]:
+                    - /placeholder: Tarjeta de amantes del café
+                - group "Tipo" [ref=f6e114]:
+                  - generic [ref=f6e116]:
+                    - generic [ref=f6e117] [cursor=pointer]:
+                      - radio "Tarjeta de sellos Junta sellos y gana un premio" [checked] [ref=f6e118]
+                      - generic [ref=f6e119]: Tarjeta de sellos
+                      - generic [ref=f6e120]: Junta sellos y gana un premio
+                    - generic [ref=f6e121] [cursor=pointer]:
+                      - radio "Puntos Acumula puntos y elige premios" [ref=f6e122]
+                      - generic [ref=f6e123]: Puntos
+                      - generic [ref=f6e124]: Acumula puntos y elige premios
+                    - generic [ref=f6e125] [cursor=pointer]:
+                      - radio "Cupón Descuento con usos limitados" [ref=f6e126]
+                      - generic [ref=f6e127]: Cupón
+                      - generic [ref=f6e128]: Descuento con usos limitados
+                    - generic [ref=f6e129] [cursor=pointer]:
+                      - radio "Membresía Nivel, beneficios y renovación" [ref=f6e130]
+                      - generic [ref=f6e131]: Membresía
+                      - generic [ref=f6e132]: Nivel, beneficios y renovación
+              - generic [ref=f6e133]:
+                - heading "2 Configuración" [level=2] [ref=f6e134]:
+                  - generic [ref=f6e135]: "2"
+                  - text: Configuración
+                - generic [ref=f6e136]:
+                  - generic [ref=f6e137]: Sellos para la recompensa
+                  - spinbutton "Sellos para la recompensa" [ref=f6e138]: "10"
+                - group "Premios" [ref=f6e139]:
+                  - paragraph [ref=f6e141]: El último sello siempre tiene un premio. Agrega más en sellos anteriores.
+                  - generic [ref=f6e142]:
+                    - generic [ref=f6e143]:
+                      - generic [ref=f6e144]:
+                        - button "Choose File" [ref=f6e145]
+                        - button "Ícono del premio final" [ref=f6e146]
+                      - generic [ref=f6e155]: En
+                      - spinbutton "En el sello" [disabled] [ref=f6e156]: "10"
+                      - generic [ref=f6e157]: sellos, obtén
+                    - textbox "Recompensa" [ref=f6e158]:
+                      - /placeholder: Un café gratis a elección
+                  - button "Agregar un premio" [ref=f6e159]
+              - generic [ref=f6e161]:
+                - heading "3 Diseño" [level=2] [ref=f6e162]:
+                  - generic [ref=f6e163]: "3"
+                  - text: Diseño
+                - group "Diseño" [ref=f6e164]:
+                  - generic [ref=f6e166]:
+                    - generic [ref=f6e167]:
+                      - generic [ref=f6e168]: Color primario
+                      - generic [ref=f6e169]:
+                        - textbox "Color primario" [ref=f6e170] [cursor=pointer]: "#f9ebc4"
+                        - generic [ref=f6e171]: "#f9ebc4"
+                    - generic [ref=f6e172]:
+                      - generic [ref=f6e173]: Color de acento
+                      - generic [ref=f6e174]:
+                        - textbox "Color de acento" [ref=f6e175] [cursor=pointer]: "#2448a4"
+                        - generic [ref=f6e176]: "#2448a4"
+                  - generic [ref=f6e177]:
+                    - checkbox "Mostrar el nombre del negocio en las tarjetas del wallet" [checked] [ref=f6e178] [cursor=pointer]
+                    - text: Mostrar el nombre del negocio en las tarjetas del wallet
+                  - generic [ref=f6e179]:
+                    - generic [ref=f6e180]: Logotipo
+                    - button "Logotipo" [ref=f6e181]
+                    - generic [ref=f6e182]:
+                      - paragraph [ref=f6e184]: Se muestra en la esquina superior izquierda de la tarjeta del wallet. Usa un PNG cuadrado para mejores resultados.
+                      - button "Elegir imagen" [ref=f6e185]
+                  - generic [ref=f6e191]:
+                    - generic [ref=f6e192]: Fondo de la tarjeta
+                    - button "Fondo de la tarjeta" [ref=f6e193]
+                    - generic [ref=f6e194]:
+                      - paragraph [ref=f6e196]: Va detrás de los sellos en la tarjeta del wallet. Usa una imagen ancha (más o menos 3:1); se ajustará automáticamente.
+                      - button "Elegir imagen" [ref=f6e197]
+                  - generic [ref=f6e203]:
+                    - generic [ref=f6e204]:
+                      - generic [ref=f6e205]: Capa sobre el fondo
+                      - generic [ref=f6e206]: 40%
+                    - slider "Capa sobre el fondo" [ref=f6e207] [cursor=pointer]: "40"
+                    - paragraph [ref=f6e208]: Oscurece la imagen de fondo para que resalten los sellos. 0% la deja sin cambios.
+                  - generic [ref=f6e209]:
+                    - generic [ref=f6e210]: Icono de sello
+                    - button "Icono de sello" [ref=f6e211]
+                    - generic [ref=f6e212]:
+                      - paragraph [ref=f6e214]: "Un SVG que se muestra como cada sello en la tarjeta. Usa un icono simple de un solo color: se colorea automáticamente."
+                      - button "Elegir ícono" [ref=f6e215]
+              - button "Crear programa" [ref=f6e222]
+            - complementary [ref=f6e223]:
+              - paragraph [ref=f6e224]: Vista previa
+              - generic [ref=f6e225]:
+                - generic [ref=f6e226]:
+                  - generic [ref=f6e227]: Alba Café
+                  - generic [ref=f6e230]:
+                    - paragraph [ref=f6e231]: SELLOS
+                    - generic [ref=f6e232]: 3/10
+                - generic [ref=f6e238]:
+                  - generic [ref=f6e239]:
+                    - paragraph [ref=f6e240]: Nombre
+                    - generic [ref=f6e241]: Invitado
+                  - generic [ref=f6e242]:
+                    - paragraph [ref=f6e243]: PREMIOS
+                    - generic [ref=f6e244]: "0"
+              - generic [ref=f6e249]:
+                - generic [ref=f6e250]:
+                  - generic [ref=f6e251]: Vista previa de sellos llenos
+                  - generic [ref=f6e252]: 3/10
+                - slider "Vista previa de sellos llenos" [ref=f6e253] [cursor=pointer]: "3"
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f6e259] [cursor=pointer]
+  - alert [ref=f6e263]

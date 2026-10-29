@@ -4,8 +4,11 @@ import type { NextConfig } from "next";
 // Business logos/background images are user-uploaded to Supabase Storage and
 // served via getPublicUrl() — allow next/image to optimize that domain only,
 // derived from NEXT_PUBLIC_SUPABASE_URL (zod-validated in src/lib/env.ts)
-// rather than hardcoding a hostname literal.
-const supabaseUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!);
+// rather than hardcoding a hostname literal. Optional here: `next typegen`
+// (CI typecheck) loads this file without any env set.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL)
+  : null;
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -14,13 +17,15 @@ const nextConfig: NextConfig = {
   // babel loader gets paths relative to it; a mismatched root panics HMR.
   turbopack: { root: path.resolve(import.meta.dirname, "../..") },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: supabaseUrl.hostname,
-        pathname: "/storage/v1/object/public/**",
-      },
-    ],
+    remotePatterns: supabaseUrl
+      ? [
+          {
+            protocol: "https",
+            hostname: supabaseUrl.hostname,
+            pathname: "/storage/v1/object/public/**",
+          },
+        ]
+      : [],
   },
   // @resvg/resvg-js ships a native N-API binding (js-binding.js) that
   // Turbopack can't place in an ESM chunk graph — opt it out of bundling so

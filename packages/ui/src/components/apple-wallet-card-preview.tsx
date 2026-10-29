@@ -42,6 +42,7 @@ export interface AppleWalletCardPreviewProps {
    *  Omitted: a realistic placeholder QR. `null`: no barcode. */
   barcode?: ReactNode | { src: string; alt?: string } | null;
   className?: string;
+  halfView?: boolean;
 }
 
 const HEX = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i;
@@ -128,6 +129,7 @@ export function AppleWalletCardPreview({
   auxiliaryFields = [],
   barcode,
   className,
+  halfView = false,
 }: AppleWalletCardPreviewProps) {
   const fg = foregroundColor ?? readable(backgroundColor);
   const label = labelColor ?? fg;
@@ -181,7 +183,8 @@ export function AppleWalletCardPreview({
   return (
     <div
       className={cn(
-        "@container flex aspect-[1186/1668] w-full flex-col overflow-hidden rounded-xl shadow-lg",
+        "@container flex w-full flex-col overflow-hidden rounded-lg shadow-lg",
+        halfView ? "aspect-[1186/1068] rounded-b-none" : "aspect-[1186/1668]",
         className,
       )}
       style={{ backgroundColor, color: fg }}

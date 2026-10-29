@@ -56,8 +56,8 @@ describe("PLANS", () => {
 describe("annual pricing helpers", () => {
   it("annualMonthly is the rounded per-month equivalent", () => {
     expect(annualMonthly("small")).toBe(566); // 6790/12 = 565.83
-    expect(annualMonthly("medium")).toBe(1066); // 18790/12 = 1065.83
-    expect(annualMonthly("big")).toBe(1566); // 35790/12 = 1565.83
+    expect(annualMonthly("medium")).toBe(1566); // 18790/12 = 1565.83
+    expect(annualMonthly("big")).toBe(2983); // 35790/12 = 2982.5
   });
 
   it("annualMonthly is null for a plan with no annual option", () => {

@@ -1,0 +1,158 @@
+- generic [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - banner [ref=f7e3]:
+      - button "Mostrar u ocultar el menú lateral" [ref=f7e4]
+      - link "Stamply" [ref=f7e6] [cursor=pointer]:
+        - /url: /dashboard
+      - button "Menú de usuario" [ref=f7e17]
+    - generic [ref=f7e21]:
+      - generic [ref=f7e22]:
+        - button "Alba Café" [ref=f7e25]
+        - navigation [ref=f7e31]:
+          - link "Panel" [ref=f7e32] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Escáner" [ref=f7e39] [cursor=pointer]:
+            - /url: /dashboard/scan
+          - link "Tarjetas" [ref=f7e46] [cursor=pointer]:
+            - /url: /dashboard/cards
+          - link "Clientes" [ref=f7e50] [cursor=pointer]:
+            - /url: /dashboard/customers
+          - link "Sucursales" [ref=f7e57] [cursor=pointer]:
+            - /url: /dashboard/locations
+          - link "Difusión" [ref=f7e62] [cursor=pointer]:
+            - /url: /dashboard/broadcast
+          - link "Automatizaciones" [ref=f7e67] [cursor=pointer]:
+            - /url: /dashboard/automations
+          - link "Marketing" [ref=f7e71] [cursor=pointer]:
+            - /url: /dashboard/marketing
+          - link "Actividad" [ref=f7e77] [cursor=pointer]:
+            - /url: /dashboard/activity
+          - link "Equipo" [ref=f7e81] [cursor=pointer]:
+            - /url: /dashboard/team
+          - link "Configuración" [ref=f7e95] [cursor=pointer]:
+            - /url: /dashboard/settings
+      - main [ref=f7e100]:
+        - generic [ref=f7e101]:
+          - generic [ref=f7e159]:
+            - heading "Nuevo programa" [level=1] [ref=f7e160]
+            - paragraph [ref=f7e161]: Define la meta y la recompensa que ganan tus clientes.
+          - generic [ref=f7e162]:
+            - generic [ref=f7e163]:
+              - generic [ref=f7e164]:
+                - heading "1 Tipo de tarjeta" [level=2] [ref=f7e165]:
+                  - generic [ref=f7e166]: "1"
+                  - text: Tipo de tarjeta
+                - generic [ref=f7e167]:
+                  - generic [ref=f7e168]: Nombre del programa
+                  - textbox "Nombre del programa" [ref=f7e169]:
+                    - /placeholder: Tarjeta de amantes del café
+                - group "Tipo" [ref=f7e170]:
+                  - generic [ref=f7e172]:
+                    - generic [ref=f7e173] [cursor=pointer]:
+                      - radio "Tarjeta de sellos Junta sellos y gana un premio" [ref=f7e174]
+                      - generic [ref=f7e175]: Tarjeta de sellos
+                      - generic [ref=f7e176]: Junta sellos y gana un premio
+                    - generic [ref=f7e177] [cursor=pointer]:
+                      - radio "Puntos Acumula puntos y elige premios" [checked] [active] [ref=f7e178]
+                      - generic [ref=f7e179]: Puntos
+                      - generic [ref=f7e180]: Acumula puntos y elige premios
+                    - generic [ref=f7e181] [cursor=pointer]:
+                      - radio "Cupón Descuento con usos limitados" [ref=f7e182]
+                      - generic [ref=f7e183]: Cupón
+                      - generic [ref=f7e184]: Descuento con usos limitados
+                    - generic [ref=f7e185] [cursor=pointer]:
+                      - radio "Membresía Nivel, beneficios y renovación" [ref=f7e186]
+                      - generic [ref=f7e187]: Membresía
+                      - generic [ref=f7e188]: Nivel, beneficios y renovación
+              - generic [ref=f7e189]:
+                - heading "2 Configuración" [level=2] [ref=f7e190]:
+                  - generic [ref=f7e191]: "2"
+                  - text: Configuración
+                - group [ref=f7e192]:
+                  - generic [ref=f7e193]:
+                    - generic [ref=f7e194]: Dinero gastado por punto
+                    - generic [ref=f7e195]:
+                      - spinbutton "Dinero gastado por punto" [ref=f7e196]: "1"
+                      - combobox "Moneda" [ref=f7e197]:
+                        - option "USD" [selected]
+                        - option "MXN"
+                        - option "EUR"
+                        - option "GBP"
+                        - option "CAD"
+                        - option "COP"
+                        - option "ARS"
+                        - option "CLP"
+                        - option "PEN"
+                        - option "BRL"
+                    - paragraph [ref=f7e198]: Los clientes ganan 1 punto cada vez que gastan esta cantidad.
+                  - generic [ref=f7e199]:
+                    - generic [ref=f7e200]: Recompensas
+                    - paragraph [ref=f7e201]: Los clientes canjean puntos por estas recompensas. La primera es obligatoria y define la recompensa inicial.
+                    - generic [ref=f7e202]:
+                      - generic [ref=f7e203]:
+                        - generic [ref=f7e204]: Puntos
+                        - spinbutton "Puntos" [ref=f7e205]
+                      - generic [ref=f7e206]:
+                        - generic [ref=f7e207]: Premio
+                        - textbox "Premio" [ref=f7e208]:
+                          - /placeholder: Café gratis
+                    - button "Agregar nivel" [ref=f7e209]
+              - generic [ref=f7e211]:
+                - heading "3 Diseño" [level=2] [ref=f7e212]:
+                  - generic [ref=f7e213]: "3"
+                  - text: Diseño
+                - group "Diseño" [ref=f7e214]:
+                  - generic [ref=f7e216]:
+                    - generic [ref=f7e217]:
+                      - generic [ref=f7e218]: Color primario
+                      - generic [ref=f7e219]:
+                        - textbox "Color primario" [ref=f7e220] [cursor=pointer]: "#f9ebc4"
+                        - generic [ref=f7e221]: "#f9ebc4"
+                    - generic [ref=f7e222]:
+                      - generic [ref=f7e223]: Color de acento
+                      - generic [ref=f7e224]:
+                        - textbox "Color de acento" [ref=f7e225] [cursor=pointer]: "#2448a4"
+                        - generic [ref=f7e226]: "#2448a4"
+                  - generic [ref=f7e227]:
+                    - checkbox "Mostrar el nombre del negocio en las tarjetas del wallet" [checked] [ref=f7e228] [cursor=pointer]
+                    - text: Mostrar el nombre del negocio en las tarjetas del wallet
+                  - generic [ref=f7e229]:
+                    - generic [ref=f7e230]: Logotipo
+                    - button "Logotipo" [ref=f7e231]
+                    - generic [ref=f7e232]:
+                      - paragraph [ref=f7e234]: Se muestra en la esquina superior izquierda de la tarjeta del wallet. Usa un PNG cuadrado para mejores resultados.
+                      - button "Elegir imagen" [ref=f7e235]
+                  - generic [ref=f7e241]:
+                    - generic [ref=f7e242]: Fondo de la tarjeta
+                    - button "Fondo de la tarjeta" [ref=f7e243]
+                    - generic [ref=f7e244]:
+                      - paragraph [ref=f7e246]: Va detrás de los sellos en la tarjeta del wallet. Usa una imagen ancha (más o menos 3:1); se ajustará automáticamente.
+                      - button "Elegir imagen" [ref=f7e247]
+                  - generic [ref=f7e253]:
+                    - generic [ref=f7e254]:
+                      - generic [ref=f7e255]: Capa sobre el fondo
+                      - generic [ref=f7e256]: 40%
+                    - slider "Capa sobre el fondo" [ref=f7e257] [cursor=pointer]: "40"
+                    - paragraph [ref=f7e258]: Oscurece la imagen de fondo para que resalten los sellos. 0% la deja sin cambios.
+              - button "Crear programa" [ref=f7e260]
+            - complementary [ref=f7e261]:
+              - paragraph [ref=f7e262]: Vista previa
+              - generic [ref=f7e263]:
+                - generic [ref=f7e264]:
+                  - generic [ref=f7e265]: Alba Café
+                  - generic [ref=f7e268]:
+                    - paragraph [ref=f7e269]: PUNTOS
+                    - generic [ref=f7e270]: 1/1
+                - generic [ref=f7e274]:
+                  - paragraph [ref=f7e275]: PREMIO
+                  - generic [ref=f7e276]: Un café gratis a elección
+                - generic [ref=f7e277]:
+                  - generic [ref=f7e278]:
+                    - paragraph [ref=f7e279]: Nombre
+                    - generic [ref=f7e280]: Invitado
+                  - generic [ref=f7e281]:
+                    - paragraph [ref=f7e282]: PREMIOS
+                    - generic [ref=f7e283]: "0"
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f7e153] [cursor=pointer]
+  - alert [ref=f7e157]

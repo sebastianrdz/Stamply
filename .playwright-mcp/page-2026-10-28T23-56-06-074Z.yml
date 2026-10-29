@@ -1,0 +1,37 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - banner [ref=f7e3]:
+      - button "Mostrar u ocultar el menú lateral" [ref=f7e4]
+      - link "Stamply" [ref=f7e6] [cursor=pointer]:
+        - /url: /dashboard
+      - button "Menú de usuario" [ref=f7e17]
+    - generic [ref=f7e21]:
+      - generic [ref=f7e22]:
+        - button "Alba Café" [ref=f7e25]
+        - navigation [ref=f7e31]:
+          - link "Panel" [ref=f7e32] [cursor=pointer]:
+            - /url: /dashboard
+          - link "Escáner" [ref=f7e39] [cursor=pointer]:
+            - /url: /dashboard/scan
+          - link "Tarjetas" [ref=f7e46] [cursor=pointer]:
+            - /url: /dashboard/cards
+          - link "Clientes" [ref=f7e50] [cursor=pointer]:
+            - /url: /dashboard/customers
+          - link "Sucursales" [ref=f7e57] [cursor=pointer]:
+            - /url: /dashboard/locations
+          - link "Difusión" [ref=f7e62] [cursor=pointer]:
+            - /url: /dashboard/broadcast
+          - link "Automatizaciones" [ref=f7e67] [cursor=pointer]:
+            - /url: /dashboard/automations
+          - link "Marketing" [ref=f7e71] [cursor=pointer]:
+            - /url: /dashboard/marketing
+          - link "Actividad" [ref=f7e77] [cursor=pointer]:
+            - /url: /dashboard/activity
+          - link "Equipo" [ref=f7e81] [cursor=pointer]:
+            - /url: /dashboard/team
+          - link "Configuración" [ref=f7e95] [cursor=pointer]:
+            - /url: /dashboard/settings
+      - main [ref=f7e100]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f7e153] [cursor=pointer]
+  - alert [ref=f7e157]
