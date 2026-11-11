@@ -1,12 +1,16 @@
+import { Resend } from "resend";
 import { NextResponse, type NextRequest } from "next/server";
 import { requireEnv } from "@/lib/env";
-import { emailFromAddress, getResendClient } from "@/lib/email/resend";
+import { emailFromAddress } from "@/lib/email/resend";
 
 export const runtime = "nodejs";
 
 /** Resend `email.received` webhook → forward of the received email to NOTIFY_EMAIL. */
 export async function POST(req: NextRequest) {
-  const resend = getResendClient();
+  // Reading received mail needs a full-access key; the app's RESEND_API_KEY is send-only.
+  const resend = new Resend(
+    requireEnv("RESEND_INBOUND_API_KEY", "inbound email alerts"),
+  );
   let event;
   try {
     event = resend.webhooks.verify({
