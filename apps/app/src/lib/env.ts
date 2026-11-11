@@ -50,6 +50,7 @@ const serverSchema = z.object({
   EMAIL_FROM_ADDRESS: z.string().email().optional(),
   // Inbound-mail alert: Resend `email.received` webhook signing secret, and
   // the personal address that gets pinged.
+  RESEND_INBOUND_API_KEY: z.string().optional(),
   RESEND_WEBHOOK_SECRET: z.string().optional(),
   NOTIFY_EMAIL: z.string().email().optional(),
 
