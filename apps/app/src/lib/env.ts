@@ -48,6 +48,10 @@ const serverSchema = z.object({
   // Resend — transactional email (team invites, verification, password reset).
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM_ADDRESS: z.string().email().optional(),
+  // Inbound-mail alert: Resend `email.received` webhook signing secret, and
+  // the personal address that gets pinged.
+  RESEND_WEBHOOK_SECRET: z.string().optional(),
+  NOTIFY_EMAIL: z.string().email().optional(),
 
   // PostHog (US Cloud). Same public project key serves posthog-js and
   // posthog-node. NEXT_PUBLIC_POSTHOG_HOST is a relative path proxied through
