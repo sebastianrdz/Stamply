@@ -80,7 +80,7 @@ export async function createBusiness(
     groups: { business: business.id },
   });
 
-  redirect("/onboarding/plan");
+  redirect("/onboarding/card");
 }
 
 /** Switch the active business (must be a member — verified via RLS read). */

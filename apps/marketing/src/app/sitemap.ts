@@ -20,6 +20,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       },
     },
     {
+      url: `${base}/guide`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.6,
+      alternates: {
+        languages: {
+          es: `${base}/guide`,
+          en: `${base}/guide`,
+        },
+      },
+    },
+    {
       url: `${base}/privacy`,
       lastModified: new Date(),
       changeFrequency: "yearly",

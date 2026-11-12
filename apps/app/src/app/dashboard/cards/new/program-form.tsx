@@ -29,6 +29,7 @@ import {
 } from "@/lib/programs/config";
 
 import { cardText } from "@/lib/cards/text";
+import { guideUrl } from "@/lib/urls";
 
 // Stamp cards render at most 10 slots; extra rewards take the stamps before the last.
 const MAX_STAMPS = 10;
@@ -40,11 +41,23 @@ export function ProgramForm({
   businessName,
   design,
   library,
+  defaultName = "",
+  section,
+  flow,
+  initialType,
 }: {
   program?: Program;
   businessName: string;
   design: CardDesign;
   library: AssetLibrary;
+  /** Suggested name for a brand-new card (first run). */
+  defaultName?: string;
+  /** First-run setup shows one part of the form per page; unset = whole form. */
+  section?: "details" | "design";
+  /** First-run step the server redirects onward from. */
+  flow?: "onboarding-details" | "onboarding-design";
+  /** Card type picked on the previous onboarding page (create mode). */
+  initialType?: ProgramType;
 }) {
   const dict = useTranslations();
   const locale = useLocale();
@@ -52,8 +65,10 @@ export function ProgramForm({
     program ? updateProgram.bind(null, program.id) : createProgram,
     initialState,
   );
-  const [type, setType] = useState<ProgramType>(program?.type ?? "stamp");
-  const [name, setName] = useState(program?.name ?? "");
+  const [type, setType] = useState<ProgramType>(
+    program?.type ?? initialType ?? "stamp",
+  );
+  const [name, setName] = useState(program?.name ?? defaultName);
   const [draft, setDraft] = useState<ConfigDraft>(() => {
     const d = draftFromConfig(program?.config);
     // Legacy single-goal points program: its goal/reward become the first tier.
@@ -74,6 +89,7 @@ export function ProgramForm({
   // Stamps shown as filled in the preview only; never saved.
   const [previewStamps, setPreviewStamps] = useState(3);
   const f = dict.dashboard.programs.form;
+  const full = !section;
   const stepLabels = [f.stepType, f.stepConfig, f.stepDesign];
   const set = (patch: Partial<ConfigDraft>) =>
     setDraft((d) => ({ ...d, ...patch }));
@@ -164,509 +180,589 @@ export function ProgramForm({
       action={formAction}
       className="flex flex-col gap-8 lg:flex-row lg:items-start"
     >
+      {flow && <input type="hidden" name="flow" value={flow} />}
       <div className="flex w-full max-w-lg flex-col gap-5">
-        <section className="flex flex-col gap-5">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            <span className="bg-primary text-primary-foreground grid size-6 place-items-center rounded-full text-xs">
-              1
-            </span>
-            {stepLabels[0]}
-          </h2>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">{f.nameLabel}</Label>
-            <Input
-              id="name"
-              name="name"
-              placeholder={f.namePlaceholder}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-              required
-            />
-          </div>
-
-          <fieldset className="flex flex-col gap-1.5" disabled={!!program}>
-            <legend className="mb-1.5 text-sm font-medium">
-              {f.typeLabel}
-            </legend>
-            <div className="grid grid-cols-2 gap-2">
-              {types.map((t) => (
-                <label
-                  key={t.value}
-                  className={cn(
-                    "border-border has-[:checked]:border-primary has-[:checked]:bg-muted has-[:focus-visible]:ring-ring flex cursor-pointer flex-col gap-0.5 rounded-xl border p-3 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:ring-2",
-                  )}
-                >
-                  <input
-                    type="radio"
-                    name="type"
-                    value={t.value}
-                    checked={type === t.value}
-                    onChange={() => setType(t.value)}
-                    className="sr-only"
-                  />
-                  <span className="text-sm font-medium">{t.label}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {t.hint}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </section>
-
-        <section className="flex flex-col gap-5">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            <span className="bg-primary text-primary-foreground grid size-6 place-items-center rounded-full text-xs">
-              2
-            </span>
-            {stepLabels[1]}
-          </h2>
-          {type === "stamp" ? (
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="goal">{f.goalLabelStamps}</Label>
-              <Input
-                id="goal"
-                name="goal"
-                type="number"
-                min={1}
-                // Stamp cards render at most 10 slots, so stamp goals are capped
-                // at 10 (enforced server-side in programSchema too).
-                max={MAX_STAMPS}
-                defaultValue={program?.goal ?? 10}
-                onChange={(e) => setGoal(Number(e.target.value))}
-                aria-invalid={goalTooHigh}
-                required
-              />
-              {goalTooHigh && (
-                <p className="text-destructive text-xs" role="alert">
-                  {dict.dashboard.programs.errors.stampGoalMax}
-                </p>
-              )}
-            </div>
-          ) : (
-            // Coupon/membership: goal fixed at 1. Points: the first tier's points.
-            <input
-              type="hidden"
-              name="goal"
-              value={type === "points" ? goalForType : 1}
-            />
-          )}
-
-          {type === "stamp" && (
-            <fieldset className="flex flex-col gap-3">
-              <legend className="text-sm font-medium">
-                {f.milestonesLabel}
-              </legend>
-              <p className="text-muted-foreground text-xs">
-                {f.milestonesHint}
-              </p>
-
-              {/* The reward at the last stamp: always present, can't be removed. */}
-              <div className="flex flex-col gap-2 rounded-lg border p-3">
-                <div className="flex items-center gap-2">
-                  <ImageField
-                    compact
-                    kind="stamp"
-                    name="ms_icon_final"
-                    label={f.rewardIconLabel}
-                    accept="image/svg+xml"
-                    value={draft.rewardIconUrl}
-                    library={library.stamp}
-                    onChange={(rewardIconUrl) => set({ rewardIconUrl })}
-                    color={draft.rewardIconColor}
-                    onColorChange={(rewardIconColor) =>
-                      set({ rewardIconColor })
-                    }
-                  />
-                  <span className="text-muted-foreground text-sm">
-                    {f.rewardAtPrefix}
-                  </span>
-                  <Input
-                    className="w-16"
-                    type="number"
-                    value={goalForType}
-                    disabled
-                    aria-label={f.milestoneAtLabel}
-                  />
-                  <span className="text-muted-foreground text-sm">
-                    {f.rewardAtSuffix}
-                  </span>
-                </div>
-                <Input
-                  id="reward_description"
-                  name="reward_description"
-                  aria-label={f.rewardLabel}
-                  placeholder={f.rewardPlaceholder}
-                  defaultValue={program?.reward_description}
-                  onChange={(e) => setReward(e.target.value)}
-                  maxLength={200}
-                  required
-                />
-              </div>
-
-              {draft.milestones.map((m, i) => {
-                const patch = (p: Partial<typeof m>) =>
-                  set({
-                    milestones: draft.milestones.map((x) =>
-                      x.id === m.id ? { ...x, ...p } : x,
-                    ),
-                  });
-                const error = milestoneError(m);
-                return (
-                  <div
-                    key={m.id}
-                    className="flex flex-col gap-2 rounded-lg border p-3"
-                  >
-                    <div className="flex items-center gap-2">
-                      <ImageField
-                        compact
-                        kind="stamp"
-                        name={`ms_icon_${i}`}
-                        label={f.milestoneIconLabel}
-                        accept="image/svg+xml"
-                        value={m.iconUrl}
-                        library={library.stamp}
-                        onChange={(iconUrl) => patch({ iconUrl })}
-                        color={m.iconColor}
-                        onColorChange={(iconColor) => patch({ iconColor })}
-                      />
-                      <span className="text-muted-foreground text-sm">
-                        {f.rewardAtPrefix}
-                      </span>
-                      <Input
-                        className="w-16"
-                        type="number"
-                        min={1}
-                        max={Math.max(1, goalForType - 1)}
-                        value={m.at}
-                        onChange={(e) => patch({ at: e.target.value })}
-                        // Also blocks submit natively while the warning shows.
-                        ref={(el) => el?.setCustomValidity(error ?? "")}
-                        aria-invalid={!!error}
-                        aria-label={f.milestoneAtLabel}
-                        required
-                      />
-                      <span className="text-muted-foreground min-w-0 flex-1 text-sm">
-                        {f.rewardAtSuffix}
-                      </span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="hover:text-destructive size-8"
-                        aria-label={f.milestoneRemove}
-                        onClick={() =>
-                          set({
-                            milestones: draft.milestones.filter(
-                              (x) => x.id !== m.id,
-                            ),
-                          })
-                        }
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </div>
-                    <Input
-                      value={m.reward}
-                      onChange={(e) => patch({ reward: e.target.value })}
-                      aria-label={f.milestoneRewardLabel}
-                      placeholder={f.milestoneRewardLabel}
-                      maxLength={120}
-                      required
-                    />
-                    {error && (
-                      <p className="text-destructive text-xs" role="alert">
-                        {error}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-
-              {draft.milestones.length < goalForType - 1 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="self-start"
-                  onClick={() =>
-                    set({
-                      milestones: [
-                        ...draft.milestones,
-                        {
-                          id: newMilestoneId(),
-                          // First stamp before the last that has no reward yet.
-                          at: String(
-                            Array.from(
-                              { length: goalForType - 1 },
-                              (_, k) => k + 1,
-                            ).find(
-                              (n) =>
-                                !draft.milestones.some(
-                                  (o) => Number(o.at) === n,
-                                ),
-                            ) ?? "",
-                          ),
-                          reward: "",
-                          iconUrl: null,
-                          iconColor: null,
-                        },
-                      ],
-                    })
-                  }
-                >
-                  <Plus className="size-4" />
-                  {f.milestoneAdd}
-                </Button>
-              )}
-            </fieldset>
-          )}
-
-          {type === "points" && (
-            <fieldset className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="spend_per_point">{f.spendPerPointLabel}</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="spend_per_point"
-                    type="number"
-                    min={0.01}
-                    step="any"
-                    value={spendPerPoint}
-                    onChange={(e) => {
-                      setSpendPerPoint(e.target.value);
-                      const n = Number(e.target.value);
-                      set({ pointsPerUnit: n > 0 ? String(1 / n) : "" });
-                    }}
-                    required
-                  />
-                  <Select
-                    aria-label={f.currencyLabel}
-                    className="w-28 shrink-0"
-                    value={draft.currency}
-                    onChange={(e) => set({ currency: e.target.value })}
-                  >
-                    {CURRENCIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {f.spendPerPointHint}
-                </p>
-              </div>
-              <Repeater
-                label={f.tiersLabel}
-                hint={f.tiersHint}
-                addLabel={f.tierAdd}
-                removeLabel={f.tierRemove}
-                rows={draft.pointTiers.length ? draft.pointTiers : [firstTier]}
-                minRows={1}
-                onChange={(pointTiers) => set({ pointTiers })}
-                blank={{ points: "", reward: "" }}
-                fields={[
-                  {
-                    key: "points",
-                    label: f.tierPointsLabel,
-                    type: "number",
-                    className: "w-24",
-                  },
-                  {
-                    key: "reward",
-                    label: f.tierRewardLabel,
-                    placeholder: f.tierRewardPlaceholder,
-                  },
-                ]}
-              />
-            </fieldset>
-          )}
-
-          {type === "coupon" && (
-            <fieldset className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="discount_kind">{f.discountKindLabel}</Label>
-                  <Select
-                    id="discount_kind"
-                    value={draft.discountKind}
-                    onChange={(e) =>
-                      set({
-                        discountKind: e.target
-                          .value as ConfigDraft["discountKind"],
-                      })
-                    }
-                  >
-                    <option value="percent">{f.discountPercent}</option>
-                    <option value="fixed">{f.discountFixed}</option>
-                    <option value="item">{f.discountItem}</option>
-                  </Select>
-                </div>
-                {draft.discountKind !== "item" && (
-                  <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="discount_value">
-                      {f.discountValueLabel}
-                    </Label>
-                    <Input
-                      id="discount_value"
-                      type="number"
-                      min={0.01}
-                      max={draft.discountKind === "percent" ? 100 : undefined}
-                      step="any"
-                      value={draft.value}
-                      onChange={(e) => set({ value: e.target.value })}
-                      required
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="max_uses">{f.maxUsesLabel}</Label>
-                  <Input
-                    id="max_uses"
-                    type="number"
-                    min={1}
-                    step={1}
-                    placeholder={f.unlimitedPlaceholder}
-                    value={draft.maxUses}
-                    onChange={(e) => set({ maxUses: e.target.value })}
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="valid_days">{f.validDaysLabel}</Label>
-                  <Input
-                    id="valid_days"
-                    type="number"
-                    min={1}
-                    step={1}
-                    placeholder={f.neverPlaceholder}
-                    value={draft.validDays}
-                    onChange={(e) => set({ validDays: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <Label htmlFor="min_spend">{f.minSpendLabel}</Label>
-                <Input
-                  id="min_spend"
-                  type="number"
-                  min={0}
-                  step="any"
-                  value={draft.minSpend}
-                  onChange={(e) => set({ minSpend: e.target.value })}
-                />
-              </div>
-            </fieldset>
-          )}
-
-          {type === "membership" && (
-            <fieldset className="flex flex-col gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="access">{f.accessLabel}</Label>
-                  <Select
-                    id="access"
-                    value={draft.access}
-                    onChange={(e) =>
-                      set({ access: e.target.value as ConfigDraft["access"] })
-                    }
-                  >
-                    <option value="free">{f.accessFree}</option>
-                    <option value="staff_activated">{f.accessStaff}</option>
-                  </Select>
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="renew_days">{f.renewDaysLabel}</Label>
-                  <Input
-                    id="renew_days"
-                    type="number"
-                    min={1}
-                    step={1}
-                    value={draft.renewDays}
-                    onChange={(e) => set({ renewDays: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-              <Repeater
-                label={f.memberTiersLabel}
-                addLabel={f.memberTierAdd}
-                removeLabel={f.tierRemove}
-                rows={draft.memberTiers}
-                onChange={(memberTiers) => set({ memberTiers })}
-                blank={{ name: "", benefits: "" }}
-                fields={[
-                  { key: "name", label: f.memberTierName, className: "w-32" },
-                  { key: "benefits", label: f.memberTierBenefits },
-                ]}
-              />
-            </fieldset>
-          )}
-
-          <input
-            type="hidden"
-            name="config"
-            value={JSON.stringify(buildConfig(type, draft))}
-          />
-
-          {program && hasGoal && (
-            <p className="text-muted-foreground text-xs">
-              {dict.dashboard.programs.edit.goalChangeHint}
-            </p>
-          )}
-
-          {type === "points" && (
+        {section === "design" && (
+          <>
+            <input type="hidden" name="name" value={program?.name ?? ""} />
+            <input type="hidden" name="goal" value={program?.goal ?? 1} />
             <input
               type="hidden"
               name="reward_description"
-              value={firstTier.reward}
+              value={program?.reward_description ?? ""}
             />
-          )}
-
-          {(type === "coupon" || type === "membership") && (
+          </>
+        )}
+        {section !== "design" && (
+          <section className="flex flex-col gap-5">
+            {full && (
+              <h2 className="flex items-center gap-2 text-base font-semibold">
+                <span className="bg-primary text-primary-foreground grid size-6 place-items-center rounded-full text-xs">
+                  1
+                </span>
+                {stepLabels[0]}
+              </h2>
+            )}
+            {section === "details" && !program && (
+              <input type="hidden" name="type" value={type} />
+            )}
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="reward_description">
-                {type === "coupon"
-                  ? f.rewardLabelCoupon
-                  : type === "membership"
-                    ? f.rewardLabelMembership
-                    : f.rewardLabel}
-              </Label>
+              <Label htmlFor="name">{f.nameLabel}</Label>
               <Input
-                id="reward_description"
-                name="reward_description"
-                placeholder={
-                  type === "coupon"
-                    ? f.rewardPlaceholderCoupon
-                    : type === "membership"
-                      ? f.rewardPlaceholderMembership
-                      : f.rewardPlaceholder
-                }
-                defaultValue={program?.reward_description}
-                onChange={(e) => setReward(e.target.value)}
+                id="name"
+                name="name"
+                placeholder={f.namePlaceholder}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
                 required
               />
             </div>
-          )}
-        </section>
 
-        <section className="flex flex-col gap-5">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            <span className="bg-primary text-primary-foreground grid size-6 place-items-center rounded-full text-xs">
-              3
-            </span>
-            {stepLabels[2]}
-          </h2>
+            {full && (
+              <details className="rounded-xl border px-3 py-2">
+                <summary className="cursor-pointer text-sm font-medium">
+                  {f.typeLabel}: {types.find((t) => t.value === type)?.label}
+                  <span className="text-muted-foreground ml-1 font-normal">
+                    · {f.changeType}
+                  </span>
+                </summary>
+                <div className="pt-3">
+                  <a
+                    href={guideUrl("types")}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-muted-foreground mb-3 inline-block text-xs underline underline-offset-4"
+                  >
+                    {f.typeHelp}
+                  </a>
+                  <fieldset
+                    className="flex flex-col gap-1.5"
+                    disabled={!!program}
+                  >
+                    <legend className="mb-1.5 text-sm font-medium">
+                      {f.typeLabel}
+                    </legend>
+                    <div className="grid grid-cols-2 gap-2">
+                      {types.map((t) => (
+                        <label
+                          key={t.value}
+                          className={cn(
+                            "border-border has-[:checked]:border-primary has-[:checked]:bg-muted has-[:focus-visible]:ring-ring flex cursor-pointer flex-col gap-0.5 rounded-xl border p-3 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60 has-[:focus-visible]:ring-2",
+                          )}
+                        >
+                          <input
+                            type="radio"
+                            name="type"
+                            value={t.value}
+                            checked={type === t.value}
+                            onChange={() => setType(t.value)}
+                            className="sr-only"
+                          />
+                          <span className="text-sm font-medium">{t.label}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {t.hint}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+              </details>
+            )}
+          </section>
+        )}
+
+        {section !== "design" && (
+          <section className="flex flex-col gap-5">
+            {full && (
+              <h2 className="flex items-center gap-2 text-base font-semibold">
+                <span className="bg-primary text-primary-foreground grid size-6 place-items-center rounded-full text-xs">
+                  2
+                </span>
+                {stepLabels[1]}
+              </h2>
+            )}
+            {type === "stamp" ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="goal">{f.goalLabelStamps}</Label>
+                <Input
+                  id="goal"
+                  name="goal"
+                  type="number"
+                  min={1}
+                  // Stamp cards render at most 10 slots, so stamp goals are capped
+                  // at 10 (enforced server-side in programSchema too).
+                  max={MAX_STAMPS}
+                  defaultValue={program?.goal ?? 10}
+                  onChange={(e) => setGoal(Number(e.target.value))}
+                  aria-invalid={goalTooHigh}
+                  required
+                />
+                {goalTooHigh && (
+                  <p className="text-destructive text-xs" role="alert">
+                    {dict.dashboard.programs.errors.stampGoalMax}
+                  </p>
+                )}
+              </div>
+            ) : (
+              // Coupon/membership: goal fixed at 1. Points: the first tier's points.
+              <input
+                type="hidden"
+                name="goal"
+                value={type === "points" ? goalForType : 1}
+              />
+            )}
+
+            {type === "stamp" && (
+              <fieldset className="flex flex-col gap-3">
+                <legend className="text-sm font-medium">
+                  {f.milestonesLabel}
+                </legend>
+                <p className="text-muted-foreground text-xs">
+                  {f.milestonesHint}
+                </p>
+
+                {/* The reward at the last stamp: always present, can't be removed. */}
+                <div className="flex flex-col gap-2 rounded-lg border p-3">
+                  <div className="flex items-center gap-2">
+                    <ImageField
+                      compact
+                      kind="stamp"
+                      name="ms_icon_final"
+                      label={f.rewardIconLabel}
+                      accept="image/svg+xml"
+                      value={draft.rewardIconUrl}
+                      library={library.stamp}
+                      onChange={(rewardIconUrl) => set({ rewardIconUrl })}
+                      color={draft.rewardIconColor}
+                      onColorChange={(rewardIconColor) =>
+                        set({ rewardIconColor })
+                      }
+                    />
+                    <span className="text-muted-foreground text-sm">
+                      {f.rewardAtPrefix}
+                    </span>
+                    <Input
+                      className="w-16"
+                      type="number"
+                      value={goalForType}
+                      disabled
+                      aria-label={f.milestoneAtLabel}
+                    />
+                    <span className="text-muted-foreground text-sm">
+                      {f.rewardAtSuffix}
+                    </span>
+                  </div>
+                  <Input
+                    id="reward_description"
+                    name="reward_description"
+                    aria-label={f.rewardLabel}
+                    placeholder={f.rewardPlaceholder}
+                    defaultValue={program?.reward_description}
+                    onChange={(e) => setReward(e.target.value)}
+                    maxLength={200}
+                    required
+                  />
+                </div>
+
+                <details open={draft.milestones.length > 0}>
+                  <summary className="text-muted-foreground cursor-pointer text-sm">
+                    {f.moreRewards}
+                  </summary>
+                  <div className="flex flex-col gap-3 pt-3">
+                    {draft.milestones.map((m, i) => {
+                      const patch = (p: Partial<typeof m>) =>
+                        set({
+                          milestones: draft.milestones.map((x) =>
+                            x.id === m.id ? { ...x, ...p } : x,
+                          ),
+                        });
+                      const error = milestoneError(m);
+                      return (
+                        <div
+                          key={m.id}
+                          className="flex flex-col gap-2 rounded-lg border p-3"
+                        >
+                          <div className="flex items-center gap-2">
+                            <ImageField
+                              compact
+                              kind="stamp"
+                              name={`ms_icon_${i}`}
+                              label={f.milestoneIconLabel}
+                              accept="image/svg+xml"
+                              value={m.iconUrl}
+                              library={library.stamp}
+                              onChange={(iconUrl) => patch({ iconUrl })}
+                              color={m.iconColor}
+                              onColorChange={(iconColor) =>
+                                patch({ iconColor })
+                              }
+                            />
+                            <span className="text-muted-foreground text-sm">
+                              {f.rewardAtPrefix}
+                            </span>
+                            <Input
+                              className="w-16"
+                              type="number"
+                              min={1}
+                              max={Math.max(1, goalForType - 1)}
+                              value={m.at}
+                              onChange={(e) => patch({ at: e.target.value })}
+                              // Also blocks submit natively while the warning shows.
+                              ref={(el) => el?.setCustomValidity(error ?? "")}
+                              aria-invalid={!!error}
+                              aria-label={f.milestoneAtLabel}
+                              required
+                            />
+                            <span className="text-muted-foreground min-w-0 flex-1 text-sm">
+                              {f.rewardAtSuffix}
+                            </span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="hover:text-destructive size-8"
+                              aria-label={f.milestoneRemove}
+                              onClick={() =>
+                                set({
+                                  milestones: draft.milestones.filter(
+                                    (x) => x.id !== m.id,
+                                  ),
+                                })
+                              }
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </div>
+                          <Input
+                            value={m.reward}
+                            onChange={(e) => patch({ reward: e.target.value })}
+                            aria-label={f.milestoneRewardLabel}
+                            placeholder={f.milestoneRewardLabel}
+                            maxLength={120}
+                            required
+                          />
+                          {error && (
+                            <p
+                              className="text-destructive text-xs"
+                              role="alert"
+                            >
+                              {error}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {draft.milestones.length < goalForType - 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="self-start"
+                        onClick={() =>
+                          set({
+                            milestones: [
+                              ...draft.milestones,
+                              {
+                                id: newMilestoneId(),
+                                // First stamp before the last that has no reward yet.
+                                at: String(
+                                  Array.from(
+                                    { length: goalForType - 1 },
+                                    (_, k) => k + 1,
+                                  ).find(
+                                    (n) =>
+                                      !draft.milestones.some(
+                                        (o) => Number(o.at) === n,
+                                      ),
+                                  ) ?? "",
+                                ),
+                                reward: "",
+                                iconUrl: null,
+                                iconColor: null,
+                              },
+                            ],
+                          })
+                        }
+                      >
+                        <Plus className="size-4" />
+                        {f.milestoneAdd}
+                      </Button>
+                    )}
+                  </div>
+                </details>
+              </fieldset>
+            )}
+
+            {type === "points" && (
+              <fieldset className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="spend_per_point">
+                    {f.spendPerPointLabel}
+                  </Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="spend_per_point"
+                      type="number"
+                      min={0.01}
+                      step="any"
+                      value={spendPerPoint}
+                      onChange={(e) => {
+                        setSpendPerPoint(e.target.value);
+                        const n = Number(e.target.value);
+                        set({ pointsPerUnit: n > 0 ? String(1 / n) : "" });
+                      }}
+                      required
+                    />
+                    <Select
+                      aria-label={f.currencyLabel}
+                      className="w-28 shrink-0"
+                      value={draft.currency}
+                      onChange={(e) => set({ currency: e.target.value })}
+                    >
+                      {CURRENCIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </Select>
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    {f.spendPerPointHint}
+                  </p>
+                </div>
+                <Repeater
+                  label={f.tiersLabel}
+                  hint={f.tiersHint}
+                  addLabel={f.tierAdd}
+                  removeLabel={f.tierRemove}
+                  rows={
+                    draft.pointTiers.length ? draft.pointTiers : [firstTier]
+                  }
+                  minRows={1}
+                  onChange={(pointTiers) => set({ pointTiers })}
+                  blank={{ points: "", reward: "" }}
+                  fields={[
+                    {
+                      key: "points",
+                      label: f.tierPointsLabel,
+                      type: "number",
+                      className: "w-24",
+                    },
+                    {
+                      key: "reward",
+                      label: f.tierRewardLabel,
+                      placeholder: f.tierRewardPlaceholder,
+                    },
+                  ]}
+                />
+              </fieldset>
+            )}
+
+            {type === "coupon" && (
+              <fieldset className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="discount_kind">{f.discountKindLabel}</Label>
+                    <Select
+                      id="discount_kind"
+                      value={draft.discountKind}
+                      onChange={(e) =>
+                        set({
+                          discountKind: e.target
+                            .value as ConfigDraft["discountKind"],
+                        })
+                      }
+                    >
+                      <option value="percent">{f.discountPercent}</option>
+                      <option value="fixed">{f.discountFixed}</option>
+                      <option value="item">{f.discountItem}</option>
+                    </Select>
+                  </div>
+                  {draft.discountKind !== "item" && (
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="discount_value">
+                        {f.discountValueLabel}
+                      </Label>
+                      <Input
+                        id="discount_value"
+                        type="number"
+                        min={0.01}
+                        max={draft.discountKind === "percent" ? 100 : undefined}
+                        step="any"
+                        value={draft.value}
+                        onChange={(e) => set({ value: e.target.value })}
+                        required
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="max_uses">{f.maxUsesLabel}</Label>
+                    <Input
+                      id="max_uses"
+                      type="number"
+                      min={1}
+                      step={1}
+                      placeholder={f.unlimitedPlaceholder}
+                      value={draft.maxUses}
+                      onChange={(e) => set({ maxUses: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="valid_days">{f.validDaysLabel}</Label>
+                    <Input
+                      id="valid_days"
+                      type="number"
+                      min={1}
+                      step={1}
+                      placeholder={f.neverPlaceholder}
+                      value={draft.validDays}
+                      onChange={(e) => set({ validDays: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="min_spend">{f.minSpendLabel}</Label>
+                  <Input
+                    id="min_spend"
+                    type="number"
+                    min={0}
+                    step="any"
+                    value={draft.minSpend}
+                    onChange={(e) => set({ minSpend: e.target.value })}
+                  />
+                </div>
+              </fieldset>
+            )}
+
+            {type === "membership" && (
+              <fieldset className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="access">{f.accessLabel}</Label>
+                    <Select
+                      id="access"
+                      value={draft.access}
+                      onChange={(e) =>
+                        set({ access: e.target.value as ConfigDraft["access"] })
+                      }
+                    >
+                      <option value="free">{f.accessFree}</option>
+                      <option value="staff_activated">{f.accessStaff}</option>
+                    </Select>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="renew_days">{f.renewDaysLabel}</Label>
+                    <Input
+                      id="renew_days"
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={draft.renewDays}
+                      onChange={(e) => set({ renewDays: e.target.value })}
+                      required
+                    />
+                  </div>
+                </div>
+                <Repeater
+                  label={f.memberTiersLabel}
+                  addLabel={f.memberTierAdd}
+                  removeLabel={f.tierRemove}
+                  rows={draft.memberTiers}
+                  onChange={(memberTiers) => set({ memberTiers })}
+                  blank={{ name: "", benefits: "" }}
+                  fields={[
+                    { key: "name", label: f.memberTierName, className: "w-32" },
+                    { key: "benefits", label: f.memberTierBenefits },
+                  ]}
+                />
+              </fieldset>
+            )}
+
+            <input
+              type="hidden"
+              name="config"
+              value={JSON.stringify(buildConfig(type, draft))}
+            />
+
+            {program && hasGoal && (
+              <p className="text-muted-foreground text-xs">
+                {dict.dashboard.programs.edit.goalChangeHint}
+              </p>
+            )}
+
+            {type === "points" && (
+              <input
+                type="hidden"
+                name="reward_description"
+                value={firstTier.reward}
+              />
+            )}
+
+            {(type === "coupon" || type === "membership") && (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="reward_description">
+                  {type === "coupon"
+                    ? f.rewardLabelCoupon
+                    : type === "membership"
+                      ? f.rewardLabelMembership
+                      : f.rewardLabel}
+                </Label>
+                <Input
+                  id="reward_description"
+                  name="reward_description"
+                  placeholder={
+                    type === "coupon"
+                      ? f.rewardPlaceholderCoupon
+                      : type === "membership"
+                        ? f.rewardPlaceholderMembership
+                        : f.rewardPlaceholder
+                  }
+                  defaultValue={program?.reward_description}
+                  onChange={(e) => setReward(e.target.value)}
+                  required
+                />
+              </div>
+            )}
+          </section>
+        )}
+
+        {section === "design" ? (
           <DesignFields
             d={d}
             set={(patch) => setD((x) => ({ ...x, ...patch }))}
             library={library}
             type={type}
           />
-        </section>
+        ) : (
+          full && (
+            <section className="flex flex-col gap-5">
+              <details open={!!program}>
+                <summary className="flex cursor-pointer items-center gap-2 text-base font-semibold">
+                  <span className="bg-primary text-primary-foreground grid size-6 place-items-center rounded-full text-xs">
+                    3
+                  </span>
+                  {stepLabels[2]}
+                  <span className="text-muted-foreground text-sm font-normal">
+                    · {f.designOptional}
+                  </span>
+                </summary>
+                <div className="pt-4">
+                  <DesignFields
+                    d={d}
+                    set={(patch) => setD((x) => ({ ...x, ...patch }))}
+                    library={library}
+                    type={type}
+                  />
+                </div>
+              </details>
+            </section>
+          )
+        )}
 
         {state.error && (
           <p className="text-destructive text-sm" role="alert">
@@ -675,14 +771,22 @@ export function ProgramForm({
         )}
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={pending}>
-            {program
+          <Button
+            type="submit"
+            size={flow ? "lg" : undefined}
+            disabled={pending}
+          >
+            {flow
               ? pending
                 ? dict.common.saving
-                : dict.common.save
-              : pending
-                ? f.creating
-                : f.create}
+                : dict.onboarding.card.continue
+              : program
+                ? pending
+                  ? dict.common.saving
+                  : dict.common.save
+                : pending
+                  ? f.creating
+                  : f.create}
           </Button>
         </div>
       </div>

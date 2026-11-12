@@ -161,6 +161,18 @@ function firstError(
     : i.message;
 }
 
+/** Where each first-run card step sends the owner next. Allow-list only: user input is never echoed into a redirect. */
+const ONBOARDING_NEXT: Record<string, string> = {
+  "onboarding-details": "/onboarding/card/design",
+  "onboarding-design": "/onboarding/plan",
+};
+function onboardingNext(formData: FormData): string | null {
+  const flow = formData.get("flow");
+  return typeof flow === "string" && Object.hasOwn(ONBOARDING_NEXT, flow)
+    ? ONBOARDING_NEXT[flow]
+    : null;
+}
+
 export async function createProgram(
   _prev: ProgramFormState,
   formData: FormData,
@@ -168,6 +180,7 @@ export async function createProgram(
   const { user, membership } = await requireRole(["owner", "admin"]);
   const business = membership.business;
   const dict = await getDictionary(await getLocale());
+  const next = onboardingNext(formData);
 
   const parsed = programSchema(dict).safeParse({
     name: formData.get("name"),
@@ -233,12 +246,16 @@ export async function createProgram(
   captureServerEvent({
     distinctId: user.id,
     event: "program_created",
-    properties: { program_type: parsed.data.type, goal: parsed.data.goal },
+    properties: {
+      program_type: parsed.data.type,
+      goal: parsed.data.goal,
+      source: next !== null ? "onboarding" : "dashboard",
+    },
     groups: { business: business.id },
   });
 
   revalidatePath("/dashboard/cards");
-  redirect("/dashboard/cards?created=1");
+  redirect(next ?? "/dashboard/cards?created=1");
 }
 
 export async function toggleProgramActive(programId: string, active: boolean) {
@@ -362,7 +379,9 @@ export async function updateProgram(
 
   revalidatePath("/dashboard/cards");
   revalidatePath(`/dashboard/cards/${programId}`);
-  redirect(`/dashboard/cards/${programId}?updated=1`);
+  redirect(
+    onboardingNext(formData) ?? `/dashboard/cards/${programId}?updated=1`,
+  );
 }
 
 /**

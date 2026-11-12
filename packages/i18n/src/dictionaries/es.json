@@ -216,7 +216,7 @@
     "setup": {
       "metaTitle": "Configura tu negocio",
       "title": "Configura tu negocio",
-      "subtitle": "Este es el nombre que verán tus clientes en su tarjeta de lealtad. Podrás agregar sucursales y personalizar la marca después."
+      "subtitle": "Este es el nombre que verán tus clientes en su tarjeta de lealtad. Lo siguiente es crear tu primera tarjeta, que toma unos 2 minutos."
     },
     "add": {
       "title": "Agregar un negocio",
@@ -238,13 +238,43 @@
       "title": "Elige un plan para {business}",
       "subtitleTrial": "Los primeros 14 días son gratis. Agrega una tarjeta para empezar; no se te cobrará hasta el día 15 y puedes cancelar antes.",
       "subtitle": "Elige un plan para desbloquear tu negocio.",
-      "ownerOnly": "{business} aún no tiene un plan. Pide al dueño que elija uno."
+      "ownerOnly": "{business} aún no tiene un plan. Pide al dueño que elija uno.",
+      "titleWithCard": "Tu tarjeta está lista. Elige un plan para publicarla.",
+      "editCard": "Editar tarjeta",
+      "noCardTitle": "Crea tu primera tarjeta",
+      "noCardDescription": "Mira cómo se verá tu tarjeta de lealtad antes de elegir un plan. Toma unos 2 minutos.",
+      "noCardCta": "Crear mi tarjeta"
+    },
+    "card": {
+      "type": {
+        "metaTitle": "Elige un tipo de tarjeta",
+        "title": "¿Qué tipo de tarjeta quieres?",
+        "subtitle": "La mayoría de los negocios empieza con una tarjeta de sellos, por eso ya está seleccionada.",
+        "recommended": "Recomendada",
+        "lockNote": "No podrás cambiar el tipo de tarjeta después.",
+        "continue": "Continuar"
+      },
+      "details": {
+        "metaTitle": "Nombra tu tarjeta",
+        "title": "Ponle nombre y define el premio",
+        "subtitle": "Todo esto se puede cambiar después.",
+        "defaultName": "Tarjeta {business}"
+      },
+      "design": {
+        "metaTitle": "Diseño de la tarjeta",
+        "title": "Que se vea como tú",
+        "subtitle": "Opcional. Tu tarjeta ya usa los colores y el logo de tu negocio."
+      },
+      "back": "Atrás",
+      "skip": "Omitir por ahora",
+      "skipDesign": "Usar el diseño de mi negocio",
+      "continue": "Guardar y continuar"
     }
   },
   "dashboard": {
     "overview": {
       "welcome": "Bienvenido, {business}",
-      "description": "Así va tu programa de lealtad.",
+      "description": "Así van tus tarjetas de lealtad.",
       "stats": {
         "customers": "Clientes",
         "activeCards": "Tarjetas activas",
@@ -257,9 +287,9 @@
         "cta": "Abrir escáner"
       },
       "newProgramCard": {
-        "title": "Nuevo programa",
+        "title": "Nueva tarjeta",
         "description": "Crea una tarjeta de sellos o de puntos.",
-        "cta": "Crear programa"
+        "cta": "Crear tarjeta"
       }
     },
     "customers": {
@@ -289,10 +319,10 @@
     },
     "programs": {
       "list": {
-        "metaTitle": "Programas",
-        "title": "Programas de lealtad",
+        "metaTitle": "Tarjetas",
+        "title": "Tarjetas de lealtad",
         "description": "Crea las tarjetas de recompensas que tus clientes coleccionan.",
-        "newProgram": "Nuevo programa",
+        "newProgram": "Nueva tarjeta",
         "manageCta": "Administrar y obtener QR de inscripción",
         "details": {
           "goal": "Meta",
@@ -331,18 +361,18 @@
         "collectPoints": "Junta {goal} puntos",
         "collectStamps": "Junta {goal} sellos",
         "empty": {
-          "title": "Aún no hay programas",
-          "description": "Un programa define cómo tus clientes ganan una recompensa — por ejemplo, «compra 9 cafés y el 10.º es gratis».",
-          "cta": "Crea tu primer programa"
+          "title": "Aún no hay tarjetas",
+          "description": "Una tarjeta define cómo tus clientes ganan una recompensa — por ejemplo, «compra 9 cafés y el 10.º es gratis». Toma unos 2 minutos.",
+          "cta": "Crea tu primera tarjeta"
         }
       },
       "new": {
-        "metaTitle": "Nuevo programa",
-        "title": "Nuevo programa",
+        "metaTitle": "Nueva tarjeta",
+        "title": "Nueva tarjeta",
         "description": "Define la meta y la recompensa que ganan tus clientes."
       },
       "form": {
-        "nameLabel": "Nombre del programa",
+        "nameLabel": "Nombre de la tarjeta",
         "namePlaceholder": "Tarjeta de amantes del café",
         "typeLabel": "Tipo",
         "typeStamp": "Tarjeta de sellos",
@@ -352,7 +382,7 @@
         "rewardLabel": "Recompensa",
         "rewardPlaceholder": "Un café gratis a elección",
         "creating": "Creando…",
-        "create": "Crear programa",
+        "create": "Crear tarjeta",
         "typeStampHint": "Junta sellos y gana un premio",
         "typePointsHint": "Acumula puntos y elige premios",
         "typeCoupon": "Cupón",
@@ -432,10 +462,14 @@
         "iconColorLabel": "Color",
         "iconColorOriginal": "Colores originales",
         "iconColorReset": "Restablecer",
-        "previewStampsLabel": "Vista previa de sellos llenos"
+        "previewStampsLabel": "Vista previa de sellos llenos",
+        "changeType": "cambiar",
+        "moreRewards": "Agregar premios en sellos anteriores (opcional)",
+        "designOptional": "opcional, usa los colores y el logo de tu negocio",
+        "typeHelp": "¿No sabes cuál elegir? Lee la guía"
       },
       "detail": {
-        "detailsTitle": "Detalles del programa",
+        "detailsTitle": "Detalles de la tarjeta",
         "previewTitle": "Vista previa",
         "joinLinkTitle": "Enlace para unirse",
         "joinLinkDescription": "Comparte este enlace o código QR para que tus clientes se unan a tu programa de lealtad.",
@@ -448,17 +482,20 @@
         "qrAlt": "Código QR de inscripción",
         "printHint": "Imprime esto y colócalo en tu mostrador. Los clientes lo escanean para unirse y agregar su tarjeta a su wallet.",
         "downloadQr": "Descargar QR (PNG)",
-        "editCta": "Editar programa",
-        "disableCta": "Desactivar programa",
-        "enableCta": "Activar programa",
+        "editCta": "Editar tarjeta",
+        "disableCta": "Desactivar tarjeta",
+        "enableCta": "Activar tarjeta",
         "disableHint": "Mientras esté desactivado, los clientes no podrán inscribirse ni sellar o canjear su tarjeta.",
         "deleteSectionTitle": "Zona de peligro",
-        "deleteSectionDescription": "Eliminar un programa es permanente. Primero debes desactivarlo."
+        "deleteSectionDescription": "Eliminar un programa es permanente. Primero debes desactivarlo.",
+        "nextSteps": "Siguiente: imprime el cartel para tu mostrador. Cuando un cliente se una, escanea su tarjeta para darle el primer sello.",
+        "nextPoster": "Imprimir cartel",
+        "nextScanner": "Abrir escáner"
       },
       "edit": {
-        "metaTitle": "Editar programa",
-        "title": "Editar programa",
-        "description": "Actualiza la meta y la recompensa de este programa.",
+        "metaTitle": "Editar tarjeta",
+        "title": "Editar tarjeta",
+        "description": "Actualiza la meta y la recompensa de esta tarjeta.",
         "goalChangeHint": "El tipo no se puede cambiar. Cambiar la meta afecta cómo se lee el progreso de las tarjetas de clientes que ya existen — avisa a tu equipo."
       },
       "delete": {
@@ -782,11 +819,11 @@
     },
     "toasts": {
       "locationCreated": "Ubicación agregada",
-      "programCreated": "Programa creado",
-      "programUpdated": "Programa actualizado",
-      "programDeleted": "Programa eliminado",
-      "programActivated": "Programa activado",
-      "programDeactivated": "Programa pausado",
+      "programCreated": "Tarjeta creada",
+      "programUpdated": "Tarjeta actualizada",
+      "programDeleted": "Tarjeta eliminada",
+      "programActivated": "Tarjeta activada",
+      "programDeactivated": "Tarjeta pausada",
       "rewardActivated": "Recompensa activada",
       "rewardDeactivated": "Recompensa pausada",
       "businessCreated": "¡Bienvenido a Stamply!",
@@ -921,7 +958,8 @@
         ]
       },
       "mostPopular": "El más popular"
-    }
+    },
+    "includedIn": "Todo lo que incluye {name}"
   },
   "join": {
     "metaTitle": "Únete a un equipo",
@@ -1382,5 +1420,64 @@
         }
       }
     }
+  },
+  "guide": {
+    "metaTitle": "Configura tu tarjeta de lealtad",
+    "metaDescription": "Guía paso a paso para dueños de negocio: crea tu primera tarjeta de sellos, comparte el QR y sella a tu primer cliente.",
+    "title": "Configura tu tarjeta de lealtad",
+    "intro": "La mayoría de los negocios queda listo en unos 5 minutos. Solo necesitas tres cosas: un nombre para tu tarjeta, el premio que ofreces y cuántas compras se necesitan para ganarlo.",
+    "tocLabel": "En esta página",
+    "sections": [
+      {
+        "id": "first-card",
+        "heading": "1. Crea tu primera tarjeta",
+        "body": "Regístrate y escribe el nombre de tu negocio. Te guiamos directo a crear tu primera tarjeta; puedes omitirla y crearla después desde la pantalla de planes.\n\nSon tres páginas cortas: elige un tipo de tarjeta (la de sellos ya viene seleccionada), ponle nombre y define el premio (por ejemplo, «Sanos Rewards» y «Un smoothie gratis», con hasta 10 sellos), y después elige un diseño si quieres. La vista previa de la derecha se actualiza mientras escribes.\n\nEl diseño es opcional. Tu tarjeta usa por defecto los colores y el logo de tu negocio; cambia el fondo, el ícono o los colores solo si quieres."
+      },
+      {
+        "id": "types",
+        "heading": "2. ¿Qué tipo de tarjeta elegir?",
+        "body": "Tarjeta de sellos: los clientes juntan sellos y reciben un premio con el último. Es la mejor opción para la mayoría de cafeterías, restaurantes y tiendas, y viene seleccionada por defecto.\n\nPuntos: los clientes ganan puntos por visita o por monto gastado y eligen entre niveles de premios.\n\nCupón: un descuento con un número limitado de usos.\n\nMembresía: niveles, beneficios y un periodo de renovación.\n\n¿No estás seguro? Empieza con una tarjeta de sellos. Puedes crear más tarjetas después."
+      },
+      {
+        "id": "go-live",
+        "heading": "3. Publica tu tarjeta",
+        "body": "Cuando tu tarjeta se vea bien, llegas a la pantalla de planes con una vista previa. Elige un plan para publicarla. Los primeros 14 días son gratis y se te pedirá una tarjeta de pago para iniciar la prueba. Mientras no elijas un plan, el resto de la app permanece bloqueado.\n\nDespués de elegir un plan, llegas a tu tarjeta, donde encontrarás su enlace para unirse y su código QR."
+      },
+      {
+        "id": "join",
+        "heading": "4. Consigue que tus clientes se unan",
+        "body": "Abre tu tarjeta y usa «Imprimir cartel» para obtener un cartel listo con tu código QR, o descarga el QR y colócalo en tu mostrador.\n\nCuando un cliente lo escanea, agrega tu tarjeta a Apple Wallet o Google Wallet. No necesita descargar ninguna app. Si no tiene billetera digital, puede usar la tarjeta desde su navegador."
+      },
+      {
+        "id": "scan",
+        "heading": "5. Sella y canjea",
+        "body": "Abre el Escáner en tu celular y apunta la cámara al QR de la tarjeta del cliente. Elige «Agregar sellos» después de una compra, o «Canjear premio» cuando ya lo haya ganado.\n\nEl escáner necesita permiso de cámara y funciona por HTTPS."
+      },
+      {
+        "id": "team",
+        "heading": "6. Suma a tu equipo (opcional)",
+        "body": "Invita a tu personal desde Equipo para que escanee con su propia cuenta. El número de integrantes depende de tu plan. También puedes agregar sucursales desde el panel; son opcionales y sirven para saber dónde se sella."
+      }
+    ],
+    "faqTitle": "Preguntas frecuentes",
+    "faq": [
+      {
+        "q": "¿Puedo cambiar la cantidad de sellos después?",
+        "a": "Sí, desde Editar tarjeta. Cambia cómo se ve el avance de los clientes actuales, así que avisa antes a tu equipo. El tipo de tarjeta no se puede cambiar una vez creada."
+      },
+      {
+        "q": "¿Cuál es la diferencia entre pausar y eliminar una tarjeta?",
+        "a": "Desactivar una tarjeta la pausa: los clientes no pueden unirse ni recibir sellos, y puedes activarla de nuevo. Eliminar es permanente y borra las tarjetas de clientes y su historial, por eso primero debe estar desactivada."
+      },
+      {
+        "q": "Mi cliente no usa una billetera digital. ¿Qué hago?",
+        "a": "Puede abrir su tarjeta en el navegador desde el enlace para unirse y mostrar el QR desde ahí."
+      },
+      {
+        "q": "¿Qué pasa al terminar la prueba gratis?",
+        "a": "El cobro empieza el día 15 y puedes cancelar antes desde Plan y facturación."
+      }
+    ],
+    "cta": "Abrir Stamply"
   }
 }
