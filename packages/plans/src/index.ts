@@ -41,7 +41,8 @@ export const PLANS: Record<PlanTier, PlanDef> = {
     name: "No plan",
     price: 0,
     tagline: "Choose a plan to get started.",
-    limits: { locations: 0, employees: 0, customers: 0, programs: 0 },
+    // One draft card so owners can build before paying; enroll/scan stay gated on plan.
+    limits: { locations: 0, employees: 0, customers: 0, programs: 1 },
     features: [],
   },
   small: {

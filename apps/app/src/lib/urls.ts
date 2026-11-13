@@ -31,6 +31,11 @@ export function privacyUrl(): string {
   return `${marketingUrl()}/privacy`;
 }
 
+/** Business setup guide, hosted on the marketing site. */
+export function guideUrl(anchor?: string): string {
+  return `${marketingUrl()}/guide${anchor ? `#${anchor}` : ""}`;
+}
+
 /** Public enrollment link for a program (shown as an in-store QR). */
 export function enrollUrl(programId: string): string {
   return `${base()}/c/join/${programId}`;

@@ -216,7 +216,7 @@
     "setup": {
       "metaTitle": "Set up your business",
       "title": "Set up your business",
-      "subtitle": "This is the name your customers will see on their loyalty card. You can add locations and branding next."
+      "subtitle": "This is the name your customers will see on their loyalty card. Next you'll create your first card, which takes about 2 minutes."
     },
     "add": {
       "title": "Add a business",
@@ -238,13 +238,43 @@
       "title": "Choose a plan for {business}",
       "subtitleTrial": "The first 14 days are free. Add a card to start; you won't be charged until day 15, and you can cancel before then.",
       "subtitle": "Choose a plan to unlock your business.",
-      "ownerOnly": "{business} doesn't have a plan yet. Ask the owner to choose one."
+      "ownerOnly": "{business} doesn't have a plan yet. Ask the owner to choose one.",
+      "titleWithCard": "Your card is ready. Choose a plan to go live.",
+      "editCard": "Edit card",
+      "noCardTitle": "Create your first card",
+      "noCardDescription": "See how your loyalty card will look before you choose a plan. It takes about 2 minutes.",
+      "noCardCta": "Create my card"
+    },
+    "card": {
+      "type": {
+        "metaTitle": "Choose a card type",
+        "title": "What kind of card do you want?",
+        "subtitle": "Most businesses start with a stamp card, so it's selected for you.",
+        "recommended": "Recommended",
+        "lockNote": "You can't change the card type later.",
+        "continue": "Continue"
+      },
+      "details": {
+        "metaTitle": "Name your card",
+        "title": "Name it and set the reward",
+        "subtitle": "You can change all of this later.",
+        "defaultName": "{business} Rewards"
+      },
+      "design": {
+        "metaTitle": "Card look",
+        "title": "Make it look like you",
+        "subtitle": "Optional. Your card already uses your business colors and logo."
+      },
+      "back": "Back",
+      "skip": "Skip for now",
+      "skipDesign": "Keep my business look",
+      "continue": "Save and continue"
     }
   },
   "dashboard": {
     "overview": {
       "welcome": "Welcome, {business}",
-      "description": "Here's how your loyalty program is doing.",
+      "description": "Here's how your loyalty cards are doing.",
       "stats": {
         "customers": "Customers",
         "activeCards": "Active cards",
@@ -257,9 +287,9 @@
         "cta": "Open scanner"
       },
       "newProgramCard": {
-        "title": "New program",
+        "title": "New card",
         "description": "Create a stamp card or points reward.",
-        "cta": "Create program"
+        "cta": "Create card"
       }
     },
     "customers": {
@@ -289,10 +319,10 @@
     },
     "programs": {
       "list": {
-        "metaTitle": "Programs",
-        "title": "Loyalty programs",
+        "metaTitle": "Cards",
+        "title": "Loyalty cards",
         "description": "Create the reward cards your customers collect.",
-        "newProgram": "New program",
+        "newProgram": "New card",
         "manageCta": "Manage & get enrollment QR",
         "details": {
           "goal": "Goal",
@@ -331,18 +361,18 @@
         "collectPoints": "Collect {goal} points",
         "collectStamps": "Collect {goal} stamps",
         "empty": {
-          "title": "No programs yet",
-          "description": "A program defines how customers earn a reward — like 'buy 9 coffees, get the 10th free'.",
-          "cta": "Create your first program"
+          "title": "No cards yet",
+          "description": "A card defines how customers earn a reward — like 'buy 9 coffees, get the 10th free'. It takes about 2 minutes.",
+          "cta": "Create your first card"
         }
       },
       "new": {
-        "metaTitle": "New program",
-        "title": "New program",
+        "metaTitle": "New card",
+        "title": "New card",
         "description": "Set the goal and the reward customers earn."
       },
       "form": {
-        "nameLabel": "Program name",
+        "nameLabel": "Card name",
         "namePlaceholder": "Coffee lovers card",
         "typeLabel": "Type",
         "typeStamp": "Stamp card",
@@ -352,7 +382,7 @@
         "rewardLabel": "Reward",
         "rewardPlaceholder": "A free coffee of your choice",
         "creating": "Creating…",
-        "create": "Create program",
+        "create": "Create card",
         "typeStampHint": "Collect stamps, get a reward",
         "typePointsHint": "Earn points, pick rewards",
         "typeCoupon": "Coupon",
@@ -432,10 +462,14 @@
         "iconColorLabel": "Color",
         "iconColorOriginal": "Icon's own colors",
         "iconColorReset": "Reset",
-        "previewStampsLabel": "Preview filled stamps"
+        "previewStampsLabel": "Preview filled stamps",
+        "changeType": "change",
+        "moreRewards": "Add rewards at earlier stamps (optional)",
+        "designOptional": "optional, uses your business colors and logo",
+        "typeHelp": "Not sure which to pick? Read the guide"
       },
       "detail": {
-        "detailsTitle": "Program details",
+        "detailsTitle": "Card details",
         "previewTitle": "Card preview",
         "joinLinkTitle": "Join link",
         "joinLinkDescription": "Share this link or QR code to let customers join your loyalty program.",
@@ -448,17 +482,20 @@
         "qrAlt": "Enrollment QR code",
         "printHint": "Print this and place it at your counter. Customers scan it to join and add their card to their wallet.",
         "downloadQr": "Download QR (PNG)",
-        "editCta": "Edit program",
-        "disableCta": "Disable program",
-        "enableCta": "Enable program",
+        "editCta": "Edit card",
+        "disableCta": "Disable card",
+        "enableCta": "Enable card",
         "disableHint": "While disabled, customers can't enroll or stamp/redeem their card.",
         "deleteSectionTitle": "Danger zone",
-        "deleteSectionDescription": "Deleting a program is permanent. You must disable it first."
+        "deleteSectionDescription": "Deleting a program is permanent. You must disable it first.",
+        "nextSteps": "Next: print the poster for your counter. When a customer joins, scan their card to give the first stamp.",
+        "nextPoster": "Print poster",
+        "nextScanner": "Open scanner"
       },
       "edit": {
-        "metaTitle": "Edit program",
-        "title": "Edit program",
-        "description": "Update the goal and reward for this program.",
+        "metaTitle": "Edit card",
+        "title": "Edit card",
+        "description": "Update the goal and reward for this card.",
         "goalChangeHint": "The type can't be changed. Changing the goal affects how existing customers' card progress reads — give your team a heads up."
       },
       "delete": {
@@ -782,11 +819,11 @@
     },
     "toasts": {
       "locationCreated": "Location added",
-      "programCreated": "Program created",
-      "programUpdated": "Program updated",
-      "programDeleted": "Program deleted",
-      "programActivated": "Program activated",
-      "programDeactivated": "Program paused",
+      "programCreated": "Card created",
+      "programUpdated": "Card updated",
+      "programDeleted": "Card deleted",
+      "programActivated": "Card activated",
+      "programDeactivated": "Card paused",
       "rewardActivated": "Reward activated",
       "rewardDeactivated": "Reward paused",
       "businessCreated": "Welcome to Stamply!",
@@ -921,7 +958,8 @@
         ]
       },
       "mostPopular": "Most popular"
-    }
+    },
+    "includedIn": "Everything in {name}"
   },
   "join": {
     "metaTitle": "Join a team",
@@ -1382,5 +1420,64 @@
         }
       }
     }
+  },
+  "guide": {
+    "metaTitle": "Set up your loyalty card",
+    "metaDescription": "A step-by-step guide for business owners: create your first stamp card, share the QR, and stamp your first customer.",
+    "title": "Set up your loyalty card",
+    "intro": "Most businesses are ready in about 5 minutes. You only need three things: a name for your card, the reward you offer, and how many purchases it takes to earn it.",
+    "tocLabel": "On this page",
+    "sections": [
+      {
+        "id": "first-card",
+        "heading": "1. Create your first card",
+        "body": "Sign up and enter your business name. You are guided straight into creating your first card; you can skip it and create it later from the plan screen.\n\nThere are three short pages: pick a card type (stamp card is preselected), name it and set the reward (for example, \"Sanos Rewards\" and \"A free smoothie\", with up to 10 stamps), then choose a look if you want one. The preview on the right updates as you type.\n\nDesign is optional. Your card uses your business colors and logo by default; change the background, icon or colors only if you want to."
+      },
+      {
+        "id": "types",
+        "heading": "2. Which card type?",
+        "body": "Stamp card: customers collect stamps and get a reward at the last one. This is the right choice for most cafés, restaurants and shops, and it is the default.\n\nPoints: customers earn points per visit or per amount spent, and choose from reward tiers.\n\nCoupon: a discount with a limited number of uses.\n\nMembership: tiers, benefits and a renewal period.\n\nNot sure? Start with a stamp card. You can create more cards later."
+      },
+      {
+        "id": "go-live",
+        "heading": "3. Go live",
+        "body": "When your card looks right, you land on the plan screen with a preview of it. Choose a plan to go live. The first 14 days are free, and your card details are required to start the trial. Until you choose a plan, the rest of the app stays locked.\n\nAfter choosing a plan, you land on your card, where you will find its join link and QR code."
+      },
+      {
+        "id": "join",
+        "heading": "4. Get customers to join",
+        "body": "Open your card and use \"Print poster\" to get a ready-made poster with your QR code, or download the QR and place it at your counter.\n\nWhen a customer scans it, they add your card to Apple Wallet or Google Wallet. No app to download. If they have no wallet app, they can still use the card in their browser."
+      },
+      {
+        "id": "scan",
+        "heading": "5. Stamp and redeem",
+        "body": "Open the Scanner on your phone and point the camera at the customer's card QR. Choose \"Add stamps\" after a purchase, or \"Redeem reward\" when they have earned it.\n\nThe scanner needs camera permission and works over HTTPS."
+      },
+      {
+        "id": "team",
+        "heading": "6. Add your team (optional)",
+        "body": "Invite staff from Team so they can scan with their own account. The number of team members depends on your plan. Locations can also be added from the dashboard; they are optional and only needed to know where stamps happen."
+      }
+    ],
+    "faqTitle": "Common questions",
+    "faq": [
+      {
+        "q": "Can I change the number of stamps later?",
+        "a": "Yes, from Edit card. It changes how existing customers' progress reads, so tell your team first. The card type cannot be changed after creation."
+      },
+      {
+        "q": "What is the difference between pausing and deleting a card?",
+        "a": "Disabling a card pauses it: customers cannot join or be stamped, and you can enable it again. Deleting is permanent and removes customer cards and history, so a card must be disabled before it can be deleted."
+      },
+      {
+        "q": "My customer does not use a wallet app. What now?",
+        "a": "They can open their card in a browser from the join link and show the QR from there."
+      },
+      {
+        "q": "What happens after the free trial?",
+        "a": "Billing starts on day 15 and you can cancel before then from Plan & Billing."
+      }
+    ],
+    "cta": "Open Stamply"
   }
 }

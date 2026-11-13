@@ -113,8 +113,11 @@
   --font-mono: var(--font-geist-mono);
 }
 
-* {
-  border-color: hsl(var(--border));
+/* Layered so Tailwind border-color utilities (border-primary, border-transparent, ...) can override the default. */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
 }
 
 body {

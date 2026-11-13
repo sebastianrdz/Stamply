@@ -140,6 +140,26 @@ export default async function ProgramDetailPage({
         {dict.dashboard.programs.detail.disableHint}
       </p>
 
+      {cardCount === 0 && (
+        <div className="bg-muted mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm">
+          <p className="min-w-0 flex-1">{t.nextSteps}</p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/dashboard/marketing?card=${program.id}`}
+              className={buttonVariants({ size: "sm" })}
+            >
+              {t.nextPoster}
+            </Link>
+            <Link
+              href="/dashboard/scan"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {t.nextScanner}
+            </Link>
+          </div>
+        </div>
+      )}
+
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_16rem_minmax(0,1fr)]">
         <Card>
           <CardHeader>
