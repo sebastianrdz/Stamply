@@ -1098,6 +1098,12 @@
         "Scan from the browser"
       ]
     },
+    "video": {
+      "title": "See it in 20 seconds.",
+      "subtitle": "From the paper punch card problem to a card that lives in your customer's wallet.",
+      "play": "Play video",
+      "label": "Video: how Stamply works"
+    },
     "how": {
       "title": "From the first visit to the next reward.",
       "steps": [

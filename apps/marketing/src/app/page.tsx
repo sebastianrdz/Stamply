@@ -11,6 +11,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { FaqAccordion } from "@/components/landing/faq-accordion";
 import { ProcessSwitcher, ExamplesSwitcher } from "@/components/landing/visual-switcher";
+import { VideoPlayer } from "@/components/landing/video-player";
 import { CardMock } from "@/components/landing/card-mock";
 import { bruma, heroShowcase, CARD_TYPES } from "@/components/landing/landing-data";
 import { PricingPlans } from "./pricing-plans";
@@ -52,7 +53,8 @@ const container = "mx-auto w-full max-w-[1200px] px-6";
 const section = "py-14 md:py-24";
 
 export default async function Home() {
-  const dict = await getDictionary(await getLocale());
+  const locale = await getLocale();
+  const dict = await getDictionary(locale);
   const { landing } = dict;
 
   const jsonLd = {
@@ -170,6 +172,34 @@ export default async function Home() {
             ))}
           </ul>
         </div>
+
+        {/* Video (burned-in Spanish text, so Spanish locale only) */}
+        {locale === "es" && (
+          <section
+            aria-labelledby="video-title"
+            className={cn(container, "pt-14 md:pt-20")}
+          >
+            <div className="mx-auto mb-8 max-w-2xl text-center">
+              <h2
+                id="video-title"
+                className="text-3xl font-bold tracking-tight text-balance md:text-4xl"
+              >
+                {landing.video.title}
+              </h2>
+              <p className="text-muted-foreground mt-3 text-lg text-pretty">
+                {landing.video.subtitle}
+              </p>
+            </div>
+            <div className="mx-auto max-w-4xl">
+              <VideoPlayer
+                src="/video/stamply-es.mp4"
+                poster="/video/stamply-es-poster.jpg"
+                label={landing.video.label}
+                playLabel={landing.video.play}
+              />
+            </div>
+          </section>
+        )}
 
         {/* 2. Cómo funciona */}
         <section
