@@ -1098,6 +1098,12 @@
         "Escaneo desde el navegador"
       ]
     },
+    "video": {
+      "title": "Míralo en 20 segundos.",
+      "subtitle": "Del problema de la tarjeta de papel a una tarjeta que vive en el wallet de tu cliente.",
+      "play": "Reproducir video",
+      "label": "Video: cómo funciona Stamply"
+    },
     "how": {
       "title": "De la primera visita a la próxima recompensa.",
       "steps": [
