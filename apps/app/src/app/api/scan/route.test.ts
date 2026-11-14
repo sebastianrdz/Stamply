@@ -25,8 +25,10 @@ vi.mock("@/lib/cards/queries", async (orig) => ({
 const notifyMock = vi.fn(async () => undefined);
 vi.mock("@/lib/wallet/notify", () => ({ notifyCardUpdated: () => notifyMock() }));
 const almostThereMock = vi.fn(async (..._a: unknown[]) => undefined);
+const reviewMock = vi.fn(async (..._a: unknown[]) => undefined);
 vi.mock("@/lib/automations/trigger", () => ({
   triggerAlmostThere: (...a: unknown[]) => almostThereMock(...a),
+  triggerReviewPrompt: (...a: unknown[]) => reviewMock(...a),
 }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 vi.mock("@/lib/rewards/queries", () => ({
@@ -264,6 +266,28 @@ describe("POST /api/scan", () => {
     expect((await call({ action: "use_coupon" })).json.error).toBe("program_disabled");
     getCardMock.mockResolvedValue(card({ type: "coupon" }, { business: { plan: "none" } }));
     expect((await call({ action: "lookup" })).status).toBe(402);
+  });
+
+  describe("review prompt trigger", () => {
+    it("fires after a redeemed reward (redeem and redeem_tier)", async () => {
+      const done = card({ type: "stamp", goal: 5 }, { status: "completed", stamps: 5, rewards: 1 });
+      setup(done);
+      expect((await call({ action: "redeem" })).status).toBe(200);
+      expect(reviewMock).toHaveBeenCalledTimes(1);
+
+      const tiers = [{ points: 50, reward: "Coffee" }];
+      setup(card({ type: "points", goal: 50, config: { tiers } }, { points: 120 }));
+      expect((await call({ action: "redeem_tier", tier_index: 0 })).status).toBe(200);
+      expect(reviewMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not fire for stamps or coupon use", async () => {
+      setup(card({ type: "stamp", goal: 5 }, { stamps: 1 }));
+      await call({ action: "stamp" });
+      setup(card({ type: "coupon", config: { max_uses: 3 } }));
+      await call({ action: "use_coupon" });
+      expect(reviewMock).not.toHaveBeenCalled();
+    });
   });
 
   it("redeem keeps not_redeemable when the card isn't completed", async () => {

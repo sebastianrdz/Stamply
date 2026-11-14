@@ -6,10 +6,17 @@ import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
 import { cardState, type ScanAction } from "@/lib/cards/state";
 import { availableMilestones } from "@/lib/cards/milestones";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
-import { triggerAlmostThere } from "@/lib/automations/trigger";
+import { triggerAlmostThere, triggerReviewPrompt } from "@/lib/automations/trigger";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import type { Card, StandaloneRewardGrant } from "@/types/database";
+
+const REWARD_REDEEMS = new Set([
+  "redeem",
+  "redeem_tier",
+  "redeem_milestone",
+  "redeem_standalone_reward",
+]);
 
 export const runtime = "nodejs";
 
@@ -434,6 +441,9 @@ export async function POST(req: NextRequest) {
 
     // Best-effort (swallows its own errors): "almost there" nudge after a stamp.
     if (action === "stamp") await triggerAlmostThere(admin, updated);
+
+    // Best-effort: invite to a Google review after a reward is redeemed.
+    if (REWARD_REDEEMS.has(action)) await triggerReviewPrompt(admin, updated);
 
     // Best-effort: surface this customer's other available standalone
     // rewards (e.g. an unredeemed birthday reward) alongside the scan

@@ -15,7 +15,8 @@ export type RewardType =
   | "birthday"
   | "unredeemed_reminder"
   | "win_back"
-  | "almost_there";
+  | "almost_there"
+  | "review_prompt";
 export type StandaloneRewardStatus = "available" | "redeemed" | "expired";
 
 // NOTE: these MUST be `type` aliases, not `interface`s. Supabase's Database

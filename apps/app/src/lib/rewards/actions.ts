@@ -5,7 +5,12 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { captureServerEvent } from "@/lib/posthog/server";
-import { AUTOMATION_TYPES, CONFIG_FIELDS } from "@/lib/automations/config";
+import {
+  AUTOMATION_TYPES,
+  CONFIG_FIELDS,
+  LINK_TOKEN,
+  REVIEW_MESSAGE_MAX,
+} from "@/lib/automations/config";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import type { RewardType } from "@/types/database";
@@ -45,6 +50,13 @@ export async function saveAutomation(
     return { error: dict.dashboard.rewards.errors.messageRequired };
   }
 
+  if (type === "review_prompt") {
+    const errors = dict.dashboard.rewards.errors;
+    if (message.length > REVIEW_MESSAGE_MAX) return { error: errors.messageTooLong };
+    if (active && !message.endsWith(LINK_TOKEN)) return { error: errors.linkRequired };
+    if (active && !business.google_review_url) return { error: errors.reviewUrlRequired };
+  }
+
   const supabase = await createClient();
   const { data: existing } = await supabase
     .from("reward_definitions")
@@ -65,7 +77,7 @@ export async function saveAutomation(
   const row = {
     active,
     message: message || null,
-    reward_description: reward_description || null,
+    reward_description: type === "review_prompt" ? null : reward_description || null,
     config,
   };
   const { error } = existing

@@ -580,7 +580,10 @@
       "errors": {
         "messageRequired": "Escribe el mensaje para activar esta automatización.",
         "settingRange": "Ese valor está fuera de rango.",
-        "rewardRequired": "Describe la recompensa."
+        "rewardRequired": "Describe la recompensa.",
+        "linkRequired": "Termina el mensaje con {link} para que el cliente reciba el enlace de reseñas.",
+        "reviewUrlRequired": "Primero agrega tu enlace de reseñas de Google en Ajustes.",
+        "messageTooLong": "Mantén este mensaje en menos de 120 caracteres para que quepa el enlace."
       },
       "activeLabel": "Activada",
       "messageLabel": "Mensaje",
@@ -623,6 +626,15 @@
           "description": "Se envía justo después de un sello cuando el cliente está cerca de su recompensa.",
           "defaultMessage": "¡Solo te faltan {remaining}, {name}! Tu recompensa en {business} está casi lista.",
           "settingLabel": "Enviar cuando falten estos sellos"
+        },
+        "review_prompt": {
+          "title": "Invitación a reseña de Google",
+          "description": "Se envía una sola vez, justo después del primer premio canjeado, para pedir una reseña en Google.",
+          "defaultMessage": "¡Gracias por visitarnos, {name}! ¿Nos dejas una reseña en Google? {link}",
+          "settingLabel": "",
+          "linkHint": "Puedes usar {name} y {business}. Termina el mensaje con {link}. Máximo 120 caracteres. Solo se escribe a clientes que aceptaron marketing.",
+          "missingUrl": "Agrega tu enlace de reseñas de Google en Ajustes para activarlo.",
+          "missingUrlCta": "Abrir ajustes"
         }
       }
     },

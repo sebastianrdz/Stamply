@@ -57,7 +57,11 @@ export default async function AutomationsPage() {
                   </p>
                 ) : null;
               })()}
-              <AutomationForm type={type} definition={byType.get(type) ?? null} />
+              <AutomationForm
+                type={type}
+                definition={byType.get(type) ?? null}
+                hasReviewUrl={!!membership.business.google_review_url}
+              />
             </CardContent>
           </Card>
         ))}

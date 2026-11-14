@@ -580,7 +580,10 @@
       "errors": {
         "messageRequired": "Write the message to enable this automation.",
         "settingRange": "That value is out of range.",
-        "rewardRequired": "Describe the reward."
+        "rewardRequired": "Describe the reward.",
+        "linkRequired": "End the message with {link} so customers get the review link.",
+        "reviewUrlRequired": "Add your Google review link in Settings first.",
+        "messageTooLong": "Keep this message under 120 characters so the link fits."
       },
       "activeLabel": "Enabled",
       "messageLabel": "Message",
@@ -623,6 +626,15 @@
           "description": "Sent right after a stamp when a customer is close to their reward.",
           "defaultMessage": "Only {remaining} to go, {name}! Your reward at {business} is almost yours.",
           "settingLabel": "Send when this many stamps remain"
+        },
+        "review_prompt": {
+          "title": "Google review invite",
+          "description": "Sent once, right after a customer's first redeemed reward, asking for a Google review.",
+          "defaultMessage": "Thanks for visiting, {name}! Mind leaving us a Google review? {link}",
+          "settingLabel": "",
+          "linkHint": "You can use {name} and {business}. End the message with {link}. Max 120 characters. Only customers who opted in to marketing are messaged.",
+          "missingUrl": "Add your Google review link in Settings to enable this.",
+          "missingUrlCta": "Open settings"
         }
       }
     },
