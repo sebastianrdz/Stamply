@@ -10,6 +10,9 @@ import { configNumber } from "./config";
 import { birthdayTrigger, reminderBucketKey, tzOrUtc, winBackKey } from "./dates";
 import { errInfo } from "./log";
 import { deliverAutomation } from "./deliver";
+import { fetchAll } from "@/lib/pagination";
+
+export { fetchAll };
 
 type Admin = SupabaseClient<Database>;
 type Def = RewardDefinition & { business: { name: string; timezone: string } };
@@ -34,7 +37,6 @@ export interface CronCounts {
 }
 
 const CHUNK_SIZE = 20;
-const PAGE = 1000;
 
 function chunk<T>(items: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -44,23 +46,6 @@ function chunk<T>(items: T[], size: number): T[][] {
 }
 
 const firstName = (full: string | null) => (full ?? "").trim().split(/\s+/)[0];
-
-/** Collect every row of a query PostgREST would cap at max_rows (stable order required). */
-export async function fetchAll<T>(
-  page: (
-    from: number,
-    to: number,
-  ) => PromiseLike<{ data: T[] | null; error: unknown }>,
-  size = PAGE,
-): Promise<T[]> {
-  const out: T[] = [];
-  for (let from = 0; ; from += size) {
-    const { data, error } = await page(from, from + size - 1);
-    if (error) throw error;
-    out.push(...(data ?? []));
-    if ((data?.length ?? 0) < size) return out;
-  }
-}
 
 /** All customers of a business (PostgREST caps a page at 1000 rows). */
 async function businessCustomers(admin: Admin, businessId: string) {

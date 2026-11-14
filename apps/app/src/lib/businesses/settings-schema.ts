@@ -8,6 +8,7 @@ type Msgs = {
   supportPhoneInvalid: string;
   localeInvalid: string;
   timezoneInvalid: string;
+  averageTicketInvalid: string;
 };
 
 /** Empty string -> null so cleared inputs wipe the column. */
@@ -16,6 +17,11 @@ const optional = (s: z.ZodType<string>) =>
     (v) => (v == null || (typeof v === "string" && v.trim() === "") ? null : v),
     s.nullable(),
   );
+
+/** Pesos string ("120", "99.50") -> integer cents; null stays null. */
+export function pesosToCents(pesos: string | null): number | null {
+  return pesos === null ? null : Math.round(Number(pesos) * 100);
+}
 
 export function settingsSchema(m: Msgs) {
   return z.object({
@@ -32,5 +38,13 @@ export function settingsSchema(m: Msgs) {
         .regex(/^\+?[\d\s().-]{5,}$/, m.supportPhoneInvalid),
     ),
     locale: optional(z.enum(locales, { message: m.localeInvalid })),
+    // Max 999,999.99 keeps cents within the column's check (<= 100,000,000).
+    average_ticket: optional(
+      z
+        .string()
+        .trim()
+        .regex(/^\d{1,6}(\.\d{1,2})?$/, m.averageTicketInvalid)
+        .refine((v) => Number(v) > 0, m.averageTicketInvalid),
+    ),
   });
 }

@@ -281,6 +281,25 @@
         "stampsThisWeek": "Sellos esta semana",
         "rewardsRedeemed": "Recompensas canjeadas"
       },
+      "range": {
+        "label": "Periodo",
+        "7": "7 días",
+        "30": "30 días",
+        "90": "90 días"
+      },
+      "roi": {
+        "returning": "Clientes que volvieron",
+        "returningHint": "de {active} que visitaron",
+        "repeatRate": "Tasa de visitas repetidas",
+        "revenue": "Ingresos estimados",
+        "revenueHint": "Visitas de regreso × ticket promedio",
+        "setTicketCta": "Define tu ticket promedio",
+        "fromMessages": "Visitas tras un mensaje",
+        "fromMessagesHint": "Dentro de 7 días de un mensaje a la wallet",
+        "avgDaysBetween": "Días entre visitas",
+        "atRisk": "Clientes en riesgo",
+        "atRiskHint": "Última visita hace {from}–{to} días"
+      },
       "scanCard": {
         "title": "Escanear una tarjeta",
         "description": "Agrega un sello o canjea una recompensa.",
@@ -309,7 +328,7 @@
       "title": "Analítica",
       "description": "Cómo interactúan tus clientes con tu programa de lealtad.",
       "stats": {
-        "stamps14d": "Sellos (14 días)",
+        "stampsPeriod": "Sellos (últimos {days} días)",
         "cardsIssued": "Tarjetas emitidas",
         "redemptions": "Canjes",
         "redemptionRate": "Tasa de canje"
@@ -545,6 +564,9 @@
       "metaTitle": "Automatizaciones",
       "title": "Automatizaciones",
       "description": "Mensajes automáticos a la wallet y recompensas opcionales que se ejecutan solos.",
+      "stats": {
+        "line": "Últimos 90 días: {sent} enviados · {returned} volvieron ({rate}%)"
+      },
       "birthday": {
         "title": "Recompensa de cumpleaños",
         "description": "Otorga automáticamente esta recompensa a tus clientes durante todo su mes de cumpleaños.",
@@ -767,6 +789,8 @@
         "supportEmailLabel": "Correo de soporte",
         "supportPhoneLabel": "Teléfono de soporte",
         "supportHint": "Se muestra a tus clientes en su tarjeta y pase de wallet.",
+        "averageTicketLabel": "Ticket promedio (MXN)",
+        "averageTicketHint": "Se usa para estimar los ingresos de los clientes que vuelven. Déjalo vacío para ocultar la estimación.",
         "localeLabel": "Idioma predeterminado",
         "localeNone": "Sin definir",
         "localeEn": "English",
@@ -792,7 +816,8 @@
         "supportEmailInvalid": "Ingresa un correo de soporte válido.",
         "supportPhoneInvalid": "Ingresa un teléfono de soporte válido.",
         "localeInvalid": "Elige un idioma compatible.",
-        "timezoneInvalid": "Elige una zona horaria válida."
+        "timezoneInvalid": "Elige una zona horaria válida.",
+        "averageTicketInvalid": "Ingresa un monto mayor a 0 (hasta 999,999.99)."
       },
       "dangerZone": {
         "title": "Zona de peligro",
@@ -845,6 +870,10 @@
       "sentToast": "Oferta enviada a {count} tarjetas",
       "historyTitle": "Ofertas enviadas",
       "historyEmpty": "Aún no has enviado ofertas.",
+      "stats": {
+        "line": "{sent} enviados · {returned} volvieron",
+        "unknown": "No se registraron resultados de esta oferta"
+      },
       "audienceAll": "Todos los clientes que aceptaron",
       "audienceOne": "Un cliente",
       "consentNote": "Solo reciben ofertas los clientes que aceptaron recibir marketing.",
@@ -928,7 +957,7 @@
           "1 programa de lealtad",
           "Apple & Google Wallet",
           "Todos los tipos de tarjeta incluidos",
-          "Estadísticas básicas"
+          "Panel de resultados y resumen mensual"
         ]
       },
       "medium": {
@@ -1095,7 +1124,8 @@
       "items": [
         "Apple Wallet y Google Wallet",
         "Sin instalar otra app",
-        "Escaneo desde el navegador"
+        "Escaneo desde el navegador",
+        "Mide cuántos clientes volvieron"
       ]
     },
     "video": {
@@ -1293,6 +1323,15 @@
       "body": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de Stamply. Este enlace vence en 1 hora.",
       "cta": "Restablecer contraseña",
       "footer": "Si no solicitaste esto, puedes ignorar este correo — tu contraseña seguirá siendo la misma."
+    },
+    "monthlySummary": {
+      "subject": "{month}: {count} clientes volvieron a {business}",
+      "preview": "{count} clientes volvieron en {month}",
+      "heading": "Tu resumen de {month}",
+      "returning": "{count} clientes volvieron a {business} ({rate}% de los que visitaron).",
+      "revenue": "Ingresos estimados por visitas de regreso: ≈ {amount}.",
+      "cta": "Abrir tu panel",
+      "footer": "Recibes este resumen mensual porque administras {business} en Stamply."
     }
   },
   "legal": {

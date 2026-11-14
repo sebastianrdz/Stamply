@@ -60,7 +60,7 @@ export const PLANS: Record<PlanTier, PlanDef> = {
       "1 loyalty program",
       "Apple & Google Wallet",
       "All card types included",
-      "Basic stats",
+      "ROI dashboard and monthly summary",
     ],
     stripePriceEnv: "STRIPE_PRICE_SMALL",
     stripePriceEnvAnnual: "STRIPE_PRICE_SMALL_ANNUAL",

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { AUTOMATION_TYPES } from "@/lib/automations/config";
+import { conversionPercent, getAttribution } from "@/lib/attribution";
+import { interpolate } from "@stamply/i18n/format";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -26,6 +28,7 @@ export default async function AutomationsPage() {
   const byType = new Map(
     ((data ?? []) as RewardDefinition[]).map((d) => [d.type, d]),
   );
+  const { byAutomation } = await getAttribution(supabase, membership.business);
 
   return (
     <>
@@ -43,6 +46,17 @@ export default async function AutomationsPage() {
               <p className="text-muted-foreground text-sm">
                 {dict.dashboard.rewards.types[type].description}
               </p>
+              {(() => {
+                const stats = byAutomation.get(byType.get(type)?.id ?? "");
+                return stats?.sent ? (
+                  <p className="text-muted-foreground text-sm">
+                    {interpolate(dict.dashboard.rewards.stats.line, {
+                      ...stats,
+                      rate: conversionPercent(stats),
+                    })}
+                  </p>
+                ) : null;
+              })()}
               <AutomationForm type={type} definition={byType.get(type) ?? null} />
             </CardContent>
           </Card>

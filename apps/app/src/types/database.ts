@@ -54,6 +54,8 @@ export type Business = Timestamped & {
   support_email?: string | null;
   support_phone?: string | null;
   locale?: string | null;
+  // Optional for the same fixture reason as `support_email`. null = unset.
+  average_ticket_cents?: number | null;
   // Optional (not just nullable) unlike this file's usual convention: a test
   // fixture (src/lib/auth/session.test.ts, off-limits to edit here) builds a
   // full `Business` literal predating this column and can't be updated as
@@ -277,6 +279,41 @@ export type WalletOffer = Timestamped & {
   created_by: string | null;
 };
 
+export type WalletOfferRecipient = {
+  offer_id: string;
+  customer_id: string;
+  business_id: string;
+  sent_at: string;
+};
+
+export type MonthlySummary = {
+  business_id: string;
+  period_key: string;
+  sent_at: string;
+};
+
+export type CustomerVisit = {
+  business_id: string;
+  customer_id: string;
+  visit_at: string;
+};
+
+export type RoiSummaryRow = {
+  active_customers: number;
+  returning_customers: number;
+  returning_visits: number;
+  avg_days_between: number | null;
+  at_risk: number;
+  attributed_visits: number;
+};
+
+export type MessageAttributionRow = {
+  offer_id: string | null;
+  automation_id: string | null;
+  sent: number;
+  returned: number;
+};
+
 export type StripeWebhookEvent = {
   event_id: string;
   event_type: string;
@@ -315,6 +352,7 @@ export interface Database {
         | "support_email"
         | "support_phone"
         | "locale"
+        | "average_ticket_cents"
         | "last_billing_event_at"
       >;
       memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
@@ -376,6 +414,8 @@ export interface Database {
         WalletOffer,
         "id" | "created_at" | "customer_id" | "created_by"
       >;
+      wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
+      monthly_summaries: TableDef<MonthlySummary, "sent_at">;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,
@@ -394,6 +434,7 @@ export interface Database {
     };
     Views: {
       activity_feed: { Row: ActivityFeedRow; Relationships: [] };
+      customer_visit_days: { Row: CustomerVisit; Relationships: [] };
     };
     Functions: {
       apply_stamp: {
@@ -467,6 +508,20 @@ export interface Database {
       automation_last_visits: {
         Args: { p_business_id: string };
         Returns: { customer_id: string; last_visit: string }[];
+      };
+      roi_summary: {
+        Args: {
+          p_business_id: string;
+          p_from: string;
+          p_to: string;
+          p_tz: string;
+          p_at_risk_days: number;
+        };
+        Returns: RoiSummaryRow[];
+      };
+      message_attribution: {
+        Args: { p_business_id: string; p_since: string; p_tz: string };
+        Returns: MessageAttributionRow[];
       };
       customers_with_birthday_this_month: {
         Args: Record<string, never>;

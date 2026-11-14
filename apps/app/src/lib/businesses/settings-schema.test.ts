@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { settingsSchema } from "./settings-schema";
+import { pesosToCents, settingsSchema } from "./settings-schema";
 
 const s = settingsSchema({
   businessNameRequired: "name",
@@ -7,6 +7,7 @@ const s = settingsSchema({
   supportPhoneInvalid: "phone",
   localeInvalid: "locale",
   timezoneInvalid: "tz",
+  averageTicketInvalid: "ticket",
 });
 const base = { name: "Cafe", timezone: "UTC" };
 
@@ -37,6 +38,10 @@ describe("settingsSchema", () => {
     [{ support_email: "nope" }, "email"],
     [{ support_phone: "abc" }, "phone"],
     [{ locale: "fr" }, "locale"],
+    [{ average_ticket: "0" }, "ticket"],
+    [{ average_ticket: "-5" }, "ticket"],
+    [{ average_ticket: "1.234" }, "ticket"],
+    [{ average_ticket: "1000000" }, "ticket"],
   ])("rejects %j", (extra, msg) => {
     const r = s.safeParse({ ...base, ...extra });
     expect(r.success ? "" : r.error.issues[0].message).toBe(msg);
@@ -44,5 +49,15 @@ describe("settingsSchema", () => {
   it("rejects an unknown timezone", () => {
     expect(s.safeParse({ ...base, timezone: "Mars/Olympus" }).success).toBe(false);
     expect(s.safeParse({ ...base, timezone: "America/Mexico_City" }).success).toBe(true);
+  });
+});
+
+describe("average ticket", () => {
+  it("empty clears it; valid pesos convert to cents", () => {
+    expect(s.parse({ ...base, average_ticket: " " }).average_ticket).toBeNull();
+    expect(pesosToCents(null)).toBeNull();
+    expect(pesosToCents("120")).toBe(12000);
+    expect(pesosToCents("99.5")).toBe(9950);
+    expect(pesosToCents("999999.99")).toBe(99_999_999);
   });
 });
