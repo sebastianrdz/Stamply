@@ -564,6 +564,9 @@
       "metaTitle": "Automatizaciones",
       "title": "Automatizaciones",
       "description": "Mensajes automáticos a la wallet y recompensas opcionales que se ejecutan solos.",
+      "stats": {
+        "line": "Últimos 90 días: {sent} enviados · {returned} volvieron ({rate}%)"
+      },
       "birthday": {
         "title": "Recompensa de cumpleaños",
         "description": "Otorga automáticamente esta recompensa a tus clientes durante todo su mes de cumpleaños.",
@@ -867,6 +870,10 @@
       "sentToast": "Oferta enviada a {count} tarjetas",
       "historyTitle": "Ofertas enviadas",
       "historyEmpty": "Aún no has enviado ofertas.",
+      "stats": {
+        "line": "{sent} enviados · {returned} volvieron",
+        "unknown": "No se registraron resultados de esta oferta"
+      },
       "audienceAll": "Todos los clientes que aceptaron",
       "audienceOne": "Un cliente",
       "consentNote": "Solo reciben ofertas los clientes que aceptaron recibir marketing.",
