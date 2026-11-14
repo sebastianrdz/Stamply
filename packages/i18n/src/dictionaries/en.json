@@ -27,6 +27,7 @@
     "webLinkLabel": "View on the web",
     "webLinkText": "Open my card",
     "inviteLabel": "Invite a friend",
+    "referralReward": "Your friend joined {business}! You earned {bonus}.",
     "inviteLinkText": "Share this link",
     "createdByLabel": "Created by",
     "lastSyncLabel": "Last updated",
