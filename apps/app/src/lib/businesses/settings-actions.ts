@@ -31,6 +31,7 @@ export async function updateBusiness(
     locale: formData.get("locale"),
     average_ticket: formData.get("average_ticket"),
     google_review_url: formData.get("google_review_url"),
+    max_stamps_per_customer_per_day: formData.get("max_stamps_per_customer_per_day"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -44,6 +45,10 @@ export async function updateBusiness(
     locale: parsed.data.locale,
     average_ticket_cents: pesosToCents(parsed.data.average_ticket),
     google_review_url: parsed.data.google_review_url,
+    max_stamps_per_customer_per_day:
+      parsed.data.max_stamps_per_customer_per_day === null
+        ? null
+        : Number(parsed.data.max_stamps_per_customer_per_day),
   };
 
   const { error } = await supabase

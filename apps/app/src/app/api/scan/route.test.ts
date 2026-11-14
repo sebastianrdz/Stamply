@@ -3,10 +3,12 @@ import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
 
 const getUserMock = vi.fn();
 const sessionDb = { current: makeSupabaseMock({}) };
+const sessionRpc = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getUser: getUserMock },
     from: sessionDb.current.from,
+    rpc: (...a: unknown[]) => sessionRpc(...a),
   }),
 }));
 
@@ -266,6 +268,76 @@ describe("POST /api/scan", () => {
     expect((await call({ action: "use_coupon" })).json.error).toBe("program_disabled");
     getCardMock.mockResolvedValue(card({ type: "coupon" }, { business: { plan: "none" } }));
     expect((await call({ action: "lookup" })).status).toBe(402);
+  });
+
+  describe("daily stamp limit", () => {
+    const limited = (over: Over = {}) =>
+      card(
+        { type: "stamp", goal: 5 },
+        { business: { plan: "small", timezone: "UTC", max_stamps_per_customer_per_day: 2 }, ...over },
+      );
+    const asRole = (role: string | null) => {
+      sessionDb.current = makeSupabaseMock({
+        stamp_events: { data: null, error: null },
+        memberships: { data: role ? { role } : null, error: null },
+      });
+      adminDb.current = makeSupabaseMock({
+        stamp_events: { data: { id: "ev-1" }, error: null },
+        stamp_limit_overrides: { error: null },
+      });
+    };
+
+    it("blocks an employee at the limit and never calls the RPC", async () => {
+      asRole("employee");
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: 2, error: null });
+      const { status, json } = await call({ action: "stamp" });
+      expect(status).toBe(429);
+      expect(json).toEqual({ error: "daily_limit", limit: 2 });
+      expect(rpcMock).not.toHaveBeenCalled();
+      expect(sessionRpc).toHaveBeenCalledWith(
+        "customer_stamps_today",
+        expect.objectContaining({ p_tz: "UTC", p_customer_id: "cust-1" }),
+      );
+    });
+
+    it.each(["owner", "admin"])("lets %s through and records one override", async (role) => {
+      asRole(role);
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: 3, error: null });
+      expect((await call({ action: "stamp" })).status).toBe(200);
+      expect(rpcMock).toHaveBeenCalledTimes(1);
+      expect(adminDb.current.builderFor("stamp_limit_overrides").insert).toHaveBeenCalledWith({
+        business_id: "biz-1",
+        card_id: "card-1",
+        employee_id: "emp-1",
+      });
+    });
+
+    it("allows a stamp under the limit without a role lookup or override", async () => {
+      asRole("employee");
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: 1, error: null });
+      expect((await call({ action: "stamp" })).status).toBe(200);
+      expect(sessionDb.current.callCounts.memberships).toBeUndefined();
+      expect(adminDb.current.callCounts.stamp_limit_overrides).toBeUndefined();
+    });
+
+    it("fails open when the count query errors", async () => {
+      asRole("employee");
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: null, error: { code: "XX" } });
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      expect((await call({ action: "stamp" })).status).toBe(200);
+    });
+
+    it("skips the check when no limit is set and for non-stamp actions", async () => {
+      setup(card({ type: "stamp", goal: 5 }, { stamps: 1 }));
+      await call({ action: "stamp" });
+      setup(limited({ status: "completed", stamps: 5, rewards: 1 }));
+      await call({ action: "redeem" });
+      expect(sessionRpc).not.toHaveBeenCalled();
+    });
   });
 
   describe("review prompt trigger", () => {

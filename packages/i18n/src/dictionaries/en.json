@@ -745,6 +745,7 @@
       "noActions": "Nothing to do with this card right now.",
       "errors": {
         "cooldown": "Just scanned — wait {seconds}s before stamping again.",
+        "dailyLimit": "Daily limit reached: this customer already got {limit} stamps today. Ask an owner or admin to approve another.",
         "cooldownFallback": "a few",
         "cardNotFound": "This card isn't recognized for your business.",
         "notRedeemable": "This card doesn't have a reward ready yet.",
@@ -803,6 +804,9 @@
         "supportPhoneLabel": "Support phone",
         "supportHint": "Shown to customers on their card and wallet pass.",
         "averageTicketLabel": "Average ticket (MXN)",
+        "staffHeading": "Staff controls",
+        "dailyLimitLabel": "Max stamps per customer per day",
+        "dailyLimitHint": "Leave empty for no limit. Employees are blocked at the limit; owners and admins can still stamp, and it is recorded.",
         "reviewUrlLabel": "Google review link",
         "reviewUrlHint": "Find it in your Google Business Profile under \"Get more reviews\". Shown as a Leave a review button on your customers' card page.",
         "averageTicketHint": "Used to estimate the revenue from customers who come back. Leave empty to hide the estimate.",
@@ -832,6 +836,7 @@
         "supportPhoneInvalid": "Enter a valid support phone number.",
         "localeInvalid": "Choose a supported language.",
         "timezoneInvalid": "Choose a valid timezone.",
+        "dailyLimitInvalid": "Enter a whole number from 1 to 50, or leave it empty.",
         "reviewUrlInvalid": "Enter a Google review link (https://g.page/..., google.com or maps.app.goo.gl).",
         "averageTicketInvalid": "Enter an amount greater than 0 (up to 999,999.99)."
       },

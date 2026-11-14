@@ -50,6 +50,7 @@ interface ScanResult {
   detail?: string;
   code?: string;
   retryInSeconds?: number;
+  limit?: number;
   standaloneRewards?: StandaloneRewardItem[];
 }
 
@@ -697,6 +698,10 @@ function errorMessage(result: ScanResult, dict: Dictionary): string {
       return interpolate(dict.dashboard.scan.errors.cooldown, {
         seconds:
           result.retryInSeconds ?? dict.dashboard.scan.errors.cooldownFallback,
+      });
+    case "daily_limit":
+      return interpolate(dict.dashboard.scan.errors.dailyLimit, {
+        limit: result.limit ?? 0,
       });
     case "card_not_found":
       return dict.dashboard.scan.errors.cardNotFound;

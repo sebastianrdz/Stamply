@@ -745,6 +745,7 @@
       "noActions": "No hay nada que hacer con esta tarjeta ahora.",
       "errors": {
         "cooldown": "Se acaba de escanear — espera {seconds}s antes de sellar de nuevo.",
+        "dailyLimit": "Límite diario alcanzado: este cliente ya recibió {limit} sellos hoy. Pide a un dueño o administrador que apruebe otro.",
         "cooldownFallback": "unos segundos",
         "cardNotFound": "Esta tarjeta no está reconocida para tu negocio.",
         "notRedeemable": "Esta tarjeta aún no tiene una recompensa lista.",
@@ -803,6 +804,9 @@
         "supportPhoneLabel": "Teléfono de soporte",
         "supportHint": "Se muestra a tus clientes en su tarjeta y pase de wallet.",
         "averageTicketLabel": "Ticket promedio (MXN)",
+        "staffHeading": "Control del personal",
+        "dailyLimitLabel": "Máximo de sellos por cliente al día",
+        "dailyLimitHint": "Déjalo vacío para no poner límite. Los empleados quedan bloqueados al llegar al límite; dueños y administradores pueden seguir sellando y queda registrado.",
         "reviewUrlLabel": "Enlace de reseñas de Google",
         "reviewUrlHint": "Lo encuentras en tu Perfil de Empresa de Google, en \"Consigue más reseñas\". Se muestra como botón para dejar una reseña en la tarjeta de tus clientes.",
         "averageTicketHint": "Se usa para estimar los ingresos de los clientes que vuelven. Déjalo vacío para ocultar la estimación.",
@@ -832,6 +836,7 @@
         "supportPhoneInvalid": "Ingresa un teléfono de soporte válido.",
         "localeInvalid": "Elige un idioma compatible.",
         "timezoneInvalid": "Elige una zona horaria válida.",
+        "dailyLimitInvalid": "Ingresa un número entero del 1 al 50, o déjalo vacío.",
         "reviewUrlInvalid": "Ingresa un enlace de reseñas de Google (https://g.page/..., google.com o maps.app.goo.gl).",
         "averageTicketInvalid": "Ingresa un monto mayor a 0 (hasta 999,999.99)."
       },

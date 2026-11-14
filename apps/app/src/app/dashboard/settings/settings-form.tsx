@@ -83,6 +83,25 @@ export function SettingsForm({ business }: { business: Business }) {
       </fieldset>
 
       <fieldset className="flex flex-col gap-5">
+        <legend className="mb-3 text-sm font-medium">{bf.staffHeading}</legend>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="max_stamps_per_customer_per_day">
+            {bf.dailyLimitLabel}
+          </Label>
+          <Input
+            id="max_stamps_per_customer_per_day"
+            name="max_stamps_per_customer_per_day"
+            type="number"
+            min={1}
+            max={50}
+            className="w-28"
+            defaultValue={business.max_stamps_per_customer_per_day ?? ""}
+          />
+          <p className="text-muted-foreground text-xs">{bf.dailyLimitHint}</p>
+        </div>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-5">
         <legend className="mb-3 text-sm font-medium">
           {bf.regionalHeading}
         </legend>
