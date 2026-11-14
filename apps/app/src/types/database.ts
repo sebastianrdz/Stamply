@@ -15,7 +15,8 @@ export type RewardType =
   | "birthday"
   | "unredeemed_reminder"
   | "win_back"
-  | "almost_there";
+  | "almost_there"
+  | "review_prompt";
 export type StandaloneRewardStatus = "available" | "redeemed" | "expired";
 
 // NOTE: these MUST be `type` aliases, not `interface`s. Supabase's Database
@@ -56,6 +57,10 @@ export type Business = Timestamped & {
   locale?: string | null;
   // Optional for the same fixture reason as `support_email`. null = unset.
   average_ticket_cents?: number | null;
+  // Optional for the same fixture reason. null = no review link set.
+  google_review_url?: string | null;
+  // Optional for the same fixture reason. null = no daily stamp limit.
+  max_stamps_per_customer_per_day?: number | null;
   // Optional (not just nullable) unlike this file's usual convention: a test
   // fixture (src/lib/auth/session.test.ts, off-limits to edit here) builds a
   // full `Business` literal predating this column and can't be updated as
@@ -126,6 +131,8 @@ export type Customer = Timestamped & {
   // stay assignable. Runtime rows always have the key (value is `null`
   // until a birthday is collected); treat a missing key the same as `null`.
   birthday?: string | null;
+  // Generated column (migration 0033): last 10 digits of `phone`; never written.
+  phone_digits?: string;
   // Optional (not just nullable) unlike this file's usual convention, same
   // reason as `birthday` above: test fixtures (src/lib/wallet/apple/pass.test.ts,
   // src/lib/wallet/google/wallet.test.ts — both off-limits to edit here)
@@ -157,6 +164,8 @@ export type Card = Timestamped & {
   /** Migration 0028: stamp milestone rewards redeemed, per stamp number. */
   milestones_redeemed?: Record<string, number>;
   uses_count?: number;
+  /** Migration 0033: public invite code (never the pass token). */
+  referral_code?: string;
   expires_at?: string | null;
   tier?: string | null;
   valid_until?: string | null;
@@ -292,6 +301,50 @@ export type MonthlySummary = {
   sent_at: string;
 };
 
+export type ReviewClick = {
+  id: string;
+  business_id: string;
+  customer_id: string;
+  source: "message" | "card_page";
+  clicked_at: string;
+};
+
+export type StampLimitOverride = {
+  id: string;
+  business_id: string;
+  card_id: string;
+  employee_id: string | null;
+  created_at: string;
+};
+
+export type EmployeeActivityRow = {
+  employee_id: string | null;
+  day: string;
+  stamps: number;
+  redemptions: number;
+  overrides: number;
+};
+
+export type Referral = {
+  id: string;
+  business_id: string;
+  program_id: string;
+  referrer_card_id: string;
+  referred_customer_id: string;
+  referred_card_id: string;
+  status: "pending" | "rewarded";
+  referrer_paid: boolean;
+  created_at: string;
+  rewarded_at: string | null;
+};
+
+export type PayReferralRow = {
+  referrer_card_id: string;
+  referred_card_id: string;
+  referrer_paid: boolean;
+  friend_paid: boolean;
+};
+
 export type CustomerVisit = {
   business_id: string;
   customer_id: string;
@@ -353,6 +406,8 @@ export interface Database {
         | "support_phone"
         | "locale"
         | "average_ticket_cents"
+        | "google_review_url"
+        | "max_stamps_per_customer_per_day"
         | "last_billing_event_at"
       >;
       memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
@@ -416,6 +471,12 @@ export interface Database {
       >;
       wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
       monthly_summaries: TableDef<MonthlySummary, "sent_at">;
+      review_clicks: TableDef<ReviewClick, "id" | "clicked_at">;
+      stamp_limit_overrides: TableDef<StampLimitOverride, "id" | "created_at">;
+      referrals: TableDef<
+        Referral,
+        "id" | "created_at" | "status" | "referrer_paid" | "rewarded_at"
+      >;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,
@@ -508,6 +569,28 @@ export interface Database {
       automation_last_visits: {
         Args: { p_business_id: string };
         Returns: { customer_id: string; last_visit: string }[];
+      };
+      pay_referral: {
+        Args: {
+          p_referral_id: string;
+          p_referrer_bonus: number;
+          p_friend_bonus: number;
+          p_monthly_cap: number;
+          p_tz: string;
+        };
+        Returns: PayReferralRow[];
+      };
+      customer_stamps_today: {
+        Args: { p_business_id: string; p_customer_id: string; p_tz: string };
+        Returns: number;
+      };
+      employee_activity: {
+        Args: { p_business_id: string; p_from: string; p_to: string; p_tz: string };
+        Returns: EmployeeActivityRow[];
+      };
+      review_clicks_summary: {
+        Args: { p_business_id: string; p_since: string };
+        Returns: { clicks: number; clickers: number }[];
       };
       roi_summary: {
         Args: {

@@ -3,10 +3,12 @@ import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
 
 const getUserMock = vi.fn();
 const sessionDb = { current: makeSupabaseMock({}) };
+const sessionRpc = vi.fn();
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: { getUser: getUserMock },
     from: sessionDb.current.from,
+    rpc: (...a: unknown[]) => sessionRpc(...a),
   }),
 }));
 
@@ -23,10 +25,18 @@ vi.mock("@/lib/cards/queries", async (orig) => ({
 }));
 
 const notifyMock = vi.fn(async () => undefined);
-vi.mock("@/lib/wallet/notify", () => ({ notifyCardUpdated: () => notifyMock() }));
+vi.mock("@/lib/wallet/notify", () => ({
+  notifyCardUpdated: () => notifyMock(),
+}));
 const almostThereMock = vi.fn(async (..._a: unknown[]) => undefined);
+const referralMock = vi.fn(async (..._a: unknown[]) => undefined);
+vi.mock("@/lib/referrals/reward", () => ({
+  triggerReferralReward: (...a: unknown[]) => referralMock(...a),
+}));
+const reviewMock = vi.fn(async (..._a: unknown[]) => undefined);
 vi.mock("@/lib/automations/trigger", () => ({
   triggerAlmostThere: (...a: unknown[]) => almostThereMock(...a),
+  triggerReviewPrompt: (...a: unknown[]) => reviewMock(...a),
 }));
 vi.mock("@/lib/posthog/server", () => ({ captureServerEvent: vi.fn() }));
 vi.mock("@/lib/rewards/queries", () => ({
@@ -84,8 +94,12 @@ function setup(c: ReturnType<typeof card>, mutated: unknown = c) {
 beforeEach(() => {
   vi.clearAllMocks();
   getUserMock.mockResolvedValue({ data: { user: { id: "emp-1" } } });
-  sessionDb.current = makeSupabaseMock({ stamp_events: { data: null, error: null } });
-  adminDb.current = makeSupabaseMock({ stamp_events: { data: { id: "ev-1" }, error: null } });
+  sessionDb.current = makeSupabaseMock({
+    stamp_events: { data: null, error: null },
+  });
+  adminDb.current = makeSupabaseMock({
+    stamp_events: { data: { id: "ev-1" }, error: null },
+  });
 });
 
 describe("POST /api/scan", () => {
@@ -100,7 +114,10 @@ describe("POST /api/scan", () => {
     const { status, json } = await call({ action: "lookup" });
     expect(status).toBe(200);
     expect(json.state.actions).toEqual(["use_coupon"]);
-    expect(json.program).toMatchObject({ type: "coupon", reward_description: "Offer" });
+    expect(json.program).toMatchObject({
+      type: "coupon",
+      reward_description: "Offer",
+    });
     expect(rpcMock).not.toHaveBeenCalled();
     expect(sessionDb.current.from).not.toHaveBeenCalled(); // no cooldown query
   });
@@ -110,29 +127,45 @@ describe("POST /api/scan", () => {
     setup(c);
     const { status, json } = await call({ action: "stamp" });
     expect(status).toBe(200);
-    expect(rpcMock).toHaveBeenCalledWith("apply_stamp", expect.objectContaining({ p_delta: 1 }));
+    expect(rpcMock).toHaveBeenCalledWith(
+      "apply_stamp",
+      expect.objectContaining({ p_delta: 1 }),
+    );
     expect(json.state.type).toBe("stamp");
     expect(json.type).toBe("stamp");
   });
 
   describe("spend", () => {
-    const pts = { type: "points", goal: 100, config: { earn: "spend", points_per_unit: 2 } };
+    const pts = {
+      type: "points",
+      goal: 100,
+      config: { earn: "spend", points_per_unit: 2 },
+    };
 
     it("computes delta = floor(amount/100 * rate) and records amount_cents", async () => {
       setup(card(pts));
       const { status } = await call({ action: "spend", amount_cents: 1550 });
       expect(status).toBe(200);
-      expect(rpcMock).toHaveBeenCalledWith("apply_stamp", expect.objectContaining({ p_delta: 31 }));
-      expect(adminDb.current.builderFor("stamp_events", 1).update).toHaveBeenCalledWith({
+      expect(rpcMock).toHaveBeenCalledWith(
+        "apply_stamp",
+        expect.objectContaining({ p_delta: 31 }),
+      );
+      expect(
+        adminDb.current.builderFor("stamp_events", 1).update,
+      ).toHaveBeenCalledWith({
         amount_cents: 1550,
       });
     });
 
     it("rejects an amount worth 0 points, a missing amount, and visit-earn programs", async () => {
       getCardMock.mockResolvedValue(card(pts));
-      expect((await call({ action: "spend", amount_cents: 20 })).json.error).toBe("amount_too_small");
+      expect(
+        (await call({ action: "spend", amount_cents: 20 })).json.error,
+      ).toBe("amount_too_small");
       expect((await call({ action: "spend" })).status).toBe(400);
-      getCardMock.mockResolvedValue(card({ ...pts, config: { earn: "visit" } }));
+      getCardMock.mockResolvedValue(
+        card({ ...pts, config: { earn: "visit" } }),
+      );
       const r = await call({ action: "spend", amount_cents: 1000 });
       expect(r.json.error).toBe("action_not_allowed");
       expect(rpcMock).not.toHaveBeenCalled();
@@ -141,7 +174,9 @@ describe("POST /api/scan", () => {
     it("applies the stamp cooldown", async () => {
       getCardMock.mockResolvedValue(card(pts));
       sessionDb.current = makeSupabaseMock({
-        stamp_events: { data: { created_at: new Date().toISOString(), kind: "stamp" } },
+        stamp_events: {
+          data: { created_at: new Date().toISOString(), kind: "stamp" },
+        },
       });
       const r = await call({ action: "spend", amount_cents: 1000 });
       expect(r.status).toBe(429);
@@ -149,12 +184,21 @@ describe("POST /api/scan", () => {
   });
 
   describe("redeem_tier", () => {
-    const tiers = [{ points: 50, reward: "Coffee" }, { points: 200, reward: "Meal" }];
+    const tiers = [
+      { points: 50, reward: "Coffee" },
+      { points: 200, reward: "Meal" },
+    ];
     const prog = { type: "points", goal: 50, config: { tiers } };
 
     it("happy path calls redeem_points_tier with the index", async () => {
-      setup(card(prog, { points: 120 }), card(prog, { points: 120, points_redeemed: 50 }));
-      const { status, json } = await call({ action: "redeem_tier", tier_index: 0 });
+      setup(
+        card(prog, { points: 120 }),
+        card(prog, { points: 120, points_redeemed: 50 }),
+      );
+      const { status, json } = await call({
+        action: "redeem_tier",
+        tier_index: 0,
+      });
       expect(status).toBe(200);
       expect(rpcMock).toHaveBeenCalledWith(
         "redeem_points_tier",
@@ -165,17 +209,27 @@ describe("POST /api/scan", () => {
 
     it("rejects an unaffordable tier, unknown tier and missing index", async () => {
       getCardMock.mockResolvedValue(card(prog, { points: 120 }));
-      expect((await call({ action: "redeem_tier", tier_index: 1 })).json.error).toBe("insufficient_points");
-      expect((await call({ action: "redeem_tier", tier_index: 9 })).json.error).toBe("tier_not_found");
+      expect(
+        (await call({ action: "redeem_tier", tier_index: 1 })).json.error,
+      ).toBe("insufficient_points");
+      expect(
+        (await call({ action: "redeem_tier", tier_index: 9 })).json.error,
+      ).toBe("tier_not_found");
       expect((await call({ action: "redeem_tier" })).status).toBe(400);
       expect(rpcMock).not.toHaveBeenCalled();
     });
 
     it("maps an RPC insufficient_points exception to 409", async () => {
       getCardMock.mockResolvedValue(card(prog, { points: 120 }));
-      rpcMock.mockResolvedValue({ data: null, error: { message: "insufficient_points", code: "P0001" } });
+      rpcMock.mockResolvedValue({
+        data: null,
+        error: { message: "insufficient_points", code: "P0001" },
+      });
       const r = await call({ action: "redeem_tier", tier_index: 0 });
-      expect(r).toMatchObject({ status: 409, json: { error: "insufficient_points" } });
+      expect(r).toMatchObject({
+        status: 409,
+        json: { error: "insufficient_points" },
+      });
     });
   });
 
@@ -193,28 +247,47 @@ describe("POST /api/scan", () => {
 
     it("rejects exhausted and expired coupons without calling the RPC", async () => {
       getCardMock.mockResolvedValue(card(prog, { uses_count: 2 }));
-      expect((await call({ action: "use_coupon" })).json.error).toBe("coupon_exhausted");
-      getCardMock.mockResolvedValue(card(prog, { expires_at: "2000-01-01T00:00:00Z" }));
-      expect((await call({ action: "use_coupon" })).json.error).toBe("coupon_expired");
+      expect((await call({ action: "use_coupon" })).json.error).toBe(
+        "coupon_exhausted",
+      );
+      getCardMock.mockResolvedValue(
+        card(prog, { expires_at: "2000-01-01T00:00:00Z" }),
+      );
+      expect((await call({ action: "use_coupon" })).json.error).toBe(
+        "coupon_expired",
+      );
       expect(rpcMock).not.toHaveBeenCalled();
     });
   });
 
   describe("membership", () => {
     const future = new Date(Date.now() + 86400000 * 10).toISOString();
-    const prog = { type: "membership", config: { access: "staff_activated", renew_days: 30, tiers: [{ name: "Gold", benefits: "x" }] } };
+    const prog = {
+      type: "membership",
+      config: {
+        access: "staff_activated",
+        renew_days: 30,
+        tiers: [{ name: "Gold", benefits: "x" }],
+      },
+    };
 
     it("check_in happy path", async () => {
       setup(card(prog, { valid_until: future }));
       const { status } = await call({ action: "check_in" });
       expect(status).toBe(200);
-      expect(rpcMock).toHaveBeenCalledWith("membership_check_in", expect.any(Object));
+      expect(rpcMock).toHaveBeenCalledWith(
+        "membership_check_in",
+        expect.any(Object),
+      );
     });
 
     it("check_in rejected when pending/expired", async () => {
       getCardMock.mockResolvedValue(card(prog));
       const r = await call({ action: "check_in" });
-      expect(r).toMatchObject({ status: 409, json: { error: "membership_inactive" } });
+      expect(r).toMatchObject({
+        status: 409,
+        json: { error: "membership_inactive" },
+      });
       expect(rpcMock).not.toHaveBeenCalled();
     });
 
@@ -229,9 +302,16 @@ describe("POST /api/scan", () => {
     });
 
     it("set_tier updates only the tier, keeps validity, works on a lapsed card", async () => {
-      const lapsed = card(prog, { valid_until: "2020-01-01T00:00:00Z", tier: "Bronze" });
-      getCardMock.mockResolvedValueOnce(lapsed).mockResolvedValue({ ...lapsed, tier: "Gold" });
-      adminDb.current = makeSupabaseMock({ cards: { data: { ...lapsed, tier: "Gold" }, error: null } });
+      const lapsed = card(prog, {
+        valid_until: "2020-01-01T00:00:00Z",
+        tier: "Bronze",
+      });
+      getCardMock
+        .mockResolvedValueOnce(lapsed)
+        .mockResolvedValue({ ...lapsed, tier: "Gold" });
+      adminDb.current = makeSupabaseMock({
+        cards: { data: { ...lapsed, tier: "Gold" }, error: null },
+      });
       const { status, json } = await call({ action: "set_tier", tier: "Gold" });
       expect(status).toBe(200);
       const b = adminDb.current.builderFor("cards");
@@ -245,29 +325,190 @@ describe("POST /api/scan", () => {
 
     it("set_tier rejects unknown tier, missing tier, and programs without tiers", async () => {
       getCardMock.mockResolvedValue(card(prog));
-      expect((await call({ action: "set_tier", tier: "Nope" })).json.error).toBe("tier_not_found");
-      expect((await call({ action: "set_tier" })).json.error).toBe("invalid_request");
-      getCardMock.mockResolvedValue(card({ ...prog, config: { renew_days: 30 } }));
-      expect((await call({ action: "set_tier", tier: "Gold" })).json.error).toBe("action_not_allowed");
+      expect(
+        (await call({ action: "set_tier", tier: "Nope" })).json.error,
+      ).toBe("tier_not_found");
+      expect((await call({ action: "set_tier" })).json.error).toBe(
+        "invalid_request",
+      );
+      getCardMock.mockResolvedValue(
+        card({ ...prog, config: { renew_days: 30 } }),
+      );
+      expect(
+        (await call({ action: "set_tier", tier: "Gold" })).json.error,
+      ).toBe("action_not_allowed");
       expect(adminDb.current.from).not.toHaveBeenCalled();
     });
 
     it("renew rejects a non-membership card", async () => {
       getCardMock.mockResolvedValue(card({ type: "stamp", goal: 5 }));
-      expect((await call({ action: "renew" })).json.error).toBe("action_not_allowed");
+      expect((await call({ action: "renew" })).json.error).toBe(
+        "action_not_allowed",
+      );
       expect(rpcMock).not.toHaveBeenCalled();
     });
   });
 
   it("rejects actions on a disabled program and on plan none", async () => {
     getCardMock.mockResolvedValue(card({ type: "coupon", active: false }));
-    expect((await call({ action: "use_coupon" })).json.error).toBe("program_disabled");
-    getCardMock.mockResolvedValue(card({ type: "coupon" }, { business: { plan: "none" } }));
+    expect((await call({ action: "use_coupon" })).json.error).toBe(
+      "program_disabled",
+    );
+    getCardMock.mockResolvedValue(
+      card({ type: "coupon" }, { business: { plan: "none" } }),
+    );
     expect((await call({ action: "lookup" })).status).toBe(402);
+  });
+
+  describe("daily stamp limit", () => {
+    const limited = (over: Over = {}) =>
+      card(
+        { type: "stamp", goal: 5 },
+        {
+          business: {
+            plan: "small",
+            timezone: "UTC",
+            max_stamps_per_customer_per_day: 2,
+          },
+          ...over,
+        },
+      );
+    const asRole = (role: string | null) => {
+      sessionDb.current = makeSupabaseMock({
+        stamp_events: { data: null, error: null },
+        memberships: { data: role ? { role } : null, error: null },
+      });
+      adminDb.current = makeSupabaseMock({
+        stamp_events: { data: { id: "ev-1" }, error: null },
+        stamp_limit_overrides: { error: null },
+      });
+    };
+
+    it("blocks an employee at the limit and never calls the RPC", async () => {
+      asRole("employee");
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: 2, error: null });
+      const { status, json } = await call({ action: "stamp" });
+      expect(status).toBe(429);
+      expect(json).toEqual({ error: "daily_limit", limit: 2 });
+      expect(rpcMock).not.toHaveBeenCalled();
+      expect(sessionRpc).toHaveBeenCalledWith(
+        "customer_stamps_today",
+        expect.objectContaining({ p_tz: "UTC", p_customer_id: "cust-1" }),
+      );
+    });
+
+    it.each(["owner", "admin"])(
+      "lets %s through and records one override",
+      async (role) => {
+        asRole(role);
+        setup(limited());
+        sessionRpc.mockResolvedValue({ data: 3, error: null });
+        expect((await call({ action: "stamp" })).status).toBe(200);
+        expect(rpcMock).toHaveBeenCalledTimes(1);
+        expect(
+          adminDb.current.builderFor("stamp_limit_overrides").insert,
+        ).toHaveBeenCalledWith({
+          business_id: "biz-1",
+          card_id: "card-1",
+          employee_id: "emp-1",
+        });
+      },
+    );
+
+    it("allows a stamp under the limit without a role lookup or override", async () => {
+      asRole("employee");
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: 1, error: null });
+      expect((await call({ action: "stamp" })).status).toBe(200);
+      expect(sessionDb.current.callCounts.memberships).toBeUndefined();
+      expect(adminDb.current.callCounts.stamp_limit_overrides).toBeUndefined();
+    });
+
+    it("fails open when the count query errors", async () => {
+      asRole("employee");
+      setup(limited());
+      sessionRpc.mockResolvedValue({ data: null, error: { code: "XX" } });
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      expect((await call({ action: "stamp" })).status).toBe(200);
+    });
+
+    it("skips the check when no limit is set and for non-stamp actions", async () => {
+      setup(card({ type: "stamp", goal: 5 }, { stamps: 1 }));
+      await call({ action: "stamp" });
+      setup(limited({ status: "completed", stamps: 5, rewards: 1 }));
+      await call({ action: "redeem" });
+      expect(sessionRpc).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("referral payout", () => {
+    it("runs for stamp and spend, before the card is reloaded", async () => {
+      setup(card({ type: "stamp", goal: 5 }, { stamps: 1 }));
+      await call({ action: "stamp" });
+      expect(referralMock).toHaveBeenCalledTimes(1);
+      expect(referralMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({ id: "card-1" }),
+      );
+
+      const pts = {
+        type: "points",
+        goal: 100,
+        config: { earn: "spend", points_per_unit: 2 },
+      };
+      setup(card(pts));
+      await call({ action: "spend", amount_cents: 1550 });
+      expect(referralMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not run for redeems or coupons", async () => {
+      setup(card({ type: "coupon", config: { max_uses: 3 } }));
+      await call({ action: "use_coupon" });
+      setup(
+        card(
+          { type: "stamp", goal: 5 },
+          { status: "completed", stamps: 5, rewards: 1 },
+        ),
+      );
+      await call({ action: "redeem" });
+      expect(referralMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("review prompt trigger", () => {
+    it("fires after a redeemed reward (redeem and redeem_tier)", async () => {
+      const done = card(
+        { type: "stamp", goal: 5 },
+        { status: "completed", stamps: 5, rewards: 1 },
+      );
+      setup(done);
+      expect((await call({ action: "redeem" })).status).toBe(200);
+      expect(reviewMock).toHaveBeenCalledTimes(1);
+
+      const tiers = [{ points: 50, reward: "Coffee" }];
+      setup(
+        card({ type: "points", goal: 50, config: { tiers } }, { points: 120 }),
+      );
+      expect(
+        (await call({ action: "redeem_tier", tier_index: 0 })).status,
+      ).toBe(200);
+      expect(reviewMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("does not fire for stamps or coupon use", async () => {
+      setup(card({ type: "stamp", goal: 5 }, { stamps: 1 }));
+      await call({ action: "stamp" });
+      setup(card({ type: "coupon", config: { max_uses: 3 } }));
+      await call({ action: "use_coupon" });
+      expect(reviewMock).not.toHaveBeenCalled();
+    });
   });
 
   it("redeem keeps not_redeemable when the card isn't completed", async () => {
     getCardMock.mockResolvedValue(card({ type: "stamp", goal: 5 }));
-    expect((await call({ action: "redeem" })).json.error).toBe("not_redeemable");
+    expect((await call({ action: "redeem" })).json.error).toBe(
+      "not_redeemable",
+    );
   });
 });

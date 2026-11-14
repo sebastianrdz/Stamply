@@ -466,6 +466,43 @@ describe("patchLoyaltyObject", () => {
   });
 });
 
+// loyaltyFields returns a union (the legacy branch has no text modules).
+const textModules = (f: object) =>
+  (f as { textModulesData?: { header: string; body: string }[] })
+    .textModulesData ?? [];
+
+describe("referral invite link", () => {
+  const ON = {
+    referral: {
+      enabled: true,
+      referrer_bonus: 1,
+      referred_bonus: 1,
+      monthly_cap: 5,
+    },
+  };
+
+  it("adds an invite text module with the public code when referrals are on", async () => {
+    stubCoreEnv();
+    stubGoogleEnv();
+    const { loyaltyFields } = await freshWallet();
+    const c = cardWithRelations({ referral_code: "abcd1234abcd1234" });
+    c.program = program({ config: ON });
+    const modules = textModules(loyaltyFields(c));
+    const invite = modules.find((m) => m.header === "Invita a un amigo");
+    expect(invite?.body).toMatch(/\/c\/join\/.+\?ref=abcd1234abcd1234$/);
+  });
+
+  it("has no invite module when referrals are off", async () => {
+    stubCoreEnv();
+    stubGoogleEnv();
+    const { loyaltyFields } = await freshWallet();
+    const modules = textModules(
+      loyaltyFields(cardWithRelations({ referral_code: "abcd" })),
+    );
+    expect(modules.some((m) => m.header === "Invita a un amigo")).toBe(false);
+  });
+});
+
 describe("offers", () => {
   const offer = { id: "off-1", body: "2x1 on coffee" };
 

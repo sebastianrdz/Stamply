@@ -465,6 +465,48 @@ describe("buildApplePass", () => {
     });
   });
 
+  describe("referral invite link", () => {
+    const ON = {
+      referral: {
+        enabled: true,
+        referrer_bonus: 1,
+        referred_bonus: 1,
+        monthly_cap: 5,
+      },
+    };
+    const keysOf = (json: Record<string, unknown>) =>
+      (json.storeCard as { backFields: { key: string }[] }).backFields.map(
+        (f) => f.key,
+      );
+
+    it("adds an invite back field with the public code (never the pass token) when referrals are on", async () => {
+      const json = await buildPassJson(
+        cardWithRelations(
+          { referral_code: "abcd1234abcd1234", pass_auth_token: "tok_secret" },
+          {},
+          { config: ON },
+        ),
+      );
+      const field = (
+        json.storeCard as { backFields: Record<string, string>[] }
+      ).backFields.find((f) => f.key === "invite");
+      expect(field?.value).toMatch(/\/c\/join\/.+\?ref=abcd1234abcd1234$/);
+      expect(field?.value).not.toContain("tok_secret");
+      expect(field?.attributedValue).toContain("<a href=");
+    });
+
+    it("omits it when referrals are off or the card has no code", async () => {
+      expect(
+        keysOf(
+          await buildPassJson(cardWithRelations({ referral_code: "abcd" })),
+        ),
+      ).not.toContain("invite");
+      expect(
+        keysOf(await buildPassJson(cardWithRelations({}, {}, { config: ON }))),
+      ).not.toContain("invite");
+    });
+  });
+
   it("has no offer field when there is no offer", async () => {
     const json = await buildPassJson(cardWithRelations());
     const keys = (

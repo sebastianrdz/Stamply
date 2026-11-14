@@ -26,6 +26,8 @@
     "passIdLabel": "Pass ID",
     "webLinkLabel": "View on the web",
     "webLinkText": "Open my card",
+    "inviteLabel": "Invite a friend",
+    "inviteLinkText": "Share this link",
     "createdByLabel": "Created by",
     "lastSyncLabel": "Last updated",
     "offerLabel": "Offer",
@@ -287,6 +289,10 @@
         "30": "30 days",
         "90": "90 days"
       },
+      "referrals": {
+        "referred": "Friends invited",
+        "rewarded": "Referral rewards paid"
+      },
       "roi": {
         "returning": "Customers who came back",
         "returningHint": "of {active} who visited",
@@ -453,6 +459,12 @@
         "milestonesLabel": "Rewards",
         "milestonesHint": "The last stamp always has a reward. Add more at earlier stamps.",
         "milestoneAdd": "Add a reward",
+        "referralHeading": "Referrals",
+        "referralToggle": "Let customers invite friends",
+        "referralHint": "When a friend they invite gets their first stamp, you both get a bonus (stamps or points, depending on the card).",
+        "referrerBonusLabel": "Customer's bonus",
+        "referredBonusLabel": "Friend's bonus",
+        "monthlyCapLabel": "Max rewarded invites per customer per month",
         "milestoneRemove": "Remove",
         "milestoneAtLabel": "At stamp",
         "milestoneRewardLabel": "e.g. Free coffee",
@@ -565,7 +577,8 @@
       "title": "Automations",
       "description": "Automatic wallet messages and optional rewards that run on their own.",
       "stats": {
-        "line": "Last 90 days: {sent} sent · {returned} came back ({rate}%)"
+        "line": "Last 90 days: {sent} sent · {returned} came back ({rate}%)",
+        "reviewLine": "Last 90 days: {invited} invited · {clicked} customers opened your review link"
       },
       "birthday": {
         "title": "Birthday reward",
@@ -580,7 +593,10 @@
       "errors": {
         "messageRequired": "Write the message to enable this automation.",
         "settingRange": "That value is out of range.",
-        "rewardRequired": "Describe the reward."
+        "rewardRequired": "Describe the reward.",
+        "linkRequired": "End the message with {link} so customers get the review link.",
+        "reviewUrlRequired": "Add your Google review link in Settings first.",
+        "messageTooLong": "Keep this message under 120 characters so the link fits."
       },
       "activeLabel": "Enabled",
       "messageLabel": "Message",
@@ -623,6 +639,15 @@
           "description": "Sent right after a stamp when a customer is close to their reward.",
           "defaultMessage": "Only {remaining} to go, {name}! Your reward at {business} is almost yours.",
           "settingLabel": "Send when this many stamps remain"
+        },
+        "review_prompt": {
+          "title": "Google review invite",
+          "description": "Sent once, right after a customer's first redeemed reward, asking for a Google review.",
+          "defaultMessage": "Thanks for visiting, {name}! Mind leaving us a Google review? {link}",
+          "settingLabel": "",
+          "linkHint": "You can use {name} and {business}. End the message with {link}. Max 120 characters. Only customers who opted in to marketing are messaged.",
+          "missingUrl": "Add your Google review link in Settings to enable this.",
+          "missingUrlCta": "Open settings"
         }
       }
     },
@@ -656,6 +681,29 @@
       "metaTitle": "Team",
       "title": "Team",
       "description": "Invite staff and manage who can access this business.",
+      "activity": {
+        "metaTitle": "Staff activity",
+        "title": "Staff activity",
+        "description": "Stamps and redemptions by each team member, so you can see who does what.",
+        "link": "Staff activity",
+        "back": "Back to team",
+        "rangeLabel": "Period",
+        "former": "Former team member",
+        "dailyTitle": "Day by day: {staff}",
+        "columns": {
+          "staff": "Staff",
+          "day": "Day",
+          "stamps": "Stamps",
+          "redemptions": "Redemptions",
+          "overrides": "Limit overrides",
+          "activeDays": "Active days",
+          "perDay": "Stamps per active day"
+        },
+        "empty": {
+          "title": "No activity in this period",
+          "description": "Stamps and redemptions will show up here as your team scans cards."
+        }
+      },
       "membersBadge": "{count} members",
       "membersBadgeWithLimit": "{count} / {limit} members",
       "atLimit": "You've reached your plan's member limit. Upgrade your plan to invite more.",
@@ -732,6 +780,7 @@
       "noActions": "Nothing to do with this card right now.",
       "errors": {
         "cooldown": "Just scanned — wait {seconds}s before stamping again.",
+        "dailyLimit": "Daily limit reached: this customer already got {limit} stamps today. Ask an owner or admin to approve another.",
         "cooldownFallback": "a few",
         "cardNotFound": "This card isn't recognized for your business.",
         "notRedeemable": "This card doesn't have a reward ready yet.",
@@ -790,6 +839,11 @@
         "supportPhoneLabel": "Support phone",
         "supportHint": "Shown to customers on their card and wallet pass.",
         "averageTicketLabel": "Average ticket (MXN)",
+        "staffHeading": "Staff controls",
+        "dailyLimitLabel": "Max stamps per customer per day",
+        "dailyLimitHint": "Leave empty for no limit. Employees are blocked at the limit; owners and admins can still stamp, and it is recorded.",
+        "reviewUrlLabel": "Google review link",
+        "reviewUrlHint": "Find it in your Google Business Profile under \"Get more reviews\". Shown as a Leave a review button on your customers' card page.",
         "averageTicketHint": "Used to estimate the revenue from customers who come back. Leave empty to hide the estimate.",
         "localeLabel": "Default language",
         "localeNone": "Not set",
@@ -817,6 +871,8 @@
         "supportPhoneInvalid": "Enter a valid support phone number.",
         "localeInvalid": "Choose a supported language.",
         "timezoneInvalid": "Choose a valid timezone.",
+        "dailyLimitInvalid": "Enter a whole number from 1 to 50, or leave it empty.",
+        "reviewUrlInvalid": "Enter a Google review link (https://g.page/..., google.com or maps.app.goo.gl).",
         "averageTicketInvalid": "Enter an amount greater than 0 (up to 999,999.99)."
       },
       "dangerZone": {
@@ -957,6 +1013,8 @@
           "1 loyalty program",
           "Apple & Google Wallet",
           "All card types included",
+          "Google review invites",
+          "Referral program",
           "ROI dashboard and monthly summary"
         ]
       },
@@ -969,6 +1027,8 @@
           "Up to 1,000 customers",
           "3 loyalty programs",
           "All card types included",
+          "Google review invites",
+          "Referral program",
           "Analytics dashboard",
           "Custom enrollment fields"
         ]
@@ -982,6 +1042,8 @@
           "Up to 10,000 customers",
           "Unlimited programs",
           "All card types included",
+          "Google review invites",
+          "Referral program",
           "Priority support",
           "API access"
         ]
@@ -1072,6 +1134,20 @@
     "qrAlt": "Your loyalty QR code",
     "addAppleWallet": "Add to Apple Wallet",
     "addGoogleWallet": "Add to Google Wallet",
+    "review": { "cta": "Leave us a Google review" },
+    "referral": {
+      "cta": "Invite a friend",
+      "copied": "Link copied!",
+      "shareText": "Join {business}'s loyalty card:",
+      "explainer": "When your friend gets their first stamp, you get {mine} and they get {theirs}.",
+      "explainerSolo": "When your friend gets their first stamp, you get {mine}.",
+      "units": {
+        "stampOne": "{count} stamp",
+        "stampOther": "{count} stamps",
+        "pointOne": "{count} point",
+        "pointOther": "{count} points"
+      }
+    },
     "rewardReady": "Reward ready!",
     "yourReward": "Your reward",
     "stamps": "Stamps",

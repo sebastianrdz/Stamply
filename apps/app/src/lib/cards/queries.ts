@@ -24,7 +24,7 @@ const SELECT =
 
 async function fetchOne(
   supabase: Client,
-  column: "pass_auth_token" | "barcode_value",
+  column: "pass_auth_token" | "barcode_value" | "id",
   value: string,
 ): Promise<CardWithRelations | null> {
   const { data, error } = await supabase
@@ -45,6 +45,11 @@ async function fetchOne(
 /** Load a card (with relations) by its pass auth token — used by card page + passes. */
 export function getCardByToken(supabase: Client, token: string) {
   return fetchOne(supabase, "pass_auth_token", token);
+}
+
+/** Load a card (with relations) by id — server-side callers that already trust the id. */
+export function getCardById(supabase: Client, id: string) {
+  return fetchOne(supabase, "id", id);
 }
 
 /** Load a card (with relations) by its scannable barcode value — used by scan. */

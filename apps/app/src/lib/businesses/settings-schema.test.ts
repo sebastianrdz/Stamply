@@ -8,6 +8,8 @@ const s = settingsSchema({
   localeInvalid: "locale",
   timezoneInvalid: "tz",
   averageTicketInvalid: "ticket",
+  reviewUrlInvalid: "review",
+  dailyLimitInvalid: "limit",
 });
 const base = { name: "Cafe", timezone: "UTC" };
 
@@ -38,6 +40,11 @@ describe("settingsSchema", () => {
     [{ support_email: "nope" }, "email"],
     [{ support_phone: "abc" }, "phone"],
     [{ locale: "fr" }, "locale"],
+    [{ google_review_url: "http://g.page/r/x" }, "review"],
+    [{ google_review_url: "https://evil.io/x" }, "review"],
+    [{ max_stamps_per_customer_per_day: "0" }, "limit"],
+    [{ max_stamps_per_customer_per_day: "51" }, "limit"],
+    [{ max_stamps_per_customer_per_day: "1.5" }, "limit"],
     [{ average_ticket: "0" }, "ticket"],
     [{ average_ticket: "-5" }, "ticket"],
     [{ average_ticket: "1.234" }, "ticket"],
@@ -59,5 +66,23 @@ describe("average ticket", () => {
     expect(pesosToCents("120")).toBe(12000);
     expect(pesosToCents("99.5")).toBe(9950);
     expect(pesosToCents("999999.99")).toBe(99_999_999);
+  });
+});
+
+describe("google review url", () => {
+  it("empty clears it; a Google link is kept", () => {
+    expect(s.parse({ ...base, google_review_url: " " }).google_review_url).toBeNull();
+    expect(
+      s.parse({ ...base, google_review_url: "https://g.page/r/abc/review" })
+        .google_review_url,
+    ).toBe("https://g.page/r/abc/review");
+  });
+});
+
+describe("daily stamp limit", () => {
+  it("empty clears it; 1-50 is kept", () => {
+    expect(s.parse({ ...base, max_stamps_per_customer_per_day: " " }).max_stamps_per_customer_per_day).toBeNull();
+    expect(s.parse({ ...base, max_stamps_per_customer_per_day: "3" }).max_stamps_per_customer_per_day).toBe("3");
+    expect(s.parse({ ...base, max_stamps_per_customer_per_day: "50" }).max_stamps_per_customer_per_day).toBe("50");
   });
 });

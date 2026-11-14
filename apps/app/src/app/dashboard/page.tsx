@@ -13,11 +13,13 @@ import {
   Megaphone,
   CalendarClock,
   UserX,
+  UserPlus,
 } from "lucide-react";
 import { requireBusiness } from "@/lib/auth/session";
 import { getOverviewStats } from "@/lib/stats";
 import { getAnalytics, getCardBreakdown, RANGES } from "@/lib/analytics";
 import { getRoi } from "@/lib/roi";
+import { getReferralStats } from "@/lib/referrals/stats";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -39,11 +41,12 @@ export default async function DashboardOverview({
   const days = RANGES.find((r) => String(r) === range) ?? 30;
   const business = membership.business;
   const locale = await getLocale();
-  const [stats, a, breakdown, roi] = await Promise.all([
+  const [stats, a, breakdown, roi, referrals] = await Promise.all([
     getOverviewStats(business.id),
     getAnalytics(business.id, business.timezone, days),
     getCardBreakdown(business.id, days),
     getRoi(await createClient(), business, days),
+    getReferralStats(await createClient(), business.id, days),
   ]);
   const dict = await getDictionary(locale);
   const overview = dict.dashboard.overview;
@@ -135,6 +138,21 @@ export default async function DashboardOverview({
         />
       </div>
 
+      {(referrals.referred > 0 || referrals.rewarded > 0) && (
+        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatCard
+            label={overview.referrals.referred}
+            value={referrals.referred}
+            icon={UserPlus}
+          />
+          <StatCard
+            label={overview.referrals.rewarded}
+            value={referrals.rewarded}
+            icon={Gift}
+          />
+        </div>
+      )}
+
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label={overview.stats.customers}
@@ -157,7 +175,6 @@ export default async function DashboardOverview({
           icon={Gift}
         />
       </div>
-
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
@@ -230,10 +247,18 @@ export default async function DashboardOverview({
               <thead className="text-muted-foreground text-left">
                 <tr>
                   <th className="py-2 pr-4 font-medium">{dict.nav.cards}</th>
-                  <th className="px-4 py-2 text-right font-medium">{byCard.customers}</th>
-                  <th className="px-4 py-2 text-right font-medium">{byCard.cards}</th>
-                  <th className="px-4 py-2 text-right font-medium">{byCard.stamps}</th>
-                  <th className="py-2 pl-4 text-right font-medium">{byCard.redemptions}</th>
+                  <th className="px-4 py-2 text-right font-medium">
+                    {byCard.customers}
+                  </th>
+                  <th className="px-4 py-2 text-right font-medium">
+                    {byCard.cards}
+                  </th>
+                  <th className="px-4 py-2 text-right font-medium">
+                    {byCard.stamps}
+                  </th>
+                  <th className="py-2 pl-4 text-right font-medium">
+                    {byCard.redemptions}
+                  </th>
                 </tr>
               </thead>
               <tbody>

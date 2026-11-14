@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Trash2, X } from "lucide-react";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,7 @@ import { isInviteExpired } from "@/lib/team/shared";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@stamply/ui/card";
 import { Badge } from "@stamply/ui/badge";
+import { buttonVariants } from "@stamply/ui/button";
 import { InviteForm } from "./invite-form";
 import { CopyInviteLink } from "./invite-link";
 import { getLocale } from "@stamply/i18n/locale";
@@ -51,14 +53,22 @@ export default async function TeamPage() {
         title={dict.dashboard.team.title}
         description={dict.dashboard.team.description}
         action={
-          <Badge variant={atLimit ? "accent" : "secondary"}>
-            {limit == null
-              ? interpolate(dict.dashboard.team.membersBadge, { count })
-              : interpolate(dict.dashboard.team.membersBadgeWithLimit, {
-                  count,
-                  limit,
-                })}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/dashboard/team/activity"
+              className={buttonVariants({ variant: "outline", size: "sm" })}
+            >
+              {dict.dashboard.team.activity.link}
+            </Link>
+            <Badge variant={atLimit ? "accent" : "secondary"}>
+              {limit == null
+                ? interpolate(dict.dashboard.team.membersBadge, { count })
+                : interpolate(dict.dashboard.team.membersBadgeWithLimit, {
+                    count,
+                    limit,
+                  })}
+            </Badge>
+          </div>
         }
       />
 

@@ -33,3 +33,34 @@ describe("program config draft", () => {
     expect(buildConfig("coupon", draftFromConfig(cfg))).toEqual(cfg);
   });
 });
+
+describe("referral settings in the program config", () => {
+  const on = {
+    ...emptyDraft,
+    referralEnabled: true,
+    referrerBonus: "2",
+    referredBonus: "1",
+    monthlyCap: "5",
+  };
+
+  it("stores referral only when enabled, for stamp and points", () => {
+    const expected = {
+      referral: { enabled: true, referrer_bonus: 2, referred_bonus: 1, monthly_cap: 5 },
+    };
+    expect(buildConfig("stamp", on)).toMatchObject(expected);
+    expect(buildConfig("points", on)).toMatchObject(expected);
+    expect(buildConfig("stamp", emptyDraft)).not.toHaveProperty("referral");
+    expect(buildConfig("coupon", on)).not.toHaveProperty("referral");
+  });
+
+  it("round-trips through the saved config", () => {
+    const back = draftFromConfig(buildConfig("stamp", on));
+    expect(back).toMatchObject({
+      referralEnabled: true,
+      referrerBonus: "2",
+      referredBonus: "1",
+      monthlyCap: "5",
+    });
+    expect(draftFromConfig({}).referralEnabled).toBe(false);
+  });
+});

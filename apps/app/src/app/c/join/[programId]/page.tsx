@@ -51,8 +51,10 @@ export async function generateMetadata({
 
 export default async function JoinPage({
   params,
+  searchParams,
 }: PageProps<"/c/join/[programId]">) {
   const { programId } = await params;
+  const { ref } = await searchParams;
   const dict = await getDictionary(await getLocale());
   const admin = createAdminClient();
   const { data, error } = await admin
@@ -117,7 +119,10 @@ export default async function JoinPage({
           </CardContent>
         </Card>
 
-        <EnrollForm programId={program.id} />
+        <EnrollForm
+          programId={program.id}
+          referralCode={typeof ref === "string" ? ref.slice(0, 64) : undefined}
+        />
 
         <p className="text-muted-foreground mt-6 text-center text-xs">
           {dict.common.poweredBy}
