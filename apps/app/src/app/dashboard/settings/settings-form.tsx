@@ -69,6 +69,17 @@ export function SettingsForm({ business }: { business: Business }) {
             {bf.averageTicketHint}
           </p>
         </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="google_review_url">{bf.reviewUrlLabel}</Label>
+          <Input
+            id="google_review_url"
+            name="google_review_url"
+            type="url"
+            placeholder="https://g.page/r/..."
+            defaultValue={business.google_review_url ?? ""}
+          />
+          <p className="text-muted-foreground text-xs">{bf.reviewUrlHint}</p>
+        </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-5">

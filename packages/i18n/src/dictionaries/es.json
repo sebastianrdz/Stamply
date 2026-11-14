@@ -790,6 +790,8 @@
         "supportPhoneLabel": "Teléfono de soporte",
         "supportHint": "Se muestra a tus clientes en su tarjeta y pase de wallet.",
         "averageTicketLabel": "Ticket promedio (MXN)",
+        "reviewUrlLabel": "Enlace de reseñas de Google",
+        "reviewUrlHint": "Lo encuentras en tu Perfil de Empresa de Google, en \"Consigue más reseñas\". Se muestra como botón para dejar una reseña en la tarjeta de tus clientes.",
         "averageTicketHint": "Se usa para estimar los ingresos de los clientes que vuelven. Déjalo vacío para ocultar la estimación.",
         "localeLabel": "Idioma predeterminado",
         "localeNone": "Sin definir",
@@ -817,6 +819,7 @@
         "supportPhoneInvalid": "Ingresa un teléfono de soporte válido.",
         "localeInvalid": "Elige un idioma compatible.",
         "timezoneInvalid": "Elige una zona horaria válida.",
+        "reviewUrlInvalid": "Ingresa un enlace de reseñas de Google (https://g.page/..., google.com o maps.app.goo.gl).",
         "averageTicketInvalid": "Ingresa un monto mayor a 0 (hasta 999,999.99)."
       },
       "dangerZone": {
@@ -1072,6 +1075,7 @@
     "qrAlt": "Tu código QR de lealtad",
     "addAppleWallet": "Agregar a Apple Wallet",
     "addGoogleWallet": "Agregar a Google Wallet",
+    "review": { "cta": "Déjanos una reseña en Google" },
     "rewardReady": "¡Recompensa lista!",
     "yourReward": "Tu recompensa",
     "stamps": "Sellos",

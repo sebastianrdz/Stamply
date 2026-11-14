@@ -8,6 +8,7 @@ const s = settingsSchema({
   localeInvalid: "locale",
   timezoneInvalid: "tz",
   averageTicketInvalid: "ticket",
+  reviewUrlInvalid: "review",
 });
 const base = { name: "Cafe", timezone: "UTC" };
 
@@ -38,6 +39,8 @@ describe("settingsSchema", () => {
     [{ support_email: "nope" }, "email"],
     [{ support_phone: "abc" }, "phone"],
     [{ locale: "fr" }, "locale"],
+    [{ google_review_url: "http://g.page/r/x" }, "review"],
+    [{ google_review_url: "https://evil.io/x" }, "review"],
     [{ average_ticket: "0" }, "ticket"],
     [{ average_ticket: "-5" }, "ticket"],
     [{ average_ticket: "1.234" }, "ticket"],
@@ -59,5 +62,15 @@ describe("average ticket", () => {
     expect(pesosToCents("120")).toBe(12000);
     expect(pesosToCents("99.5")).toBe(9950);
     expect(pesosToCents("999999.99")).toBe(99_999_999);
+  });
+});
+
+describe("google review url", () => {
+  it("empty clears it; a Google link is kept", () => {
+    expect(s.parse({ ...base, google_review_url: " " }).google_review_url).toBeNull();
+    expect(
+      s.parse({ ...base, google_review_url: "https://g.page/r/abc/review" })
+        .google_review_url,
+    ).toBe("https://g.page/r/abc/review");
   });
 });

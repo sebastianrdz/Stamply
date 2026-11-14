@@ -30,6 +30,7 @@ export async function updateBusiness(
     support_phone: formData.get("support_phone"),
     locale: formData.get("locale"),
     average_ticket: formData.get("average_ticket"),
+    google_review_url: formData.get("google_review_url"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -42,6 +43,7 @@ export async function updateBusiness(
     support_phone: parsed.data.support_phone,
     locale: parsed.data.locale,
     average_ticket_cents: pesosToCents(parsed.data.average_ticket),
+    google_review_url: parsed.data.google_review_url,
   };
 
   const { error } = await supabase

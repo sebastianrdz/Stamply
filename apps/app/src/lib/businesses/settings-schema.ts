@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { locales } from "@stamply/i18n/config";
 import { isValidTimezone } from "@/lib/timezones";
+import { isReviewUrl } from "@/lib/reviews/url";
 
 type Msgs = {
   businessNameRequired: string;
@@ -9,6 +10,7 @@ type Msgs = {
   localeInvalid: string;
   timezoneInvalid: string;
   averageTicketInvalid: string;
+  reviewUrlInvalid: string;
 };
 
 /** Empty string -> null so cleared inputs wipe the column. */
@@ -38,6 +40,13 @@ export function settingsSchema(m: Msgs) {
         .regex(/^\+?[\d\s().-]{5,}$/, m.supportPhoneInvalid),
     ),
     locale: optional(z.enum(locales, { message: m.localeInvalid })),
+    google_review_url: optional(
+      z
+        .string()
+        .trim()
+        .max(500, m.reviewUrlInvalid)
+        .refine(isReviewUrl, m.reviewUrlInvalid),
+    ),
     // Max 999,999.99 keeps cents within the column's check (<= 100,000,000).
     average_ticket: optional(
       z
