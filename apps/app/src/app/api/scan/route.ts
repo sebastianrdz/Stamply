@@ -6,10 +6,17 @@ import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
 import { cardState, type ScanAction } from "@/lib/cards/state";
 import { availableMilestones } from "@/lib/cards/milestones";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
-import { triggerAlmostThere } from "@/lib/automations/trigger";
+import { triggerAlmostThere, triggerReviewPrompt } from "@/lib/automations/trigger";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import type { Card, StandaloneRewardGrant } from "@/types/database";
+
+const REWARD_REDEEMS = new Set([
+  "redeem",
+  "redeem_tier",
+  "redeem_milestone",
+  "redeem_standalone_reward",
+]);
 
 export const runtime = "nodejs";
 
@@ -191,6 +198,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Set when an owner/admin stamps past the business's daily limit; logged
+  // after the stamp succeeds.
+  let limitOverride = false;
+
   if (action === "stamp" || action === "spend") {
     // Cooldown guard against accidental repeat scans.
     const { data: last } = await supabase
@@ -212,6 +223,45 @@ export async function POST(req: NextRequest) {
           { status: 429 },
         );
       }
+    }
+  }
+
+  // Daily limit per customer (business-local day). Checked here, not in
+  // apply_stamp (locked-down, rewritten many times), so two simultaneous scans
+  // on different devices can overshoot by one, like the cooldown. Fails open
+  // on a count error so a backend blip never blocks the counter.
+  const dailyLimit =
+    action === "stamp" || action === "spend"
+      ? card.business.max_stamps_per_customer_per_day
+      : null;
+  if (dailyLimit) {
+    const { data: today, error: countError } = await supabase.rpc(
+      "customer_stamps_today",
+      {
+        p_business_id: card.business_id,
+        p_customer_id: card.customer_id,
+        p_tz: card.business.timezone,
+      },
+    );
+    if (countError) {
+      console.error("[scan] daily limit count failed", {
+        businessId: card.business_id,
+        code: countError.code,
+      });
+    } else if ((today ?? 0) >= dailyLimit) {
+      const { data: m } = await supabase
+        .from("memberships")
+        .select("role")
+        .eq("business_id", card.business_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (m?.role !== "owner" && m?.role !== "admin") {
+        return NextResponse.json(
+          { error: "daily_limit", limit: dailyLimit },
+          { status: 429 },
+        );
+      }
+      limitOverride = true;
     }
   }
 
@@ -347,6 +397,22 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  if (limitOverride) {
+    const { error: overrideError } = await admin
+      .from("stamp_limit_overrides")
+      .insert({
+        business_id: card.business_id,
+        card_id: card.id,
+        employee_id: user.id,
+      });
+    if (overrideError) {
+      console.error("[scan] failed to record limit override", {
+        businessId: card.business_id,
+        code: overrideError.code,
+      });
+    }
+  }
+
   // Capture analytics now, right off the RPC's own returned row: apply_stamp/
   // redeem_card both `returning * into v_card` (see
   // supabase/migrations/0012_accumulating_rewards.sql), so `mutated` already
@@ -434,6 +500,9 @@ export async function POST(req: NextRequest) {
 
     // Best-effort (swallows its own errors): "almost there" nudge after a stamp.
     if (action === "stamp") await triggerAlmostThere(admin, updated);
+
+    // Best-effort: invite to a Google review after a reward is redeemed.
+    if (REWARD_REDEEMS.has(action)) await triggerReviewPrompt(admin, updated);
 
     // Best-effort: surface this customer's other available standalone
     // rewards (e.g. an unredeemed birthday reward) alongside the scan

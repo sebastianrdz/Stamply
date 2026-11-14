@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { AUTOMATION_TYPES } from "@/lib/automations/config";
 import { conversionPercent, getAttribution } from "@/lib/attribution";
+import { getReviewStats } from "@/lib/reviews/stats";
 import { interpolate } from "@stamply/i18n/format";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
@@ -28,7 +29,10 @@ export default async function AutomationsPage() {
   const byType = new Map(
     ((data ?? []) as RewardDefinition[]).map((d) => [d.type, d]),
   );
-  const { byAutomation } = await getAttribution(supabase, membership.business);
+  const [{ byAutomation }, reviews] = await Promise.all([
+    getAttribution(supabase, membership.business),
+    getReviewStats(supabase, membership.business.id),
+  ]);
 
   return (
     <>
@@ -48,6 +52,17 @@ export default async function AutomationsPage() {
               </p>
               {(() => {
                 const stats = byAutomation.get(byType.get(type)?.id ?? "");
+                if (type === "review_prompt") {
+                  // Taps from every source (invite + card button), so "opened", not "from the invite".
+                  return stats?.sent || reviews.clickers ? (
+                    <p className="text-muted-foreground text-sm">
+                      {interpolate(dict.dashboard.rewards.stats.reviewLine, {
+                        invited: stats?.sent ?? 0,
+                        clicked: reviews.clickers,
+                      })}
+                    </p>
+                  ) : null;
+                }
                 return stats?.sent ? (
                   <p className="text-muted-foreground text-sm">
                     {interpolate(dict.dashboard.rewards.stats.line, {
@@ -57,7 +72,11 @@ export default async function AutomationsPage() {
                   </p>
                 ) : null;
               })()}
-              <AutomationForm type={type} definition={byType.get(type) ?? null} />
+              <AutomationForm
+                type={type}
+                definition={byType.get(type) ?? null}
+                hasReviewUrl={!!membership.business.google_review_url}
+              />
             </CardContent>
           </Card>
         ))}

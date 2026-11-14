@@ -10,6 +10,9 @@ import { redeemableCount, slotColors, slotIcons } from "@/lib/cards/milestones";
 import { cardText } from "@/lib/cards/text";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import { qrDataUrl } from "@/lib/qr";
+import { reviewLink } from "@/lib/reviews/url";
+import { buttonVariants } from "@stamply/ui/button";
+import { cn } from "@stamply/ui/utils";
 import { brandStyle } from "@/lib/brand";
 import { cardDesign } from "@/lib/programs/design";
 import { getLocale } from "@stamply/i18n/locale";
@@ -170,6 +173,15 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           appleLabel={dict.card.addAppleWallet}
           googleLabel={dict.card.addGoogleWallet}
         />
+
+        {card.business.google_review_url && (
+          <a
+            href={reviewLink(token, "card")}
+            className={cn(buttonVariants({ variant: "outline" }), "w-full")}
+          >
+            {dict.card.review.cta}
+          </a>
+        )}
 
         {(card.business.support_email || card.business.support_phone) && (
           <p className="text-muted-foreground text-center text-sm">

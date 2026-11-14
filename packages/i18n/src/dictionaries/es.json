@@ -565,7 +565,8 @@
       "title": "Automatizaciones",
       "description": "Mensajes automáticos a la wallet y recompensas opcionales que se ejecutan solos.",
       "stats": {
-        "line": "Últimos 90 días: {sent} enviados · {returned} volvieron ({rate}%)"
+        "line": "Últimos 90 días: {sent} enviados · {returned} volvieron ({rate}%)",
+        "reviewLine": "Últimos 90 días: {invited} invitados · {clicked} clientes abrieron tu enlace de reseñas"
       },
       "birthday": {
         "title": "Recompensa de cumpleaños",
@@ -580,7 +581,10 @@
       "errors": {
         "messageRequired": "Escribe el mensaje para activar esta automatización.",
         "settingRange": "Ese valor está fuera de rango.",
-        "rewardRequired": "Describe la recompensa."
+        "rewardRequired": "Describe la recompensa.",
+        "linkRequired": "Termina el mensaje con {link} para que el cliente reciba el enlace de reseñas.",
+        "reviewUrlRequired": "Primero agrega tu enlace de reseñas de Google en Ajustes.",
+        "messageTooLong": "Mantén este mensaje en menos de 120 caracteres para que quepa el enlace."
       },
       "activeLabel": "Activada",
       "messageLabel": "Mensaje",
@@ -623,6 +627,15 @@
           "description": "Se envía justo después de un sello cuando el cliente está cerca de su recompensa.",
           "defaultMessage": "¡Solo te faltan {remaining}, {name}! Tu recompensa en {business} está casi lista.",
           "settingLabel": "Enviar cuando falten estos sellos"
+        },
+        "review_prompt": {
+          "title": "Invitación a reseña de Google",
+          "description": "Se envía una sola vez, justo después del primer premio canjeado, para pedir una reseña en Google.",
+          "defaultMessage": "¡Gracias por visitarnos, {name}! ¿Nos dejas una reseña en Google? {link}",
+          "settingLabel": "",
+          "linkHint": "Puedes usar {name} y {business}. Termina el mensaje con {link}. Máximo 120 caracteres. Solo se escribe a clientes que aceptaron marketing.",
+          "missingUrl": "Agrega tu enlace de reseñas de Google en Ajustes para activarlo.",
+          "missingUrlCta": "Abrir ajustes"
         }
       }
     },
@@ -656,6 +669,29 @@
       "metaTitle": "Equipo",
       "title": "Equipo",
       "description": "Invita personal y administra quién puede acceder a este negocio.",
+      "activity": {
+        "metaTitle": "Actividad del personal",
+        "title": "Actividad del personal",
+        "description": "Sellos y canjes de cada integrante del equipo, para ver quién hace qué.",
+        "link": "Actividad del personal",
+        "back": "Volver al equipo",
+        "rangeLabel": "Periodo",
+        "former": "Ex integrante del equipo",
+        "dailyTitle": "Día por día: {staff}",
+        "columns": {
+          "staff": "Personal",
+          "day": "Día",
+          "stamps": "Sellos",
+          "redemptions": "Canjes",
+          "overrides": "Excepciones al límite",
+          "activeDays": "Días activos",
+          "perDay": "Sellos por día activo"
+        },
+        "empty": {
+          "title": "Sin actividad en este periodo",
+          "description": "Los sellos y canjes aparecerán aquí cuando tu equipo escanee tarjetas."
+        }
+      },
       "membersBadge": "{count} integrantes",
       "membersBadgeWithLimit": "{count} / {limit} integrantes",
       "atLimit": "Alcanzaste el límite de integrantes de tu plan. Mejora tu plan para invitar a más personas.",
@@ -732,6 +768,7 @@
       "noActions": "No hay nada que hacer con esta tarjeta ahora.",
       "errors": {
         "cooldown": "Se acaba de escanear — espera {seconds}s antes de sellar de nuevo.",
+        "dailyLimit": "Límite diario alcanzado: este cliente ya recibió {limit} sellos hoy. Pide a un dueño o administrador que apruebe otro.",
         "cooldownFallback": "unos segundos",
         "cardNotFound": "Esta tarjeta no está reconocida para tu negocio.",
         "notRedeemable": "Esta tarjeta aún no tiene una recompensa lista.",
@@ -790,6 +827,11 @@
         "supportPhoneLabel": "Teléfono de soporte",
         "supportHint": "Se muestra a tus clientes en su tarjeta y pase de wallet.",
         "averageTicketLabel": "Ticket promedio (MXN)",
+        "staffHeading": "Control del personal",
+        "dailyLimitLabel": "Máximo de sellos por cliente al día",
+        "dailyLimitHint": "Déjalo vacío para no poner límite. Los empleados quedan bloqueados al llegar al límite; dueños y administradores pueden seguir sellando y queda registrado.",
+        "reviewUrlLabel": "Enlace de reseñas de Google",
+        "reviewUrlHint": "Lo encuentras en tu Perfil de Empresa de Google, en \"Consigue más reseñas\". Se muestra como botón para dejar una reseña en la tarjeta de tus clientes.",
         "averageTicketHint": "Se usa para estimar los ingresos de los clientes que vuelven. Déjalo vacío para ocultar la estimación.",
         "localeLabel": "Idioma predeterminado",
         "localeNone": "Sin definir",
@@ -817,6 +859,8 @@
         "supportPhoneInvalid": "Ingresa un teléfono de soporte válido.",
         "localeInvalid": "Elige un idioma compatible.",
         "timezoneInvalid": "Elige una zona horaria válida.",
+        "dailyLimitInvalid": "Ingresa un número entero del 1 al 50, o déjalo vacío.",
+        "reviewUrlInvalid": "Ingresa un enlace de reseñas de Google (https://g.page/..., google.com o maps.app.goo.gl).",
         "averageTicketInvalid": "Ingresa un monto mayor a 0 (hasta 999,999.99)."
       },
       "dangerZone": {
@@ -957,6 +1001,7 @@
           "1 programa de lealtad",
           "Apple & Google Wallet",
           "Todos los tipos de tarjeta incluidos",
+          "Invitaciones a reseñas de Google",
           "Panel de resultados y resumen mensual"
         ]
       },
@@ -969,6 +1014,7 @@
           "Hasta 1,000 clientes",
           "3 programas de lealtad",
           "Todos los tipos de tarjeta incluidos",
+          "Invitaciones a reseñas de Google",
           "Panel de analítica",
           "Campos de inscripción personalizados"
         ]
@@ -982,6 +1028,7 @@
           "Hasta 10,000 clientes",
           "Programas ilimitados",
           "Todos los tipos de tarjeta incluidos",
+          "Invitaciones a reseñas de Google",
           "Soporte prioritario",
           "Acceso a la API"
         ]
@@ -1072,6 +1119,7 @@
     "qrAlt": "Tu código QR de lealtad",
     "addAppleWallet": "Agregar a Apple Wallet",
     "addGoogleWallet": "Agregar a Google Wallet",
+    "review": { "cta": "Déjanos una reseña en Google" },
     "rewardReady": "¡Recompensa lista!",
     "yourReward": "Tu recompensa",
     "stamps": "Sellos",

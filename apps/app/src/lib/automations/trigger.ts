@@ -6,6 +6,7 @@ import { almostThere } from "./dates";
 import { configNumber } from "./config";
 import { deliverAutomation } from "./deliver";
 import { errInfo } from "./log";
+import { reviewLink } from "@/lib/reviews/url";
 
 type Admin = SupabaseClient<Database>;
 
@@ -95,6 +96,38 @@ export async function triggerAlmostThere(
     console.error("[automations] almost_there failed", {
       businessId: card.business_id,
       cardId: card.id,
+      ...errInfo(e),
+    });
+  }
+}
+
+/**
+ * Invite a customer to leave a Google review after a redeemed reward. Once per
+ * customer (the "once" claim); skipped when the owner hasn't set a review link.
+ * Never throws, like the other inline triggers.
+ */
+export async function triggerReviewPrompt(
+  admin: Admin,
+  card: {
+    business_id: string;
+    customer_id: string;
+    pass_auth_token: string;
+    business: { name: string; google_review_url?: string | null };
+    customer: { full_name: string | null };
+  },
+): Promise<void> {
+  try {
+    if (!card.business.google_review_url) return;
+    const def = await activeAutomation(admin, card.business_id, "review_prompt");
+    if (!def) return;
+    await deliverAutomation(admin, def, card.customer_id, "once", {
+      name: firstName(card.customer.full_name),
+      business: card.business.name,
+      link: reviewLink(card.pass_auth_token),
+    });
+  } catch (e) {
+    console.error("[automations] review_prompt failed", {
+      businessId: card.business_id,
       ...errInfo(e),
     });
   }

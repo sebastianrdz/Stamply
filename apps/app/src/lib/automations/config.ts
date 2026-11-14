@@ -7,7 +7,12 @@ export const AUTOMATION_TYPES: RewardType[] = [
   "unredeemed_reminder",
   "win_back",
   "almost_there",
+  "review_prompt",
 ];
+
+/** Template cap for review_prompt so the tracked link always fits in 200 chars. */
+export const REVIEW_MESSAGE_MAX = 120;
+export const LINK_TOKEN = "{link}";
 
 /** The one numeric setting each type has, with its default and bounds. */
 export const CONFIG_FIELDS: Partial<
@@ -29,10 +34,18 @@ export function configNumber(
   return Number.isFinite(v) && v >= f.min && v <= f.max ? v : f.def;
 }
 
-/** wallet_offers.body is capped at 200 chars. */
+/**
+ * wallet_offers.body is capped at 200 chars. A template that ends with {link}
+ * keeps the whole link: the text before it is trimmed instead of the link.
+ */
 export function renderMessage(
   template: string,
   vars: Record<string, string | number>,
 ): string {
+  const t = template.trimEnd();
+  if (typeof vars.link === "string" && t.endsWith(LINK_TOKEN)) {
+    const head = interpolate(t.slice(0, -LINK_TOKEN.length), vars).trimEnd();
+    return `${head.slice(0, 200 - vars.link.length - 1)} ${vars.link}`.trim();
+  }
   return interpolate(template, vars).slice(0, 200);
 }

@@ -12,6 +12,7 @@ const FALLBACK_TITLE: Record<RewardType, string> = {
   unredeemed_reminder: "Reward",
   win_back: "Welcome-back reward",
   almost_there: "Reward",
+  review_prompt: "Reward",
 };
 
 export interface StandaloneReward {
