@@ -59,6 +59,8 @@ export type Business = Timestamped & {
   average_ticket_cents?: number | null;
   // Optional for the same fixture reason. null = no review link set.
   google_review_url?: string | null;
+  // Optional for the same fixture reason. null = no daily stamp limit.
+  max_stamps_per_customer_per_day?: number | null;
   // Optional (not just nullable) unlike this file's usual convention: a test
   // fixture (src/lib/auth/session.test.ts, off-limits to edit here) builds a
   // full `Business` literal predating this column and can't be updated as
@@ -303,6 +305,22 @@ export type ReviewClick = {
   clicked_at: string;
 };
 
+export type StampLimitOverride = {
+  id: string;
+  business_id: string;
+  card_id: string;
+  employee_id: string | null;
+  created_at: string;
+};
+
+export type EmployeeActivityRow = {
+  employee_id: string | null;
+  day: string;
+  stamps: number;
+  redemptions: number;
+  overrides: number;
+};
+
 export type CustomerVisit = {
   business_id: string;
   customer_id: string;
@@ -365,6 +383,7 @@ export interface Database {
         | "locale"
         | "average_ticket_cents"
         | "google_review_url"
+        | "max_stamps_per_customer_per_day"
         | "last_billing_event_at"
       >;
       memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
@@ -429,6 +448,7 @@ export interface Database {
       wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
       monthly_summaries: TableDef<MonthlySummary, "sent_at">;
       review_clicks: TableDef<ReviewClick, "id" | "clicked_at">;
+      stamp_limit_overrides: TableDef<StampLimitOverride, "id" | "created_at">;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,
@@ -521,6 +541,14 @@ export interface Database {
       automation_last_visits: {
         Args: { p_business_id: string };
         Returns: { customer_id: string; last_visit: string }[];
+      };
+      customer_stamps_today: {
+        Args: { p_business_id: string; p_customer_id: string; p_tz: string };
+        Returns: number;
+      };
+      employee_activity: {
+        Args: { p_business_id: string; p_from: string; p_to: string; p_tz: string };
+        Returns: EmployeeActivityRow[];
       };
       review_clicks_summary: {
         Args: { p_business_id: string; p_since: string };
