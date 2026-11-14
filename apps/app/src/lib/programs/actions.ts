@@ -345,8 +345,9 @@ export async function updateProgram(
     if ("error" in icons) return { error: icons.error };
     config = icons.config;
   }
+  // Any config change reaches passes now (stamp icons, and the referral invite
+  // link on points cards too).
   const configChanged =
-    parsed.data.type === "stamp" &&
     JSON.stringify(config) !== JSON.stringify(existing.config ?? {});
 
   const { error } = await supabase

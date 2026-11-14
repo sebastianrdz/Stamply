@@ -14,6 +14,8 @@ type StampConfig = {
   }[];
   reward_icon_url?: string | null;
   reward_icon_color?: string | null;
+  /** Already validated by the program schema; passes through untouched. */
+  referral?: Record<string, unknown>;
 };
 
 /**
@@ -68,6 +70,9 @@ export async function milestoneIcons(
         ...(config.reward_icon_color && {
           reward_icon_color: config.reward_icon_color,
         }),
+        // This function rebuilds the config from scratch, so anything not
+        // listed here is dropped: keep every non-icon key (referrals) explicitly.
+        ...(config.referral && { referral: config.referral }),
       },
     };
   } catch (e) {
