@@ -32,22 +32,36 @@ export function estimateRevenue(
   return ticketCents ? returningVisits * ticketCents : null;
 }
 
+type RoiBusiness = {
+  id: string;
+  timezone: string;
+  average_ticket_cents?: number | null;
+};
+
 /**
  * ROI numbers for a business over the last `days` days. Takes the client so
  * the dashboard passes its RLS session and the monthly cron the service role.
  */
-export async function getRoi(
+export function getRoi(
   client: SupabaseClient<Database>,
-  business: {
-    id: string;
-    timezone: string;
-    average_ticket_cents?: number | null;
-  },
+  business: RoiBusiness,
   days: number,
   now = new Date(),
 ): Promise<Roi> {
+  return getRoiForRange(
+    client,
+    business,
+    periodBounds(tzOrUtc(business.timezone), days, now),
+  );
+}
+
+/** Same as getRoi for an explicit inclusive local-date range (e.g. last month). */
+export async function getRoiForRange(
+  client: SupabaseClient<Database>,
+  business: RoiBusiness,
+  { from, to }: { from: string; to: string },
+): Promise<Roi> {
   const tz = tzOrUtc(business.timezone);
-  const { from, to } = periodBounds(tz, days, now);
 
   // At risk = silent for N..2N days, N = the win-back threshold (default if off).
   const { data: winBack, error: defError } = await client

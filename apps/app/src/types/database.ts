@@ -286,6 +286,12 @@ export type WalletOfferRecipient = {
   sent_at: string;
 };
 
+export type MonthlySummary = {
+  business_id: string;
+  period_key: string;
+  sent_at: string;
+};
+
 export type CustomerVisit = {
   business_id: string;
   customer_id: string;
@@ -409,6 +415,7 @@ export interface Database {
         "id" | "created_at" | "customer_id" | "created_by"
       >;
       wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
+      monthly_summaries: TableDef<MonthlySummary, "sent_at">;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,

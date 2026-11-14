@@ -1322,6 +1322,15 @@
       "body": "We received a request to reset the password for your Stamply account. This link expires in 1 hour.",
       "cta": "Reset password",
       "footer": "If you didn't request this, you can ignore this email — your password will stay the same."
+    },
+    "monthlySummary": {
+      "subject": "{month}: {count} customers came back to {business}",
+      "preview": "{count} customers came back in {month}",
+      "heading": "Your {month} summary",
+      "returning": "{count} customers came back to {business} ({rate}% of those who visited).",
+      "revenue": "Estimated revenue from returning visits: ≈ {amount}.",
+      "cta": "Open your dashboard",
+      "footer": "You receive this monthly summary because you manage {business} on Stamply."
     }
   },
   "legal": {

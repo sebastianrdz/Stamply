@@ -1322,6 +1322,15 @@
       "body": "Recibimos una solicitud para restablecer la contraseña de tu cuenta de Stamply. Este enlace vence en 1 hora.",
       "cta": "Restablecer contraseña",
       "footer": "Si no solicitaste esto, puedes ignorar este correo — tu contraseña seguirá siendo la misma."
+    },
+    "monthlySummary": {
+      "subject": "{month}: {count} clientes volvieron a {business}",
+      "preview": "{count} clientes volvieron en {month}",
+      "heading": "Tu resumen de {month}",
+      "returning": "{count} clientes volvieron a {business} ({rate}% de los que visitaron).",
+      "revenue": "Ingresos estimados por visitas de regreso: ≈ {amount}.",
+      "cta": "Abrir tu panel",
+      "footer": "Recibes este resumen mensual porque administras {business} en Stamply."
     }
   },
   "legal": {
