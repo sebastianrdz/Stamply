@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeSupabaseMock } from "@/lib/test-utils/supabase-mock";
+import { PLANS } from "@stamply/plans";
 import { assertWithinLimit, currentCount, LimitExceededError } from "./entitlements";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,7 +48,7 @@ describe("currentCount", () => {
 
 describe("assertWithinLimit", () => {
   it("throws LimitExceededError with resource/plan/limit when over the limit", async () => {
-    const mock = makeSupabaseMock({ customers: { count: 100 } });
+    const mock = makeSupabaseMock({ customers: { count: 5000 } });
     const business = { id: "biz1", plan: "small" as const };
 
     await expect(
@@ -61,9 +62,9 @@ describe("assertWithinLimit", () => {
       const err = e as LimitExceededError;
       expect(err.resource).toBe("customers");
       expect(err.plan).toBe("small");
-      expect(err.limit).toBe(100);
+      expect(err.limit).toBe(5000);
       expect(err.message).toBe(
-        "Your plan allows 100 customers. Upgrade to add more.",
+        "Your plan allows 5000 customers. Upgrade to add more.",
       );
     }
   });
@@ -77,27 +78,34 @@ describe("assertWithinLimit", () => {
   });
 
   it("resolves without querying currentCount at all when the plan is unlimited", async () => {
-    const mock = makeSupabaseMock({});
-    const business = { id: "biz1", plan: "big" as const };
-    await expect(
-      assertWithinLimit(mock as AnyClient, business, "locations"),
-    ).resolves.toBeUndefined();
-    expect(mock.from).not.toHaveBeenCalled();
+    // No shipped plan is unlimited today, so make one so for this test.
+    const original = PLANS.big.limits.locations;
+    PLANS.big.limits.locations = null;
+    try {
+      const mock = makeSupabaseMock({});
+      const business = { id: "biz1", plan: "big" as const };
+      await expect(
+        assertWithinLimit(mock as AnyClient, business, "locations"),
+      ).resolves.toBeUndefined();
+      expect(mock.from).not.toHaveBeenCalled();
+    } finally {
+      PLANS.big.limits.locations = original;
+    }
   });
 
   it("respects a custom `additional` count", async () => {
-    const mock = makeSupabaseMock({ memberships: { count: 4 } });
-    const business = { id: "biz1", plan: "medium" as const }; // limit 5
-    // 4 + 1 = 5 -> ok
+    const mock = makeSupabaseMock({ memberships: { count: 9 } });
+    const business = { id: "biz1", plan: "medium" as const }; // limit 10
+    // 9 + 1 = 10 -> ok
     await expect(
       assertWithinLimit(mock as AnyClient, business, "employees", 1),
     ).resolves.toBeUndefined();
   });
 
   it("throws when additional pushes past the limit", async () => {
-    const mock = makeSupabaseMock({ memberships: { count: 4 } });
-    const business = { id: "biz1", plan: "medium" as const }; // limit 5
-    // 4 + 2 = 6 -> exceeds
+    const mock = makeSupabaseMock({ memberships: { count: 9 } });
+    const business = { id: "biz1", plan: "medium" as const }; // limit 10
+    // 9 + 2 = 11 -> exceeds
     await expect(
       assertWithinLimit(mock as AnyClient, business, "employees", 2),
     ).rejects.toThrow(LimitExceededError);
