@@ -8,6 +8,11 @@ import {
   type ProgramFormState,
 } from "@/lib/programs/actions";
 import { useLocale, useTranslations } from "@stamply/i18n/provider";
+import {
+  bonusDefault,
+  bonusMax,
+  REFERRAL_CAP_MAX,
+} from "@/lib/referrals/config";
 import { Button } from "@stamply/ui/button";
 import { Input } from "@stamply/ui/input";
 import { Label } from "@stamply/ui/label";
@@ -701,6 +706,76 @@ export function ProgramForm({
                 name="reward_description"
                 value={firstTier.reward}
               />
+            )}
+
+            {(type === "stamp" || type === "points") && (
+              <fieldset className="flex flex-col gap-4">
+                <legend className="mb-1 text-sm font-medium">
+                  {f.referralHeading}
+                </legend>
+                <label className="flex items-center gap-2.5 text-sm">
+                  <input
+                    type="checkbox"
+                    className="border-input mt-0.5 size-4 rounded accent-[hsl(var(--brand))]"
+                    checked={draft.referralEnabled}
+                    onChange={(e) =>
+                      set({
+                        referralEnabled: e.target.checked,
+                        ...(e.target.checked &&
+                          draft.referrerBonus === "" && {
+                            referrerBonus: String(bonusDefault(type)),
+                            referredBonus: String(bonusDefault(type)),
+                          }),
+                      })
+                    }
+                  />
+                  <span>{f.referralToggle}</span>
+                </label>
+                <p className="text-muted-foreground text-xs">
+                  {f.referralHint}
+                </p>
+                {draft.referralEnabled && (
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="referrer_bonus">
+                        {f.referrerBonusLabel}
+                      </Label>
+                      <Input
+                        id="referrer_bonus"
+                        type="number"
+                        min={1}
+                        max={bonusMax(type)}
+                        value={draft.referrerBonus}
+                        onChange={(e) => set({ referrerBonus: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="referred_bonus">
+                        {f.referredBonusLabel}
+                      </Label>
+                      <Input
+                        id="referred_bonus"
+                        type="number"
+                        min={0}
+                        max={bonusMax(type)}
+                        value={draft.referredBonus}
+                        onChange={(e) => set({ referredBonus: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor="monthly_cap">{f.monthlyCapLabel}</Label>
+                      <Input
+                        id="monthly_cap"
+                        type="number"
+                        min={1}
+                        max={REFERRAL_CAP_MAX}
+                        value={draft.monthlyCap}
+                        onChange={(e) => set({ monthlyCap: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </fieldset>
             )}
 
             {(type === "coupon" || type === "membership") && (

@@ -1,5 +1,6 @@
 import type { ProgramType } from "@/types/database";
 import { DEFAULT_CURRENCY, isCurrency } from "./currency";
+import { REFERRAL_CAP_DEFAULT } from "@/lib/referrals/config";
 
 /** Form-side (string) state for the per-type program settings. */
 export interface ConfigDraft {
@@ -26,6 +27,11 @@ export interface ConfigDraft {
   }[];
   rewardIconUrl: string | null;
   rewardIconColor: string | null;
+  /** Stamp/points only. Bonuses are strings while editing ("" until enabled). */
+  referralEnabled: boolean;
+  referrerBonus: string;
+  referredBonus: string;
+  monthlyCap: string;
 }
 
 export const MAX_TIERS = 10;
@@ -46,6 +52,10 @@ export const emptyDraft: ConfigDraft = {
   milestones: [],
   rewardIconUrl: null,
   rewardIconColor: null,
+  referralEnabled: false,
+  referrerBonus: "",
+  referredBonus: "",
+  monthlyCap: String(REFERRAL_CAP_DEFAULT),
 };
 
 let nextMilestoneId = 1;
@@ -70,6 +80,7 @@ export function buildConfig(
           })),
         }),
         ...(d.rewardIconColor && { reward_icon_color: d.rewardIconColor }),
+        ...referralConfig(d),
       };
     case "points": {
       const tiers = d.pointTiers
@@ -80,6 +91,7 @@ export function buildConfig(
         points_per_unit: num(d.pointsPerUnit),
         currency: d.currency,
         ...(tiers.length > 0 && { tiers }),
+        ...referralConfig(d),
       };
     }
     case "coupon": {
@@ -102,6 +114,20 @@ export function buildConfig(
           .map((t) => ({ name: t.name.trim(), benefits: t.benefits.trim() })),
       };
   }
+}
+
+/** `referral` is stored only when enabled; omitting it turns referrals off. */
+function referralConfig(d: ConfigDraft) {
+  return d.referralEnabled
+    ? {
+        referral: {
+          enabled: true,
+          referrer_bonus: num(d.referrerBonus),
+          referred_bonus: num(d.referredBonus),
+          monthly_cap: num(d.monthlyCap),
+        },
+      }
+    : {};
 }
 
 /** Saved `programs.config` -> draft (falls back to defaults per field). */
@@ -149,5 +175,24 @@ export function draftFromConfig(
       typeof c.reward_icon_url === "string" ? c.reward_icon_url : null,
     rewardIconColor:
       typeof c.reward_icon_color === "string" ? c.reward_icon_color : null,
+    ...referralDraft(c.referral),
+  };
+}
+
+function referralDraft(v: unknown) {
+  const r = v as Record<string, unknown> | undefined;
+  if (!r || r.enabled !== true) {
+    return {
+      referralEnabled: false,
+      referrerBonus: "",
+      referredBonus: "",
+      monthlyCap: String(REFERRAL_CAP_DEFAULT),
+    };
+  }
+  return {
+    referralEnabled: true,
+    referrerBonus: String(r.referrer_bonus ?? ""),
+    referredBonus: String(r.referred_bonus ?? ""),
+    monthlyCap: String(r.monthly_cap ?? REFERRAL_CAP_DEFAULT),
   };
 }

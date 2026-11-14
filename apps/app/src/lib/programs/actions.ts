@@ -18,6 +18,7 @@ import { cardDesign } from "./design";
 import { designFromForm } from "./design-form";
 import { milestoneIcons } from "./milestone-icons";
 import { notifyProgramDesignChanged } from "@/lib/wallet/notify";
+import { referralSchema } from "@/lib/referrals/schema";
 
 export interface ProgramFormState {
   error?: string;
@@ -31,6 +32,7 @@ const tierName = z.string().trim().min(1).max(60);
 const money = z.number().int().min(0).max(10_000_000);
 
 const pointsConfig = z.object({
+  referral: referralSchema(500).optional(),
   earn: z.enum(["visit", "spend"]).default("visit"),
   points_per_unit: z.number().positive().max(10_000).default(1),
   currency: z.enum(CURRENCIES).default(DEFAULT_CURRENCY),
@@ -50,6 +52,7 @@ const pointsConfig = z.object({
 // overwrites them from the uploaded/picked form fields.
 const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 const stampConfig = z.object({
+  referral: referralSchema(5).optional(),
   milestones: z
     .array(
       z.object({
