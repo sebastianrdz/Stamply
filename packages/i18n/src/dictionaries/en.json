@@ -669,6 +669,29 @@
       "metaTitle": "Team",
       "title": "Team",
       "description": "Invite staff and manage who can access this business.",
+      "activity": {
+        "metaTitle": "Staff activity",
+        "title": "Staff activity",
+        "description": "Stamps and redemptions by each team member, so you can see who does what.",
+        "link": "Staff activity",
+        "back": "Back to team",
+        "rangeLabel": "Period",
+        "former": "Former team member",
+        "dailyTitle": "Day by day: {staff}",
+        "columns": {
+          "staff": "Staff",
+          "day": "Day",
+          "stamps": "Stamps",
+          "redemptions": "Redemptions",
+          "overrides": "Limit overrides",
+          "activeDays": "Active days",
+          "perDay": "Stamps per active day"
+        },
+        "empty": {
+          "title": "No activity in this period",
+          "description": "Stamps and redemptions will show up here as your team scans cards."
+        }
+      },
       "membersBadge": "{count} members",
       "membersBadgeWithLimit": "{count} / {limit} members",
       "atLimit": "You've reached your plan's member limit. Upgrade your plan to invite more.",

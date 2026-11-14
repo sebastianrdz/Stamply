@@ -669,6 +669,29 @@
       "metaTitle": "Equipo",
       "title": "Equipo",
       "description": "Invita personal y administra quién puede acceder a este negocio.",
+      "activity": {
+        "metaTitle": "Actividad del personal",
+        "title": "Actividad del personal",
+        "description": "Sellos y canjes de cada integrante del equipo, para ver quién hace qué.",
+        "link": "Actividad del personal",
+        "back": "Volver al equipo",
+        "rangeLabel": "Periodo",
+        "former": "Ex integrante del equipo",
+        "dailyTitle": "Día por día: {staff}",
+        "columns": {
+          "staff": "Personal",
+          "day": "Día",
+          "stamps": "Sellos",
+          "redemptions": "Canjes",
+          "overrides": "Excepciones al límite",
+          "activeDays": "Días activos",
+          "perDay": "Sellos por día activo"
+        },
+        "empty": {
+          "title": "Sin actividad en este periodo",
+          "description": "Los sellos y canjes aparecerán aquí cuando tu equipo escanee tarjetas."
+        }
+      },
       "membersBadge": "{count} integrantes",
       "membersBadgeWithLimit": "{count} / {limit} integrantes",
       "atLimit": "Alcanzaste el límite de integrantes de tu plan. Mejora tu plan para invitar a más personas.",
