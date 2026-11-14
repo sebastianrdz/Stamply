@@ -17,6 +17,7 @@ import { interpolate } from "@stamply/i18n/format";
 import { isBirthdayMonth, birthdayMonthWindow } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
 import { latestOfferForCard } from "@/lib/offers/queries";
+import { inviteUrlFor } from "@/lib/referrals/link";
 import { cardDesign } from "@/lib/programs/design";
 import type { createAdminClient } from "@/lib/supabase/admin";
 
@@ -138,6 +139,8 @@ export async function buildApplePass(
     }
   }
 
+  const inviteUrl = inviteUrlFor(card);
+
   const passJson = {
     formatVersion: 1,
     passTypeIdentifier,
@@ -222,6 +225,16 @@ export async function buildApplePass(
           value: webUrl,
           attributedValue: `<a href="${webUrl}">${w.webLinkText}</a>`,
         },
+        ...(inviteUrl
+          ? [
+              {
+                key: "invite",
+                label: w.inviteLabel,
+                value: inviteUrl,
+                attributedValue: `<a href="${inviteUrl}">${w.inviteLinkText}</a>`,
+              },
+            ]
+          : []),
         ...supportFields(card.business, w.supportLabel),
         {
           key: "createdBy",

@@ -26,6 +26,8 @@
     "passIdLabel": "Pass ID",
     "webLinkLabel": "View on the web",
     "webLinkText": "Open my card",
+    "inviteLabel": "Invite a friend",
+    "inviteLinkText": "Share this link",
     "createdByLabel": "Created by",
     "lastSyncLabel": "Last updated",
     "offerLabel": "Offer",

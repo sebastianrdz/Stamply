@@ -14,6 +14,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { isBirthdayMonth } from "@/lib/customers/birthday";
 import { getBirthdayRewardDefinition } from "@/lib/rewards/queries";
 import { latestOfferForCard } from "@/lib/offers/queries";
+import { inviteUrlFor } from "@/lib/referrals/link";
 import { cardDesign } from "@/lib/programs/design";
 import esDict from "@stamply/i18n/dictionaries/es.json";
 
@@ -62,8 +63,15 @@ export function loyaltyFields(card: CardWithRelations, patch = false) {
     rewards: redeemableCount(card, card.program),
     timeZone: card.business.timezone,
   });
+  const inviteUrl = inviteUrlFor(card);
   if (text.legacy) {
+    // Stamp programs and tier-less points programs take this branch, so the
+    // invite link has to be added here too.
+    const label = esDict.wallet.inviteLabel;
     return {
+      ...(inviteUrl && {
+        textModulesData: [{ id: label, header: label, body: inviteUrl }],
+      }),
       loyaltyPoints: {
         // PATCH only updates the balance; the label was set on create.
         ...(!patch && { label: text.header.label }),
@@ -86,6 +94,9 @@ export function loyaltyFields(card: CardWithRelations, patch = false) {
   const extra = [
     ...rest,
     ...text.auxiliary,
+    ...(inviteUrl
+      ? [{ label: esDict.wallet.inviteLabel, value: inviteUrl }]
+      : []),
     ...(support ? [{ label: esDict.wallet.supportLabel, value: support }] : []),
   ];
   return {
