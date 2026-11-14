@@ -56,6 +56,8 @@ export type Business = Timestamped & {
   locale?: string | null;
   // Optional for the same fixture reason as `support_email`. null = unset.
   average_ticket_cents?: number | null;
+  // Optional for the same fixture reason. null = no review link set.
+  google_review_url?: string | null;
   // Optional (not just nullable) unlike this file's usual convention: a test
   // fixture (src/lib/auth/session.test.ts, off-limits to edit here) builds a
   // full `Business` literal predating this column and can't be updated as
@@ -292,6 +294,14 @@ export type MonthlySummary = {
   sent_at: string;
 };
 
+export type ReviewClick = {
+  id: string;
+  business_id: string;
+  customer_id: string;
+  source: "message" | "card_page";
+  clicked_at: string;
+};
+
 export type CustomerVisit = {
   business_id: string;
   customer_id: string;
@@ -353,6 +363,7 @@ export interface Database {
         | "support_phone"
         | "locale"
         | "average_ticket_cents"
+        | "google_review_url"
         | "last_billing_event_at"
       >;
       memberships: TableDef<Membership, "id" | "created_at" | "role" | "email">;
@@ -416,6 +427,7 @@ export interface Database {
       >;
       wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
       monthly_summaries: TableDef<MonthlySummary, "sent_at">;
+      review_clicks: TableDef<ReviewClick, "id" | "clicked_at">;
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,
@@ -508,6 +520,10 @@ export interface Database {
       automation_last_visits: {
         Args: { p_business_id: string };
         Returns: { customer_id: string; last_visit: string }[];
+      };
+      review_clicks_summary: {
+        Args: { p_business_id: string; p_since: string };
+        Returns: { clicks: number; clickers: number }[];
       };
       roi_summary: {
         Args: {
