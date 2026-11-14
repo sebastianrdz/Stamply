@@ -957,7 +957,7 @@
           "1 programa de lealtad",
           "Apple & Google Wallet",
           "Todos los tipos de tarjeta incluidos",
-          "Estadísticas básicas"
+          "Panel de resultados y resumen mensual"
         ]
       },
       "medium": {
@@ -1124,7 +1124,8 @@
       "items": [
         "Apple Wallet y Google Wallet",
         "Sin instalar otra app",
-        "Escaneo desde el navegador"
+        "Escaneo desde el navegador",
+        "Mide cuántos clientes volvieron"
       ]
     },
     "video": {

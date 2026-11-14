@@ -957,7 +957,7 @@
           "1 loyalty program",
           "Apple & Google Wallet",
           "All card types included",
-          "Basic stats"
+          "ROI dashboard and monthly summary"
         ]
       },
       "medium": {
@@ -1124,7 +1124,8 @@
       "items": [
         "Apple Wallet and Google Wallet",
         "No other app to install",
-        "Scan from the browser"
+        "Scan from the browser",
+        "See how many customers came back"
       ]
     },
     "video": {
