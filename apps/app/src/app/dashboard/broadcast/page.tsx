@@ -27,6 +27,7 @@ export default async function OffersPage() {
     .eq("business_id", membership.business.id)
     // Automation messages are reported on the Automations page.
     .is("automation_id", null)
+    .eq("kind", "offer")
     .order("created_at", { ascending: false })
     .limit(50);
   const offers = (data ?? []) as WalletOffer[];

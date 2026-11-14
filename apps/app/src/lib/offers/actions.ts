@@ -60,8 +60,10 @@ export async function sendOffer(
     return { error: dict.errors.deliveryFailed };
   }
   if (!result.ok) {
-    if (result.reason === "noRecipients") return { error: dict.errors.noRecipients };
-    if (result.reason === "notOptedIn") return { error: dict.errors.notOptedIn };
+    if (result.reason === "noRecipients")
+      return { error: dict.errors.noRecipients };
+    if (result.reason === "notOptedIn")
+      return { error: dict.errors.notOptedIn };
     return { error: result.message ?? dict.errors.deliveryFailed };
   }
   const sent = result.sent;

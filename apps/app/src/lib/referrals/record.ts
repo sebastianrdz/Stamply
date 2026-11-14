@@ -24,21 +24,25 @@ export async function recordReferral(
     phoneClash: boolean;
   },
 ): Promise<"recorded" | "ignored"> {
+  // Why a referral didn't count is otherwise invisible to the owner; log the
+  // reason (never the code, email or phone).
+  const ignore = (reason: string) => {
+    console.warn("[referrals] ignored", { programId: p.program.id, reason });
+    return "ignored" as const;
+  };
   try {
-    if (
-      !p.hasContact ||
-      p.phoneClash ||
-      !referralSettings(p.program.type, p.program.config)
-    ) {
-      return "ignored";
-    }
+    if (!referralSettings(p.program.type, p.program.config))
+      return ignore("referrals_off");
+    if (!p.hasContact) return ignore("no_contact");
+    if (p.phoneClash) return ignore("phone_already_on_file");
     const { data: referrer, error: lookupError } = await admin
       .from("cards")
       .select("id, program_id")
       .eq("referral_code", p.referralCode)
       .maybeSingle();
     if (lookupError) throw lookupError;
-    if (!referrer || referrer.program_id !== p.program.id) return "ignored";
+    if (!referrer) return ignore("unknown_code");
+    if (referrer.program_id !== p.program.id) return ignore("other_program");
 
     const { error } = await admin.from("referrals").insert({
       business_id: p.program.business_id,
@@ -48,7 +52,7 @@ export async function recordReferral(
       referred_card_id: p.cardId,
     });
     if (error) {
-      if (error.code === "23505") return "ignored";
+      if (error.code === "23505") return ignore("already_referred");
       throw error;
     }
     return "recorded";

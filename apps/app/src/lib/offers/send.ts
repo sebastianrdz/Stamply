@@ -29,9 +29,17 @@ export async function sendWalletOffers(
     createdBy?: string | null;
     /** Set when an automation (not a Broadcast) sends this offer. */
     automationId?: string | null;
+    /** "referral" = system message to a referrer (not an owner broadcast). */
+    kind?: "offer" | "referral";
   },
 ): Promise<SendOffersResult> {
-  const { businessId, body, createdBy = null, automationId = null } = params;
+  const {
+    businessId,
+    body,
+    createdBy = null,
+    automationId = null,
+    kind = "offer",
+  } = params;
   const customerIds = params.customerIds ?? [];
 
   let query = admin
@@ -57,6 +65,7 @@ export async function sendWalletOffers(
           body,
           created_by: createdBy,
           automation_id: automationId,
+          kind,
         }))
       : [
           {
@@ -64,7 +73,7 @@ export async function sendWalletOffers(
             customer_id: null,
             body,
             created_by: createdBy,
-          automation_id: automationId,
+            automation_id: automationId,
           },
         ];
   const { data: offers, error } = await admin
