@@ -281,6 +281,25 @@
         "stampsThisWeek": "Stamps this week",
         "rewardsRedeemed": "Rewards redeemed"
       },
+      "range": {
+        "label": "Period",
+        "7": "7 days",
+        "30": "30 days",
+        "90": "90 days"
+      },
+      "roi": {
+        "returning": "Customers who came back",
+        "returningHint": "of {active} who visited",
+        "repeatRate": "Repeat-visit rate",
+        "revenue": "Estimated revenue",
+        "revenueHint": "Returning visits × average ticket",
+        "setTicketCta": "Set your average ticket",
+        "fromMessages": "Visits after a message",
+        "fromMessagesHint": "Within 7 days of a wallet message",
+        "avgDaysBetween": "Days between visits",
+        "atRisk": "Customers at risk",
+        "atRiskHint": "Last visit {from}–{to} days ago"
+      },
       "scanCard": {
         "title": "Scan a card",
         "description": "Add a stamp or redeem a reward.",
@@ -309,7 +328,7 @@
       "title": "Analytics",
       "description": "How customers are engaging with your loyalty program.",
       "stats": {
-        "stamps14d": "Stamps (14d)",
+        "stampsPeriod": "Stamps (last {days} days)",
         "cardsIssued": "Cards issued",
         "redemptions": "Redemptions",
         "redemptionRate": "Redemption rate"
@@ -767,6 +786,8 @@
         "supportEmailLabel": "Support email",
         "supportPhoneLabel": "Support phone",
         "supportHint": "Shown to customers on their card and wallet pass.",
+        "averageTicketLabel": "Average ticket (MXN)",
+        "averageTicketHint": "Used to estimate the revenue from customers who come back. Leave empty to hide the estimate.",
         "localeLabel": "Default language",
         "localeNone": "Not set",
         "localeEn": "English",
@@ -792,7 +813,8 @@
         "supportEmailInvalid": "Enter a valid support email.",
         "supportPhoneInvalid": "Enter a valid support phone number.",
         "localeInvalid": "Choose a supported language.",
-        "timezoneInvalid": "Choose a valid timezone."
+        "timezoneInvalid": "Choose a valid timezone.",
+        "averageTicketInvalid": "Enter an amount greater than 0 (up to 999,999.99)."
       },
       "dangerZone": {
         "title": "Danger zone",

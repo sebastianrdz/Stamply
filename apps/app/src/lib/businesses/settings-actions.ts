@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
-import { settingsSchema } from "./settings-schema";
+import { pesosToCents, settingsSchema } from "./settings-schema";
 import type { Database } from "@/types/database";
 
 export interface SettingsState {
@@ -29,6 +29,7 @@ export async function updateBusiness(
     support_email: formData.get("support_email"),
     support_phone: formData.get("support_phone"),
     locale: formData.get("locale"),
+    average_ticket: formData.get("average_ticket"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
@@ -40,6 +41,7 @@ export async function updateBusiness(
     support_email: parsed.data.support_email,
     support_phone: parsed.data.support_phone,
     locale: parsed.data.locale,
+    average_ticket_cents: pesosToCents(parsed.data.average_ticket),
   };
 
   const { error } = await supabase

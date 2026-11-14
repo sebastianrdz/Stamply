@@ -51,6 +51,19 @@ describe("getAnalytics", () => {
     );
   });
 
+  it.each([7, 30, 90])("produces %i daily points when asked for that range", async (days) => {
+    createClientMock.mockResolvedValue(
+      makeSupabaseMock({
+        stamp_events: { data: [] },
+        redemptions: { count: 0 },
+        cards: { count: 0 },
+      }),
+    );
+    const analytics = await getAnalytics("biz-1", "UTC", days);
+    expect(analytics.daily).toHaveLength(days);
+    expect(analytics.daily.at(-1)?.date).toBe("2026-08-15");
+  });
+
   it("buckets stamp events onto the correct day and sums totalStamps", async () => {
     const buckets = expectedBuckets();
     const firstDay = buckets[0].date;

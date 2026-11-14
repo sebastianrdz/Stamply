@@ -1,8 +1,24 @@
 import Link from "next/link";
-import { Users, CreditCard, Stamp, Gift, ScanLine, Plus, TrendingUp } from "lucide-react";
+import {
+  Users,
+  CreditCard,
+  Stamp,
+  Gift,
+  ScanLine,
+  Plus,
+  TrendingUp,
+  Repeat,
+  Percent,
+  Banknote,
+  Megaphone,
+  CalendarClock,
+  UserX,
+} from "lucide-react";
 import { requireBusiness } from "@/lib/auth/session";
 import { getOverviewStats } from "@/lib/stats";
-import { getAnalytics, getCardBreakdown } from "@/lib/analytics";
+import { getAnalytics, getCardBreakdown, RANGES } from "@/lib/analytics";
+import { getRoi } from "@/lib/roi";
+import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@stamply/ui/card";
@@ -13,18 +29,33 @@ import { getDictionary } from "@stamply/i18n/dictionaries";
 import { interpolate } from "@stamply/i18n/format";
 import { DashboardToastListener } from "./dashboard-toast-listener";
 
-export default async function DashboardOverview() {
+export default async function DashboardOverview({
+  searchParams,
+}: {
+  searchParams: Promise<{ range?: string | string[] }>;
+}) {
   const { membership } = await requireBusiness();
-  const [stats, a, breakdown] = await Promise.all([
-    getOverviewStats(membership.business.id),
-    getAnalytics(membership.business.id, membership.business.timezone),
-    getCardBreakdown(membership.business.id),
+  const { range } = await searchParams;
+  const days = RANGES.find((r) => String(r) === range) ?? 30;
+  const business = membership.business;
+  const locale = await getLocale();
+  const [stats, a, breakdown, roi] = await Promise.all([
+    getOverviewStats(business.id),
+    getAnalytics(business.id, business.timezone, days),
+    getCardBreakdown(business.id, days),
+    getRoi(await createClient(), business, days),
   ]);
-  const dict = await getDictionary(await getLocale());
+  const dict = await getDictionary(locale);
   const overview = dict.dashboard.overview;
+  const roiText = overview.roi;
   const analytics = dict.dashboard.analytics;
   const byCard = dict.dashboard.marketing.byCard;
   const max = Math.max(1, ...a.daily.map((d) => d.stamps));
+  const mxn = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: "MXN",
+    maximumFractionDigits: 0,
+  });
 
   return (
     <>
@@ -36,7 +67,75 @@ export default async function DashboardOverview() {
         description={overview.description}
       />
 
+      <nav
+        aria-label={overview.range.label}
+        className="mb-4 flex flex-wrap items-center gap-2"
+      >
+        {RANGES.map((r) => (
+          <Link
+            key={r}
+            href={`/dashboard?range=${r}`}
+            aria-current={r === days ? "page" : undefined}
+            className={buttonVariants({
+              variant: r === days ? "primary" : "outline",
+              size: "sm",
+            })}
+          >
+            {overview.range[`${r}`]}
+          </Link>
+        ))}
+      </nav>
+
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label={roiText.returning}
+          value={roi.returningCustomers}
+          hint={interpolate(roiText.returningHint, {
+            active: roi.activeCustomers,
+          })}
+          icon={Repeat}
+        />
+        <StatCard
+          label={roiText.repeatRate}
+          value={`${Math.round(roi.repeatRate * 100)}%`}
+          icon={Percent}
+        />
+        {roi.estimatedRevenueCents === null ? (
+          <Card>
+            <CardContent className="flex items-center gap-4 p-5">
+              <div className="bg-primary/10 text-primary grid size-11 shrink-0 place-items-center rounded-lg">
+                <Banknote className="size-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-muted-foreground text-sm">
+                  {roiText.revenue}
+                </p>
+                <Link
+                  href="/dashboard/settings"
+                  className="text-primary text-sm font-medium underline-offset-4 hover:underline"
+                >
+                  {roiText.setTicketCta}
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <StatCard
+            label={roiText.revenue}
+            value={`≈ ${mxn.format(roi.estimatedRevenueCents / 100)}`}
+            hint={roiText.revenueHint}
+            icon={Banknote}
+          />
+        )}
+        <StatCard
+          label={roiText.fromMessages}
+          value={roi.attributedVisits}
+          hint={roiText.fromMessagesHint}
+          icon={Megaphone}
+        />
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
           label={overview.stats.customers}
           value={stats.customers}
@@ -62,7 +161,7 @@ export default async function DashboardOverview() {
 
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label={analytics.stats.stamps14d}
+          label={interpolate(analytics.stats.stampsPeriod, { days })}
           value={a.totalStamps}
           icon={Stamp}
         />
@@ -70,6 +169,20 @@ export default async function DashboardOverview() {
           label={analytics.stats.redemptionRate}
           value={`${Math.round(a.redemptionRate * 100)}%`}
           icon={TrendingUp}
+        />
+        <StatCard
+          label={roiText.avgDaysBetween}
+          value={roi.avgDaysBetween ?? "—"}
+          icon={CalendarClock}
+        />
+        <StatCard
+          label={roiText.atRisk}
+          value={roi.atRisk}
+          hint={interpolate(roiText.atRiskHint, {
+            from: roi.atRiskFromDays,
+            to: roi.atRiskFromDays * 2,
+          })}
+          icon={UserX}
         />
       </div>
 
@@ -96,9 +209,11 @@ export default async function DashboardOverview() {
                     })}
                   />
                 </div>
-                <span className="text-muted-foreground text-[10px]">
-                  {d.label}
-                </span>
+                {days <= 14 && (
+                  <span className="text-muted-foreground text-[10px]">
+                    {d.label}
+                  </span>
+                )}
               </div>
             ))}
           </div>

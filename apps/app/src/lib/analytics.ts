@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { addDays, localDate } from "@/lib/automations/dates";
+import { fetchAll } from "@/lib/pagination";
 
 export interface DailyPoint {
   date: string; // YYYY-MM-DD
@@ -17,24 +18,34 @@ export interface Analytics {
   redemptionRate: number; // redemptions / cards issued
 }
 
-const DAYS = 14;
+export const RANGES = [7, 30, 90] as const;
+export type Range = (typeof RANGES)[number];
+
+const DEFAULT_DAYS = 14;
 const DAY_MS = 86_400_000;
 
 export async function getAnalytics(
   businessId: string,
   timezone = "UTC",
+  days = DEFAULT_DAYS,
 ): Promise<Analytics> {
   const supabase = await createClient();
   // One spare day so the first local day is fully covered whatever the offset.
-  const since = new Date(Date.now() - (DAYS + 1) * DAY_MS);
+  const since = new Date(Date.now() - (days + 1) * DAY_MS);
 
   const [events, redemptions, cards] = await Promise.all([
-    supabase
-      .from("stamp_events")
-      .select("created_at, kind")
-      .eq("business_id", businessId)
-      .eq("kind", "stamp")
-      .gte("created_at", since.toISOString()),
+    // Paginated: a busy business can exceed PostgREST's 1000-row cap over 90 days.
+    fetchAll((f, t) =>
+      supabase
+        .from("stamp_events")
+        .select("id, created_at")
+        .eq("business_id", businessId)
+        .eq("kind", "stamp")
+        .gte("created_at", since.toISOString())
+        .order("created_at")
+        .order("id")
+        .range(f, t),
+    ),
     supabase
       .from("redemptions")
       .select("id", { count: "exact", head: true })
@@ -48,8 +59,8 @@ export async function getAnalytics(
   // Bucket stamps by the business's local day, ending today.
   const today = localDate(timezone, new Date());
   const buckets = new Map<string, number>();
-  for (let i = DAYS - 1; i >= 0; i--) buckets.set(addDays(today, -i), 0);
-  for (const e of events.data ?? []) {
+  for (let i = days - 1; i >= 0; i--) buckets.set(addDays(today, -i), 0);
+  for (const e of events) {
     const key = localDate(timezone, new Date(e.created_at));
     if (buckets.has(key)) buckets.set(key, (buckets.get(key) ?? 0) + 1);
   }
@@ -79,7 +90,7 @@ export interface CardBreakdownRow {
   name: string;
   cards: number;
   customers: number;
-  stamps: number; // last DAYS days
+  stamps: number; // last `days` days
   redemptions: number;
 }
 
@@ -90,9 +101,10 @@ export interface CardBreakdownRow {
  */
 export async function getCardBreakdown(
   businessId: string,
+  days = DEFAULT_DAYS,
 ): Promise<CardBreakdownRow[]> {
   const supabase = await createClient();
-  const since = new Date(Date.now() - DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const since = new Date(Date.now() - days * DAY_MS).toISOString();
 
   const [programs, cards, events, redemptions] = await Promise.all([
     supabase.from("programs").select("id, name").eq("business_id", businessId),
