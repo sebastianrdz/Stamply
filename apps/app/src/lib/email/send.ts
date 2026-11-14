@@ -9,6 +9,7 @@ import { emailFromAddress, getResendClient } from "./resend";
 import { ResetPasswordEmail } from "./templates/reset-password-email";
 import { TeamInviteEmail } from "./templates/team-invite-email";
 import { VerifyEmail } from "./templates/verify-email";
+import { MonthlySummaryEmail } from "./templates/monthly-summary-email";
 
 export interface SendResult {
   ok: boolean;
@@ -122,6 +123,45 @@ export async function sendPasswordResetEmail(params: {
       body: copy.body,
       cta: copy.cta,
       footer: copy.footer,
+      url: params.url,
+    }),
+  });
+}
+
+export async function sendMonthlySummaryEmail(params: {
+  to: string;
+  businessName: string;
+  /** Already formatted, e.g. "noviembre de 2026". */
+  month: string;
+  returningCustomers: number;
+  repeatRatePercent: number;
+  /** Already formatted money; null hides the revenue line. */
+  revenue: string | null;
+  url: string;
+  locale: Locale;
+}): Promise<SendResult> {
+  const copy = (await getDictionary(params.locale)).email.monthlySummary;
+  const vars = {
+    business: params.businessName,
+    month: params.month,
+    count: params.returningCustomers,
+    rate: params.repeatRatePercent,
+  };
+
+  return send({
+    to: params.to,
+    subject: interpolate(copy.subject, vars),
+    react: React.createElement(MonthlySummaryEmail, {
+      preview: interpolate(copy.preview, vars),
+      heading: interpolate(copy.heading, vars),
+      lines: [
+        interpolate(copy.returning, vars),
+        ...(params.revenue
+          ? [interpolate(copy.revenue, { amount: params.revenue })]
+          : []),
+      ],
+      cta: copy.cta,
+      footer: interpolate(copy.footer, vars),
       url: params.url,
     }),
   });

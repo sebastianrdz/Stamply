@@ -6,6 +6,8 @@ import { getDictionary } from "@stamply/i18n/dictionaries";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@stamply/ui/card";
 import { Badge } from "@stamply/ui/badge";
+import { getAttribution } from "@/lib/attribution";
+import { interpolate } from "@stamply/i18n/format";
 import { OfferForm } from "./offer-form";
 import type { WalletOffer } from "@/types/database";
 
@@ -23,9 +25,12 @@ export default async function OffersPage() {
     .from("wallet_offers")
     .select("*")
     .eq("business_id", membership.business.id)
+    // Automation messages are reported on the Automations page.
+    .is("automation_id", null)
     .order("created_at", { ascending: false })
     .limit(50);
   const offers = (data ?? []) as WalletOffer[];
+  const { byOffer } = await getAttribution(supabase, membership.business);
 
   return (
     <>
@@ -58,6 +63,10 @@ export default async function OffersPage() {
                 <div className="min-w-0">
                   <p className="break-words">{o.body}</p>
                   <p className="text-muted-foreground text-sm">
+                    {byOffer.get(o.id)?.sent
+                      ? interpolate(dict.stats.line, { ...byOffer.get(o.id)! })
+                      : dict.stats.unknown}
+                    {" · "}
                     {new Intl.DateTimeFormat(locale, {
                       dateStyle: "medium",
                       timeStyle: "short",

@@ -163,3 +163,26 @@ describe("sendPasswordResetEmail", () => {
     expect(result).toEqual({ ok: false, error: "timeout" });
   });
 });
+
+describe("sendMonthlySummaryEmail", () => {
+  it("sends with a localized subject and omits the revenue line when null", async () => {
+    stubCoreEnv();
+    resendSendMock.mockResolvedValue({ data: { id: "email_2" }, error: null });
+    const { sendMonthlySummaryEmail } = await freshSend();
+    const r = await sendMonthlySummaryEmail({
+      to: "owner@x.com",
+      businessName: "Cafe",
+      month: "noviembre de 2026",
+      returningCustomers: 47,
+      repeatRatePercent: 40,
+      revenue: null,
+      url: "https://app.example.com/dashboard",
+      locale: "es",
+    });
+    expect(r).toEqual({ ok: true });
+    const arg = resendSendMock.mock.calls[0][0];
+    expect(arg.to).toBe("owner@x.com");
+    expect(arg.subject).toBe("noviembre de 2026: 47 clientes volvieron a Cafe");
+    expect(arg.react.props.lines).toHaveLength(1);
+  });
+});

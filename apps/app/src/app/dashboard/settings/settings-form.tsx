@@ -52,6 +52,23 @@ export function SettingsForm({ business }: { business: Business }) {
           />
           <p className="text-muted-foreground text-xs">{bf.supportHint}</p>
         </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="average_ticket">{bf.averageTicketLabel}</Label>
+          <Input
+            id="average_ticket"
+            name="average_ticket"
+            inputMode="decimal"
+            placeholder="150"
+            defaultValue={
+              business.average_ticket_cents
+                ? String(business.average_ticket_cents / 100)
+                : ""
+            }
+          />
+          <p className="text-muted-foreground text-xs">
+            {bf.averageTicketHint}
+          </p>
+        </div>
       </fieldset>
 
       <fieldset className="flex flex-col gap-5">
