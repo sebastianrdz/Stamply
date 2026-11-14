@@ -1126,6 +1126,19 @@
     "addAppleWallet": "Agregar a Apple Wallet",
     "addGoogleWallet": "Agregar a Google Wallet",
     "review": { "cta": "Déjanos una reseña en Google" },
+    "referral": {
+      "cta": "Invita a un amigo",
+      "copied": "¡Enlace copiado!",
+      "shareText": "Únete a la tarjeta de lealtad de {business}:",
+      "explainer": "Cuando tu amigo reciba su primer sello, tú ganas {mine} y él gana {theirs}.",
+      "explainerSolo": "Cuando tu amigo reciba su primer sello, tú ganas {mine}.",
+      "units": {
+        "stampOne": "{count} sello",
+        "stampOther": "{count} sellos",
+        "pointOne": "{count} punto",
+        "pointOther": "{count} puntos"
+      }
+    },
     "rewardReady": "¡Recompensa lista!",
     "yourReward": "Tu recompensa",
     "stamps": "Sellos",

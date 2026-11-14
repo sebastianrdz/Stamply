@@ -45,6 +45,11 @@ vi.mock("@/lib/automations/trigger", () => ({
   triggerWelcome: (...args: unknown[]) => triggerWelcomeMock(...args),
 }));
 
+const recordReferralMock = vi.fn(async (..._args: unknown[]) => "recorded");
+vi.mock("@/lib/referrals/record", () => ({
+  recordReferral: (...args: unknown[]) => recordReferralMock(...args),
+}));
+
 const captureServerEventMock = vi.fn();
 vi.mock("@/lib/posthog/server", () => ({
   captureServerEvent: (...args: unknown[]) => captureServerEventMock(...args),
@@ -324,5 +329,101 @@ describe("enroll — new customer", () => {
     expect(state.error).toBe("insert boom");
     expect(issueCardMock).not.toHaveBeenCalled();
     expect(captureServerEventMock).not.toHaveBeenCalled();
+  });
+});
+
+describe("enroll — referrals", () => {
+  const referralProgram = () =>
+    program({
+      config: {
+        referral: {
+          enabled: true,
+          referrer_bonus: 1,
+          referred_bonus: 1,
+          monthly_cap: 5,
+        },
+      },
+    } as Partial<Program>);
+
+  it("records the referral for a new customer who arrived with a code", async () => {
+    const mock = makeSupabaseMock({
+      programs: { data: { ...referralProgram(), business: business() } },
+      customers: [{ data: null }, { data: { id: "new-cust" }, error: null }],
+    });
+    createAdminClientMock.mockReturnValue(mock);
+    issueCardMock.mockResolvedValue({
+      id: "card-2",
+      pass_auth_token: "tok_new",
+    });
+
+    await expect(
+      enroll({}, form({ ...baseFields, ref: "abc123" })),
+    ).rejects.toThrow("NEXT_REDIRECT:/c/tok_new");
+    expect(recordReferralMock).toHaveBeenCalledWith(
+      mock,
+      expect.objectContaining({
+        referralCode: "abc123",
+        customerId: "new-cust",
+        cardId: "card-2",
+        hasContact: true,
+        phoneClash: false,
+      }),
+    );
+  });
+
+  it("flags a phone that another customer already has", async () => {
+    const mock = makeSupabaseMock({
+      programs: { data: { ...referralProgram(), business: business() } },
+      customers: [
+        { data: null }, // no email match
+        { data: [{ id: "someone" }] }, // same phone digits on file
+        { data: { id: "new-cust" }, error: null },
+      ],
+    });
+    createAdminClientMock.mockReturnValue(mock);
+    issueCardMock.mockResolvedValue({
+      id: "card-2",
+      pass_auth_token: "tok_new",
+    });
+
+    await expect(
+      enroll(
+        {},
+        form({ ...baseFields, phone: "+52 55 1234 5678", ref: "abc123" }),
+      ),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    expect(mock.builderFor("customers", 1).eq).toHaveBeenCalledWith(
+      "phone_digits",
+      "5512345678",
+    );
+    expect(recordReferralMock).toHaveBeenCalledWith(
+      mock,
+      expect.objectContaining({ phoneClash: true, hasContact: true }),
+    );
+  });
+
+  it("does nothing without a code, and never for an existing customer", async () => {
+    const fresh = makeSupabaseMock({
+      programs: { data: { ...referralProgram(), business: business() } },
+      customers: [{ data: null }, { data: { id: "new-cust" }, error: null }],
+    });
+    createAdminClientMock.mockReturnValue(fresh);
+    issueCardMock.mockResolvedValue({
+      id: "card-2",
+      pass_auth_token: "tok_new",
+    });
+    await expect(enroll({}, form(baseFields))).rejects.toThrow("NEXT_REDIRECT");
+    expect(recordReferralMock).not.toHaveBeenCalled();
+
+    const existing = makeSupabaseMock({
+      programs: { data: { ...referralProgram(), business: business() } },
+      customers: [{ data: { id: "cust-1" } }],
+      cards: [{ data: null }],
+    });
+    createAdminClientMock.mockReturnValue(existing);
+    await expect(
+      enroll({}, form({ ...baseFields, ref: "abc123" })),
+    ).rejects.toThrow("NEXT_REDIRECT");
+    expect(recordReferralMock).not.toHaveBeenCalled();
   });
 });

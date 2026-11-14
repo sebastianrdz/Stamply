@@ -11,6 +11,9 @@ import { cardText } from "@/lib/cards/text";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import { qrDataUrl } from "@/lib/qr";
 import { reviewLink } from "@/lib/reviews/url";
+import { referralSettings } from "@/lib/referrals/config";
+import { referralLink } from "@/lib/referrals/link";
+import { InviteFriend } from "./invite-friend";
 import { buttonVariants } from "@stamply/ui/button";
 import { cn } from "@stamply/ui/utils";
 import { brandStyle } from "@/lib/brand";
@@ -109,6 +112,20 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
   // customer's cards in other programs.
   const availableRewards = redeemableCount(card, card.program);
 
+  const referral = referralSettings(card.program.type, card.program.config);
+  const units = dict.card.referral.units;
+  const bonus = (n: number) =>
+    interpolate(
+      card.program.type === "points"
+        ? n === 1
+          ? units.pointOne
+          : units.pointOther
+        : n === 1
+          ? units.stampOne
+          : units.stampOther,
+      { count: n },
+    );
+
   return (
     <div
       className="flex min-h-full flex-col items-center px-6 py-10"
@@ -173,6 +190,26 @@ export default async function CardPage({ params }: PageProps<"/c/[token]">) {
           appleLabel={dict.card.addAppleWallet}
           googleLabel={dict.card.addGoogleWallet}
         />
+
+        {referral && card.referral_code && (
+          <InviteFriend
+            url={referralLink(card.program_id, card.referral_code)}
+            cta={dict.card.referral.cta}
+            copiedLabel={dict.card.referral.copied}
+            shareText={interpolate(dict.card.referral.shareText, {
+              business: card.business.name,
+            })}
+            explainer={interpolate(
+              referral.referredBonus > 0
+                ? dict.card.referral.explainer
+                : dict.card.referral.explainerSolo,
+              {
+                mine: bonus(referral.referrerBonus),
+                theirs: bonus(referral.referredBonus),
+              },
+            )}
+          />
+        )}
 
         {card.business.google_review_url && (
           <a

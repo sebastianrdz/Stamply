@@ -12,13 +12,20 @@ import { termsUrl, privacyUrl } from "@/lib/urls";
 
 const initialState: EnrollState = {};
 
-export function EnrollForm({ programId }: { programId: string }) {
+export function EnrollForm({
+  programId,
+  referralCode,
+}: {
+  programId: string;
+  referralCode?: string;
+}) {
   const dict = useTranslations();
   const [state, formAction, pending] = useActionState(enroll, initialState);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="program_id" value={programId} />
+      {referralCode && <input type="hidden" name="ref" value={referralCode} />}
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="full_name">{dict.customerJoin.form.nameLabel}</Label>

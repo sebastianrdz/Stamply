@@ -10,6 +10,8 @@ import {
 } from "@/lib/billing/entitlements";
 import { issueCard } from "@/lib/cards/issue";
 import { triggerWelcome } from "@/lib/automations/trigger";
+import { phoneDigits, referralSettings } from "@/lib/referrals/config";
+import { recordReferral } from "@/lib/referrals/record";
 import { rateLimit } from "@/lib/rate-limit";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
@@ -42,6 +44,8 @@ export async function enroll(
       .optional()
       .or(z.literal("")),
     phone: z.string().max(40).optional().or(z.literal("")),
+    // Invite code from /c/join/[programId]?ref=. Unknown values are ignored later.
+    ref: z.string().max(64).optional().or(z.literal("")),
     marketing_consent: z
       .union([z.literal("on"), z.null()])
       .transform((v) => v === "on"),
@@ -77,6 +81,7 @@ export async function enroll(
     full_name: formData.get("full_name"),
     email: formData.get("email"),
     phone: formData.get("phone"),
+    ref: formData.get("ref") ?? undefined,
     marketing_consent: formData.get("marketing_consent"),
     terms_accepted: formData.get("terms_accepted"),
     birthday: formData.get("birthday"),
@@ -157,6 +162,25 @@ export async function enroll(
     }
   }
 
+  // Referral eligibility needs a phone nobody else has, checked BEFORE this
+  // customer is inserted (afterwards it would match itself).
+  const friendPhone = phoneDigits(parsed.data.phone);
+  let phoneClash = false;
+  if (
+    !customerId &&
+    parsed.data.ref &&
+    friendPhone &&
+    referralSettings(program.type, program.config)
+  ) {
+    const { data: sameDigits } = await admin
+      .from("customers")
+      .select("id")
+      .eq("business_id", business.id)
+      .eq("phone_digits", friendPhone)
+      .limit(1);
+    phoneClash = (sameDigits?.length ?? 0) > 0;
+  }
+
   if (!customerId) {
     try {
       await assertWithinLimit(admin, business, "customers");
@@ -223,6 +247,18 @@ export async function enroll(
     },
     groups: { business: business.id },
   });
+
+  // Only a brand-new customer can be referred. Never fails the enrollment.
+  if (isNewCustomer && parsed.data.ref) {
+    await recordReferral(admin, {
+      program,
+      referralCode: parsed.data.ref,
+      customerId,
+      cardId: card.id,
+      hasContact: !!email || !!friendPhone,
+      phoneClash,
+    });
+  }
 
   // Never fails the enrollment (triggerWelcome swallows and logs its errors).
   await triggerWelcome(admin, { businessId: business.id, customerId });

@@ -35,3 +35,9 @@ export function referralSettings(
     monthlyCap: int(r.monthly_cap, 1, REFERRAL_CAP_MAX, REFERRAL_CAP_DEFAULT),
   };
 }
+
+/** Last 10 digits of a phone, or "" when there are too few to trust (matches the customers.phone_digits column). */
+export function phoneDigits(phone: string | null | undefined): string {
+  const d = (phone ?? "").replace(/\D/g, "").slice(-10);
+  return d.length >= 7 ? d : "";
+}

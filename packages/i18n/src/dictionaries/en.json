@@ -1126,6 +1126,19 @@
     "addAppleWallet": "Add to Apple Wallet",
     "addGoogleWallet": "Add to Google Wallet",
     "review": { "cta": "Leave us a Google review" },
+    "referral": {
+      "cta": "Invite a friend",
+      "copied": "Link copied!",
+      "shareText": "Join {business}'s loyalty card:",
+      "explainer": "When your friend gets their first stamp, you get {mine} and they get {theirs}.",
+      "explainerSolo": "When your friend gets their first stamp, you get {mine}.",
+      "units": {
+        "stampOne": "{count} stamp",
+        "stampOther": "{count} stamps",
+        "pointOne": "{count} point",
+        "pointOther": "{count} points"
+      }
+    },
     "rewardReady": "Reward ready!",
     "yourReward": "Your reward",
     "stamps": "Stamps",
