@@ -2,6 +2,9 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getCardById } from "@/lib/cards/queries";
+import { sendWalletOffers } from "@/lib/offers/send";
+import { getDictionary } from "@stamply/i18n/dictionaries";
+import { interpolate } from "@stamply/i18n/format";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
 import type { Database, ProgramType } from "@/types/database";
 import { referralSettings } from "./config";
@@ -47,7 +50,8 @@ export async function triggerReferralReward(
     const paid = data?.[0];
     if (paid?.referrer_paid) {
       const referrer = await getCardById(admin, paid.referrer_card_id);
-      if (referrer) await notifyCardUpdated(admin, referrer);
+      if (referrer)
+        await notifyReferrer(admin, referrer, settings.referrerBonus);
     }
   } catch (e) {
     console.error("[referrals] payout failed", {
@@ -55,4 +59,51 @@ export async function triggerReferralReward(
       code: (e as { code?: string } | null)?.code,
     });
   }
+}
+
+/**
+ * Tell the referrer they earned a bonus. A wallet message is the only thing
+ * that shows a lock-screen notification (Apple changeMessage / Google
+ * TEXT_AND_NOTIFY), and like every wallet message it goes only to customers who
+ * opted in to marketing. Everyone else (or if the message fails) still gets a
+ * silent pass refresh with the new balance.
+ */
+async function notifyReferrer(
+  admin: SupabaseClient<Database>,
+  referrer: NonNullable<Awaited<ReturnType<typeof getCardById>>>,
+  bonus: number,
+) {
+  try {
+    const dict = await getDictionary(
+      referrer.business.locale === "en" ? "en" : "es",
+    );
+    const units = dict.card.referral.units;
+    const isPoints = referrer.program.type === "points";
+    const amount = interpolate(
+      isPoints
+        ? bonus === 1
+          ? units.pointOne
+          : units.pointOther
+        : bonus === 1
+          ? units.stampOne
+          : units.stampOther,
+      { count: bonus },
+    );
+    const result = await sendWalletOffers(admin, {
+      businessId: referrer.business_id,
+      customerIds: [referrer.customer_id],
+      kind: "referral",
+      body: interpolate(dict.wallet.referralReward, {
+        business: referrer.business.name,
+        bonus: amount,
+      }).slice(0, 200),
+    });
+    if (result.ok) return;
+  } catch (e) {
+    console.error("[referrals] referrer message failed", {
+      cardId: referrer.id,
+      code: (e as { code?: string } | null)?.code,
+    });
+  }
+  await notifyCardUpdated(admin, referrer);
 }

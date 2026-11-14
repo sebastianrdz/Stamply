@@ -285,6 +285,8 @@ export type WalletOffer = Timestamped & {
   customer_id: string | null;
   body: string;
   automation_id?: string | null;
+  /** Migration 0034: "referral" = system message to a referrer, not an owner broadcast. */
+  kind?: "offer" | "referral";
   created_by: string | null;
 };
 
@@ -467,7 +469,7 @@ export interface Database {
       >;
       wallet_offers: TableDef<
         WalletOffer,
-        "id" | "created_at" | "customer_id" | "created_by"
+        "id" | "created_at" | "customer_id" | "created_by" | "kind"
       >;
       wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
       monthly_summaries: TableDef<MonthlySummary, "sent_at">;

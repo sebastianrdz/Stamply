@@ -249,6 +249,12 @@ export async function enroll(
   });
 
   // Only a brand-new customer can be referred. Never fails the enrollment.
+  if (parsed.data.ref && !isNewCustomer) {
+    console.warn("[referrals] ignored", {
+      programId: program.id,
+      reason: "existing_customer",
+    });
+  }
   if (isNewCustomer && parsed.data.ref) {
     await recordReferral(admin, {
       program,

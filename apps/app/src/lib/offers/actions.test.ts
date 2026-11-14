@@ -13,7 +13,9 @@ vi.mock("@/lib/rate-limit", () => ({
   rateLimit: (...a: unknown[]) => rateLimitMock(...(a as [])),
 }));
 
-const notifyOffersMock = vi.fn(async (_s: unknown, offers: unknown[]) => offers.length);
+const notifyOffersMock = vi.fn(
+  async (_s: unknown, offers: unknown[]) => offers.length,
+);
 vi.mock("@/lib/wallet/notify", () => ({
   notifyOffers: (s: unknown, o: unknown[]) => notifyOffersMock(s, o),
 }));
@@ -98,7 +100,9 @@ describe("sendOffer", () => {
   it("sends a single broadcast offer when no customers are selected", async () => {
     const res = await sendOffer({}, form("2x1 coffee"));
     expect(res).toEqual({ sent: 1 });
-    const offers = notifyOffersMock.mock.calls[0][1] as { customer_id: unknown }[];
+    const offers = notifyOffersMock.mock.calls[0][1] as {
+      customer_id: unknown;
+    }[];
     expect(offers).toHaveLength(1);
     expect(offers[0].customer_id).toBeNull();
   });
