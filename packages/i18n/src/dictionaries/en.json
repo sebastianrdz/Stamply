@@ -565,7 +565,8 @@
       "title": "Automations",
       "description": "Automatic wallet messages and optional rewards that run on their own.",
       "stats": {
-        "line": "Last 90 days: {sent} sent · {returned} came back ({rate}%)"
+        "line": "Last 90 days: {sent} sent · {returned} came back ({rate}%)",
+        "reviewLine": "Last 90 days: {invited} invited · {clicked} customers opened your review link"
       },
       "birthday": {
         "title": "Birthday reward",
@@ -972,6 +973,7 @@
           "1 loyalty program",
           "Apple & Google Wallet",
           "All card types included",
+          "Google review invites",
           "ROI dashboard and monthly summary"
         ]
       },
@@ -984,6 +986,7 @@
           "Up to 1,000 customers",
           "3 loyalty programs",
           "All card types included",
+          "Google review invites",
           "Analytics dashboard",
           "Custom enrollment fields"
         ]
@@ -997,6 +1000,7 @@
           "Up to 10,000 customers",
           "Unlimited programs",
           "All card types included",
+          "Google review invites",
           "Priority support",
           "API access"
         ]

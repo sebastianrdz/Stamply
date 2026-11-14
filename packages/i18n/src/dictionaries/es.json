@@ -565,7 +565,8 @@
       "title": "Automatizaciones",
       "description": "Mensajes automáticos a la wallet y recompensas opcionales que se ejecutan solos.",
       "stats": {
-        "line": "Últimos 90 días: {sent} enviados · {returned} volvieron ({rate}%)"
+        "line": "Últimos 90 días: {sent} enviados · {returned} volvieron ({rate}%)",
+        "reviewLine": "Últimos 90 días: {invited} invitados · {clicked} clientes abrieron tu enlace de reseñas"
       },
       "birthday": {
         "title": "Recompensa de cumpleaños",
@@ -972,6 +973,7 @@
           "1 programa de lealtad",
           "Apple & Google Wallet",
           "Todos los tipos de tarjeta incluidos",
+          "Invitaciones a reseñas de Google",
           "Panel de resultados y resumen mensual"
         ]
       },
@@ -984,6 +986,7 @@
           "Hasta 1,000 clientes",
           "3 programas de lealtad",
           "Todos los tipos de tarjeta incluidos",
+          "Invitaciones a reseñas de Google",
           "Panel de analítica",
           "Campos de inscripción personalizados"
         ]
@@ -997,6 +1000,7 @@
           "Hasta 10,000 clientes",
           "Programas ilimitados",
           "Todos los tipos de tarjeta incluidos",
+          "Invitaciones a reseñas de Google",
           "Soporte prioritario",
           "Acceso a la API"
         ]
