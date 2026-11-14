@@ -6,7 +6,11 @@ import { getCardByBarcode, cardProgress } from "@/lib/cards/queries";
 import { cardState, type ScanAction } from "@/lib/cards/state";
 import { availableMilestones } from "@/lib/cards/milestones";
 import { notifyCardUpdated } from "@/lib/wallet/notify";
-import { triggerAlmostThere, triggerReviewPrompt } from "@/lib/automations/trigger";
+import {
+  triggerAlmostThere,
+  triggerReviewPrompt,
+} from "@/lib/automations/trigger";
+import { triggerReferralReward } from "@/lib/referrals/reward";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getAvailableStandaloneRewardsForCustomer } from "@/lib/rewards/queries";
 import type { Card, StandaloneRewardGrant } from "@/types/database";
@@ -483,6 +487,12 @@ export async function POST(req: NextRequest) {
         groups: { business: card.business_id },
       });
     }
+  }
+
+  // A referred friend's first scanned stamp pays the referral. Before the
+  // reload so the response and the friend's pass include the bonus. Never throws.
+  if (action === "stamp" || action === "spend") {
+    await triggerReferralReward(admin, card);
   }
 
   // Reload with relations and push the update to both wallets (best-effort).
