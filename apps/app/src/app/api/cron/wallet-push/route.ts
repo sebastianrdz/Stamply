@@ -1,8 +1,11 @@
 import { NextResponse, after, type NextRequest } from "next/server";
 import { requireEnv } from "@/lib/env";
-import { appUrl } from "@/lib/urls";
+import { kickWalletPush } from "@/lib/wallet/kick";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { drainOfferDeliveries } from "@/lib/wallet/push-worker";
+import {
+  drainOfferDeliveries,
+  drainWalletRefresh,
+} from "@/lib/wallet/push-worker";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -22,24 +25,24 @@ export async function GET(req: NextRequest) {
   }
   const kick = new URL(req.url).searchParams.get("kick") === "1";
   const run = async () => {
-    const result = await drainOfferDeliveries(createAdminClient(), {
-      budgetMs: maxDuration * 0.8 * 1000,
+    const admin = createAdminClient();
+    const budget = maxDuration * 0.8 * 1000;
+    const start = Date.now();
+    const offers = await drainOfferDeliveries(admin, { budgetMs: budget });
+    // One wall-clock budget shared by both drains.
+    const refresh = await drainWalletRefresh(admin, {
+      budgetMs: Math.max(0, budget - (Date.now() - start)),
     });
-    if (
-      result.remainingOffers > 0 &&
-      (result.delivered > 0 || result.failed > 0)
-    ) {
-      // Fast-ack chain: the child returns 202 at once, so we never hold open.
-      after(async () => {
-        await fetch(`${appUrl()}/api/cron/wallet-push?kick=1`, {
-          headers: { authorization: `Bearer ${secret}` },
-        }).catch((e) =>
-          console.error("[cron/wallet-push] chain failed", {
-            error: e instanceof Error ? e.message : String(e),
-          }),
-        );
-      });
-    }
+    const result = {
+      ...offers,
+      refreshed: refresh.refreshed,
+      refreshFailed: refresh.failed,
+      remainingRefresh: refresh.remaining,
+    };
+    const progress =
+      offers.delivered + offers.failed + refresh.refreshed + refresh.failed > 0;
+    if (progress && (offers.remainingOffers > 0 || refresh.remaining > 0))
+      kickWalletPush();
     return result;
   };
   if (kick) {

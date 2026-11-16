@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { captureServerEvent } from "@/lib/posthog/server";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary, type Dictionary } from "@stamply/i18n/dictionaries";
@@ -366,8 +367,8 @@ export async function updateProgram(
   // Wallet passes bake in the design; push it to every card of this program.
   // Best-effort: the edit itself already succeeded.
   if (designChanged || configChanged)
-    await notifyProgramDesignChanged(supabase, programId).catch((e) =>
-      console.error("[programs] design wallet push failed", e),
+    await notifyProgramDesignChanged(createAdminClient(), programId).catch(
+      (e) => console.error("[programs] design wallet push failed", e),
     );
 
   captureServerEvent({

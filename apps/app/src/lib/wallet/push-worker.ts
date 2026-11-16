@@ -4,7 +4,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { fetchAll } from "@/lib/pagination";
 import { pushToDevices } from "@/lib/wallet/apple/apns";
-import { addOfferMessage } from "@/lib/wallet/google/wallet";
+import type { CardWithRelations } from "@/lib/cards/queries";
+import {
+  addOfferMessage,
+  patchLoyaltyObject,
+} from "@/lib/wallet/google/wallet";
 
 type Client = SupabaseClient<Database>;
 
@@ -38,15 +42,14 @@ function errorCode(e: unknown): string {
   );
 }
 
-/** Add the Google message, retrying on 429 (honours retry-after). */
-async function addMessageWithRetry(
-  cardId: string,
-  offer: { id: string; body: string },
+/** Run a Google call, retrying on 429 (honours retry-after). */
+async function retry429(
+  call: () => Promise<void>,
   sleep: (ms: number) => Promise<void>,
 ): Promise<void> {
   for (let attempt = 0; ; attempt++) {
     try {
-      return await addOfferMessage(cardId, offer);
+      return await call();
     } catch (e) {
       const res = (
         e as {
@@ -163,7 +166,7 @@ async function deliverBatch(
     await pool([...googleByCustomer], googleConcurrency, async ([cid, ids]) => {
       try {
         for (const cardId of ids)
-          await addMessageWithRetry(cardId, offer, sleep);
+          await retry429(() => addOfferMessage(cardId, offer), sleep);
         await markDelivered([cid]);
         delivered++;
       } catch (e) {
@@ -258,4 +261,122 @@ export async function drainOfferDeliveries(
     .select("id", { count: "exact", head: true })
     .eq("delivery", "pending");
   return { delivered, failed, remainingOffers: count ?? 0 };
+}
+
+export interface RefreshResult {
+  refreshed: number;
+  failed: number;
+  /** Queue rows still claimable (not out of attempts). */
+  remaining: number;
+}
+
+/**
+ * Refresh queued cards (program design changed): push Apple, patch Google,
+ * delete the queue row of each finished card. Failures keep the row with a
+ * `last_error` code; the claim already counted the attempt.
+ */
+export async function drainWalletRefresh(
+  admin: Client,
+  opts: DrainOptions,
+): Promise<RefreshResult> {
+  const {
+    budgetMs,
+    batchSize = 50,
+    googleConcurrency = 5,
+    leaseSeconds = 300,
+    sleep = (ms) => new Promise((r) => setTimeout(r, ms)),
+  } = opts;
+  const deadline = Date.now() + budgetMs;
+  let refreshed = 0;
+  let failed = 0;
+
+  const done = async (ids: string[]) => {
+    if (!ids.length) return;
+    const { error } = await admin
+      .from("wallet_refresh_queue")
+      .delete()
+      .in("card_id", ids);
+    if (error) throw error;
+    refreshed += ids.length;
+  };
+  const fail = async (ids: string[], message: string) => {
+    if (!ids.length) return;
+    failed += ids.length;
+    await admin
+      .from("wallet_refresh_queue")
+      .update({ last_error: message.slice(0, 200) })
+      .in("card_id", ids);
+  };
+
+  while (Date.now() < deadline) {
+    const { data: claimed, error } = await admin.rpc("claim_wallet_refresh", {
+      p_limit: batchSize,
+      p_lease_seconds: leaseSeconds,
+      p_max_attempts: MAX_ATTEMPTS,
+    });
+    if (error) throw error;
+    if (!claimed?.length) break;
+    const ids = claimed.map((c) => c.card_id);
+    try {
+      const cards = (await fetchAll((from, to) =>
+        admin
+          .from("cards")
+          .select(
+            "*, program:programs(*), business:businesses(*), customer:customers(*)",
+          )
+          .in("id", ids)
+          .order("id")
+          .range(from, to),
+      )) as unknown as CardWithRelations[];
+      // Cards deleted since they were queued have nothing to refresh.
+      const found = new Set(cards.map((c) => c.id));
+      await done(ids.filter((id) => !found.has(id)));
+
+      const tokens = await fetchAll<{ push_token: string }>((from, to) =>
+        admin
+          .from("apple_registrations")
+          .select("push_token")
+          .in(
+            "card_id",
+            cards.map((c) => c.id),
+          )
+          .order("id")
+          .range(from, to),
+      );
+      await pushToDevices(tokens.map((t) => t.push_token)).catch((e) =>
+        console.error("[push-worker] apple refresh push failed", {
+          error: errorCode(e),
+        }),
+      );
+
+      await done(cards.filter((c) => !c.google_object_id).map((c) => c.id));
+      await pool(
+        cards.filter((c) => c.google_object_id),
+        googleConcurrency,
+        async (card) => {
+          try {
+            await retry429(() => patchLoyaltyObject(card), sleep);
+            await done([card.id]);
+          } catch (e) {
+            console.error("[push-worker] google refresh failed", {
+              cardId: card.id,
+              error: errorCode(e),
+            });
+            await fail([card.id], `google ${errorCode(e)}`);
+          }
+        },
+      );
+    } catch (e) {
+      console.error("[push-worker] refresh batch failed", {
+        error: errorCode(e),
+      });
+      await fail(ids, `batch ${errorCode(e)}`);
+    }
+  }
+
+  const { count } = await admin
+    .from("wallet_refresh_queue")
+    .select("card_id", { count: "exact", head: true })
+    .lt("attempts", MAX_ATTEMPTS);
+  return { refreshed, failed, remaining: count ?? 0 };
 }

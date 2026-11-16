@@ -1,14 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { after } from "next/server";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendWalletOffers } from "./send";
-import { appUrl } from "@/lib/urls";
-import { requireEnv } from "@/lib/env";
+import { kickWalletPush } from "@/lib/wallet/kick";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 
@@ -73,15 +71,7 @@ export async function sendOffer(
   }
   revalidatePath("/dashboard/broadcast");
   if (result.queued) {
-    // Start delivering now via the cron route (it chains until done); the
-    // secret stays server-side.
-    after(() =>
-      fetch(`${appUrl()}/api/cron/wallet-push?kick=1`, {
-        headers: {
-          authorization: `Bearer ${requireEnv("CRON_SECRET", "offers")}`,
-        },
-      }).catch((e) => console.error("[offers] kick failed", { businessId, e })),
-    );
+    kickWalletPush();
     return { sent: result.recipients, queued: true };
   }
   return { sent: result.sent };

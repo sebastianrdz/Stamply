@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 const pushToDevices = vi.fn(async (...args: [string[]]) => void args);
+const patchLoyaltyObject = vi.fn(async (...args: [unknown]) => void args);
 const addOfferMessage = vi.fn(async (...args: [string, unknown]) => void args);
 vi.mock("@/lib/wallet/apple/apns", () => ({
   pushToDevices: (t: string[]) => pushToDevices(t),
 }));
 vi.mock("@/lib/wallet/google/wallet", () => ({
   addOfferMessage: (c: string, o: unknown) => addOfferMessage(c, o),
+  patchLoyaltyObject: (c: unknown) => patchLoyaltyObject(c),
 }));
 
-import { drainOfferDeliveries } from "./push-worker";
+import { drainOfferDeliveries, drainWalletRefresh } from "./push-worker";
 
 type Row = Record<string, any>;
 
@@ -24,9 +26,14 @@ function fakeDb(tables: Record<string, Row[]>) {
     let rng: [number, number] | null = null;
     let lim: number | null = null;
     let head = false;
+    let del = false;
     const orderBy: string[] = [];
     const run = () => {
       let rows = tables[name].filter((r) => filters.every((f) => f(r)));
+      if (del) {
+        tables[name] = tables[name].filter((r) => !rows.includes(r));
+        return { data: null, error: null };
+      }
       if (patch) {
         rows.forEach((r) => Object.assign(r, patch));
         return { data: null, error: null };
@@ -43,6 +50,8 @@ function fakeDb(tables: Record<string, Row[]>) {
     const b: any = {
       select: (_c?: string, o?: any) => ((head = !!o?.head), b),
       update: (p: Row) => ((patch = p), b),
+      delete: () => ((del = true), b),
+      lt: (k: string, v: number) => (filters.push((r) => r[k] < v), b),
       eq: (k: string, v: any) => (filters.push((r) => r[k] === v), b),
       in: (k: string, v: any[]) => (filters.push((r) => v.includes(r[k])), b),
       order: (k: string) => (orderBy.push(k), b),
@@ -53,6 +62,20 @@ function fakeDb(tables: Record<string, Row[]>) {
     return b;
   }
   const rpc = async (fn: string, a: any) => {
+    if (fn === "claim_wallet_refresh") {
+      const picked = tables.wallet_refresh_queue
+        .filter(
+          (r) =>
+            r.attempts < a.p_max_attempts && !(r.claimed_until > Date.now()),
+        )
+        .sort((x, y) => (x.card_id < y.card_id ? -1 : 1))
+        .slice(0, a.p_limit);
+      picked.forEach((r) => {
+        r.attempts++;
+        r.claimed_until = Date.now() + a.p_lease_seconds * 1000;
+      });
+      return { data: picked.map((r) => ({ card_id: r.card_id })), error: null };
+    }
     const recs = tables.wallet_offer_recipients;
     const max = a.p_max_attempts;
     const pend = (r: Row) =>
@@ -265,5 +288,105 @@ describe("drainOfferDeliveries", () => {
     const x = s.wallet_offer_recipients.find((q) => q.offer_id === "done")!;
     expect(x.attempts).toBe(0);
     expect(x.delivered_at).toBeNull();
+  });
+});
+
+function seedRefresh(n: number, google = false) {
+  const s = seed(n);
+  s.cards.forEach((c, i) => {
+    c.google_object_id = google ? `g-${i}` : null;
+  });
+  s.wallet_refresh_queue = s.cards.map((c) => ({
+    card_id: c.id,
+    attempts: 0,
+    claimed_until: null,
+    last_error: null,
+  }));
+  return s;
+}
+
+describe("drainWalletRefresh", () => {
+  beforeEach(() => {
+    patchLoyaltyObject.mockReset();
+    patchLoyaltyObject.mockResolvedValue(undefined);
+  });
+
+  it("refreshes every queued card exactly once across runs (>1,000)", async () => {
+    const db = fakeDb(seedRefresh(1250, true));
+    const patched: string[] = [];
+    patchLoyaltyObject.mockImplementation(
+      async (c: any) => void patched.push(c.id),
+    );
+    let refreshed = 0;
+    for (let run = 0; run < 3; run++) {
+      const r = await drainWalletRefresh(db.client, {
+        budgetMs: 60_000,
+        sleep: noSleep,
+      });
+      refreshed += r.refreshed;
+      expect(r.remaining).toBe(0);
+    }
+    expect(refreshed).toBe(1250);
+    expect(patched).toHaveLength(1250);
+    expect(new Set(patched).size).toBe(1250);
+    expect(db.tables.wallet_refresh_queue).toHaveLength(0);
+  });
+
+  it("bounds Apple batches and keeps patching Google when Apple throws", async () => {
+    const db = fakeDb(seedRefresh(120, true));
+    pushToDevices.mockRejectedValueOnce({ code: "NoCredentials" });
+    const r = await drainWalletRefresh(db.client, {
+      budgetMs: 60_000,
+      batchSize: 50,
+      sleep: noSleep,
+    });
+    expect(r).toEqual({ refreshed: 120, failed: 0, remaining: 0 });
+    expect(pushToDevices).toHaveBeenCalledTimes(3);
+    expect(Math.max(...pushToDevices.mock.calls.map((c) => c[0].length))).toBe(
+      50,
+    );
+    expect(patchLoyaltyObject).toHaveBeenCalledTimes(120);
+  });
+
+  it("keeps a failing row with last_error and stops claiming it after 3 attempts", async () => {
+    const db = fakeDb(seedRefresh(3, true));
+    patchLoyaltyObject.mockImplementation(async (c: any) => {
+      if (c.id === "card-c00001") throw { response: { status: 500 } };
+    });
+    for (let i = 0; i < 4; i++) {
+      await drainWalletRefresh(db.client, { budgetMs: 60_000, sleep: noSleep });
+      db.tables.wallet_refresh_queue.forEach((r) => (r.claimed_until = null));
+    }
+    expect(db.tables.wallet_refresh_queue).toEqual([
+      {
+        card_id: "card-c00001",
+        attempts: 3,
+        claimed_until: null,
+        last_error: "google error 500",
+      },
+    ]);
+    expect(
+      patchLoyaltyObject.mock.calls.filter(
+        (c: any) => c[0].id === "card-c00001",
+      ),
+    ).toHaveLength(3);
+  });
+
+  it("retries a 429 with retry-after", async () => {
+    const db = fakeDb(seedRefresh(1, true));
+    patchLoyaltyObject.mockRejectedValueOnce({
+      response: { status: 429, headers: { "retry-after": "2" } },
+    });
+    const sleep = vi.fn(noSleep);
+    const r = await drainWalletRefresh(db.client, { budgetMs: 60_000, sleep });
+    expect(r.refreshed).toBe(1);
+    expect(sleep).toHaveBeenCalledWith(2000);
+    expect(patchLoyaltyObject).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns cleanly with rows remaining when the budget is spent", async () => {
+    const db = fakeDb(seedRefresh(10));
+    const r = await drainWalletRefresh(db.client, { budgetMs: 0 });
+    expect(r).toEqual({ refreshed: 0, failed: 0, remaining: 10 });
   });
 });

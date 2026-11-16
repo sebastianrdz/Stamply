@@ -14,6 +14,8 @@ vi.mock("@/lib/wallet/google/wallet", () => ({
   patchLoyaltyObject: (...a: unknown[]) => patchObjectMock(...a),
 }));
 vi.mock("@/lib/cards/queries", () => ({ getCardByToken: vi.fn() }));
+const kickMock = vi.fn();
+vi.mock("@/lib/wallet/kick", () => ({ kickWalletPush: () => kickMock() }));
 
 import { notifyOffers, notifyProgramDesignChanged } from "./notify";
 
@@ -126,16 +128,31 @@ describe("notifyOffers beyond 1,000 passes", () => {
   });
 });
 
-describe("notifyProgramDesignChanged beyond 1,000 passes", () => {
-  it("refreshes every card of the program and bumps them all", async () => {
-    const all = cards(2300).map((c) => ({ ...c, program_id: "prog-1" }));
-    const { client, ranges } = postgrest({
-      cards: all,
-      apple_registrations: [],
-    });
-    await notifyProgramDesignChanged(client, "prog-1");
-    expect(patchObjectMock).toHaveBeenCalledTimes(2300);
+function client(rpcResult: { error: unknown }) {
+  const rpc = vi.fn(async () => rpcResult);
+  const b: Record<string, unknown> = {};
+  for (const m of ["select", "eq", "not", "limit"]) b[m] = () => b;
+  b.maybeSingle = async () => ({ data: { id: "card-1" }, error: null });
+  const from = vi.fn(() => b);
+  return { c: { from, rpc } as never, rpc, from };
+}
+
+describe("notifyProgramDesignChanged", () => {
+  it("patches the class once, queues the refresh and never touches cards", async () => {
+    const { c, rpc, from } = client({ error: null });
+    await notifyProgramDesignChanged(c, "prog-1");
     expect(patchClassMock).toHaveBeenCalledTimes(1);
-    expect(ranges.cards).toHaveLength(3);
+    expect(rpc).toHaveBeenCalledWith("request_program_wallet_refresh", {
+      p_program_id: "prog-1",
+    });
+    expect(patchObjectMock).not.toHaveBeenCalled();
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(from).toHaveBeenCalledTimes(1); // only the one class-source lookup
+    expect(kickMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when the queue call fails so callers can log it", async () => {
+    const { c } = client({ error: new Error("rpc") });
+    await expect(notifyProgramDesignChanged(c, "p")).rejects.toThrow("rpc");
   });
 });

@@ -7,11 +7,14 @@ vi.mock("next/server", async () => ({
   after: (fn: () => unknown) => afterMock(fn),
 }));
 vi.mock("@/lib/env", () => ({ requireEnv: () => "secret" }));
-vi.mock("@/lib/urls", () => ({ appUrl: () => "https://app.test" }));
+const kickMock = vi.fn();
+vi.mock("@/lib/wallet/kick", () => ({ kickWalletPush: () => kickMock() }));
 vi.mock("@/lib/supabase/admin", () => ({ createAdminClient: () => ({}) }));
 const drain = vi.fn();
+const refresh = vi.fn();
 vi.mock("@/lib/wallet/push-worker", () => ({
   drainOfferDeliveries: (...a: unknown[]) => drain(...a),
+  drainWalletRefresh: (...a: unknown[]) => refresh(...a),
 }));
 
 import { GET } from "./route";
@@ -21,9 +24,18 @@ const req = (auth?: string, q = "") =>
     headers: auth ? { authorization: auth } : {},
   }) as never;
 
+const offers = (delivered: number, failed: number, remainingOffers: number) =>
+  drain.mockResolvedValue({ delivered, failed, remainingOffers });
+const refr = (refreshed: number, failed: number, remaining: number) =>
+  refresh.mockResolvedValue({ refreshed, failed, remaining });
+
 beforeEach(() => {
   afterMock.mockClear();
+  kickMock.mockClear();
   drain.mockReset();
+  refresh.mockReset();
+  offers(0, 0, 0);
+  refr(0, 0, 0);
 });
 
 describe("wallet-push cron", () => {
@@ -31,26 +43,47 @@ describe("wallet-push cron", () => {
     expect((await GET(req())).status).toBe(401);
     expect((await GET(req("Bearer nope"))).status).toBe(401);
     expect(drain).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
-  it("chains once when work remains and progress was made", async () => {
-    drain.mockResolvedValue({ delivered: 5, failed: 0, remainingOffers: 1 });
+  it("drains offers then refresh, returns both counts, shares one budget", async () => {
+    offers(5, 0, 0);
+    refr(7, 1, 0);
     const res = await GET(req("Bearer secret"));
     expect(await res.json()).toEqual({
       ok: true,
       delivered: 5,
       failed: 0,
-      remainingOffers: 1,
+      remainingOffers: 0,
+      refreshed: 7,
+      refreshFailed: 1,
+      remainingRefresh: 0,
     });
-    expect(afterMock).toHaveBeenCalledTimes(1);
+    const offerBudget = drain.mock.calls[0][1].budgetMs;
+    expect(refresh.mock.calls[0][1].budgetMs).toBeLessThanOrEqual(offerBudget);
+    expect(kickMock).not.toHaveBeenCalled();
   });
 
-  it("does not chain when nothing made progress or nothing remains", async () => {
-    drain.mockResolvedValue({ delivered: 0, failed: 0, remainingOffers: 1 });
+  it("chains when offers remain and progress was made", async () => {
+    offers(5, 0, 1);
     await GET(req("Bearer secret"));
-    drain.mockResolvedValue({ delivered: 9, failed: 0, remainingOffers: 0 });
+    expect(kickMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("chains when only refresh rows remain and refresh progressed", async () => {
+    refr(40, 0, 900);
     await GET(req("Bearer secret"));
-    expect(afterMock).not.toHaveBeenCalled();
+    expect(kickMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not chain without progress, or when nothing remains", async () => {
+    offers(0, 0, 1);
+    refr(0, 0, 5);
+    await GET(req("Bearer secret"));
+    offers(9, 0, 0);
+    refr(3, 0, 0);
+    await GET(req("Bearer secret"));
+    expect(kickMock).not.toHaveBeenCalled();
   });
 
   describe("kick=1", () => {
@@ -59,33 +92,24 @@ describe("wallet-push cron", () => {
       expect(drain).not.toHaveBeenCalled();
     });
 
-    it("acks 202 without awaiting the drain, which runs in after()", async () => {
-      drain.mockResolvedValue({ delivered: 5, failed: 0, remainingOffers: 1 });
+    it("acks 202 without awaiting the drains, which run in after()", async () => {
+      offers(5, 0, 1);
       const res = await GET(req("Bearer secret", "?kick=1"));
       expect(res.status).toBe(202);
       expect(await res.json()).toEqual({ ok: true, queued: true });
       expect(drain).not.toHaveBeenCalled();
       expect(afterMock).toHaveBeenCalledTimes(1);
-
-      const fetchMock = vi.fn(async () => new Response(null, { status: 202 }));
-      vi.stubGlobal("fetch", fetchMock);
       await afterMock.mock.calls[0][0]();
       expect(drain).toHaveBeenCalledTimes(1);
-      // The chain is itself scheduled via after(); run it.
-      expect(afterMock).toHaveBeenCalledTimes(2);
-      await afterMock.mock.calls[1][0]();
-      vi.unstubAllGlobals();
-      expect(fetchMock).toHaveBeenCalledWith(
-        "https://app.test/api/cron/wallet-push?kick=1",
-        { headers: { authorization: "Bearer secret" } },
-      );
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(kickMock).toHaveBeenCalledTimes(1);
     });
 
     it("does not chain when no progress was made", async () => {
-      drain.mockResolvedValue({ delivered: 0, failed: 0, remainingOffers: 1 });
+      offers(0, 0, 1);
       await GET(req("Bearer secret", "?kick=1"));
       await afterMock.mock.calls[0][0]();
-      expect(afterMock).toHaveBeenCalledTimes(1);
+      expect(kickMock).not.toHaveBeenCalled();
     });
   });
 });
