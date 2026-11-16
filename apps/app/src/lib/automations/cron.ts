@@ -7,7 +7,12 @@ import { notifyCardUpdatedForBirthday } from "@/lib/wallet/notify";
 import type { CardWithRelations } from "@/lib/cards/queries";
 import type { Database, RewardDefinition } from "@/types/database";
 import { configNumber } from "./config";
-import { birthdayTrigger, reminderBucketKey, tzOrUtc, winBackKey } from "./dates";
+import {
+  birthdayTrigger,
+  reminderBucketKey,
+  tzOrUtc,
+  winBackKey,
+} from "./dates";
 import { errInfo } from "./log";
 import { deliverAutomation } from "./deliver";
 import { fetchAll } from "@/lib/pagination";
@@ -34,6 +39,8 @@ export interface CronCounts {
   skippedAlreadySent: number;
   granted: number;
   errors: number;
+  /** Automations (or their remaining batches) skipped because the time budget ended; the next run continues. */
+  deferred: number;
 }
 
 const CHUNK_SIZE = 20;
@@ -99,7 +106,9 @@ async function grantBirthdayReward(
   if (!granted) return { granted: false, errors: 0 };
   const { data: cards, error } = await admin
     .from("cards")
-    .select("*, program:programs(*), business:businesses(*), customer:customers(*)")
+    .select(
+      "*, program:programs(*), business:businesses(*), customer:customers(*)",
+    )
     .eq("business_id", def.business_id)
     .eq("customer_id", customerId);
   if (error) {
@@ -191,21 +200,31 @@ async function candidates(
   return [];
 }
 
+const DAY_MS = 86_400_000;
+
 /**
  * Daily cron body. Counts only, never customer data, in logs or the result.
  * Idempotent: deliverAutomation's unique (automation, customer, period) claim
- * means a second run the same day sends nothing.
+ * means a second run the same day sends nothing, so a run that stops on its
+ * time budget is simply continued by the next one. The starting automation
+ * rotates by day so a backlog at the end of the list can't starve forever
+ * behind earlier ones that only re-check already-sent customers.
  */
 export async function runCronAutomations(
   admin: Admin,
   now = new Date(),
+  opts: { budgetMs?: number; clock?: () => number } = {},
 ): Promise<CronCounts> {
+  const clock = opts.clock ?? Date.now;
+  const deadline =
+    opts.budgetMs === undefined ? Infinity : clock() + opts.budgetMs;
   const counts: CronCounts = {
     checkedAutomations: 0,
     sent: 0,
     skippedAlreadySent: 0,
     granted: 0,
     errors: 0,
+    deferred: 0,
   };
   const { data, error } = await admin
     .from("reward_definitions")
@@ -214,7 +233,15 @@ export async function runCronAutomations(
     .in("type", ["birthday", "unredeemed_reminder", "win_back"]);
   if (error) throw error;
 
-  for (const def of (data ?? []) as unknown as Def[]) {
+  const all = (data ?? []) as unknown as Def[];
+  const start = all.length
+    ? Math.floor(now.getTime() / DAY_MS) % all.length
+    : 0;
+  for (const def of [...all.slice(start), ...all.slice(0, start)]) {
+    if (clock() >= deadline) {
+      counts.deferred += 1;
+      continue;
+    }
     counts.checkedAutomations += 1;
     try {
       const customers = await businessCustomers(admin, def.business_id);
@@ -250,6 +277,10 @@ export async function runCronAutomations(
       }
 
       for (const batch of chunk(jobs, CHUNK_SIZE)) {
+        if (clock() >= deadline) {
+          counts.deferred += 1;
+          break;
+        }
         const results = await Promise.allSettled(batch.map((j) => j()));
         for (const r of results) {
           if (r.status === "rejected") {
