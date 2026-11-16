@@ -81,6 +81,25 @@ async function pool<T>(
   );
 }
 
+/** One line per batch so real throughput can be read from the logs. Counts and ms only. */
+function logBatch(
+  batch: "offers" | "refresh",
+  size: number,
+  startedAt: number,
+  delivered: number,
+  failed: number,
+) {
+  console.info(
+    JSON.stringify({
+      batch,
+      size,
+      ms: Date.now() - startedAt,
+      delivered,
+      failed,
+    }),
+  );
+}
+
 type Offer = { id: string; business_id: string; body: string };
 
 /** Deliver one claimed batch; returns counts. Marks recipients as it goes. */
@@ -244,6 +263,7 @@ export async function drainOfferDeliveries(
         continue;
       }
       claimedAny = true;
+      const startedAt = Date.now();
       const r = await deliverBatch(
         admin,
         offer,
@@ -253,6 +273,7 @@ export async function drainOfferDeliveries(
       );
       delivered += r.delivered;
       failed += r.failed;
+      logBatch("offers", claimed.length, startedAt, r.delivered, r.failed);
     }
   }
 
@@ -317,6 +338,8 @@ export async function drainWalletRefresh(
     if (error) throw error;
     if (!claimed?.length) break;
     const ids = claimed.map((c) => c.card_id);
+    const startedAt = Date.now();
+    const before = { refreshed, failed };
     try {
       const cards = (await fetchAll((from, to) =>
         admin
@@ -372,6 +395,13 @@ export async function drainWalletRefresh(
       });
       await fail(ids, `batch ${errorCode(e)}`);
     }
+    logBatch(
+      "refresh",
+      ids.length,
+      startedAt,
+      refreshed - before.refreshed,
+      failed - before.failed,
+    );
   }
 
   const { count } = await admin

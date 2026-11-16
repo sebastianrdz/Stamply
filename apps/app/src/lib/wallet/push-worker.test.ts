@@ -13,148 +13,8 @@ vi.mock("@/lib/wallet/google/wallet", () => ({
   patchLoyaltyObject: (c: unknown) => patchLoyaltyObject(c),
 }));
 
+import { fakeDb, seed, seedRefresh } from "@/lib/test-utils/wallet-fake";
 import { drainOfferDeliveries, drainWalletRefresh } from "./push-worker";
-
-type Row = Record<string, any>;
-
-/** In-memory PostgREST-like fake: 1,000-row cap on unpaged reads, RPCs mirror 0035. */
-function fakeDb(tables: Record<string, Row[]>) {
-  const rpcs = { claim: 0, finish: 0 };
-  function from(name: string) {
-    const filters: ((r: Row) => boolean)[] = [];
-    let patch: Row | null = null;
-    let rng: [number, number] | null = null;
-    let lim: number | null = null;
-    let head = false;
-    let del = false;
-    const orderBy: string[] = [];
-    const run = () => {
-      let rows = tables[name].filter((r) => filters.every((f) => f(r)));
-      if (del) {
-        tables[name] = tables[name].filter((r) => !rows.includes(r));
-        return { data: null, error: null };
-      }
-      if (patch) {
-        rows.forEach((r) => Object.assign(r, patch));
-        return { data: null, error: null };
-      }
-      for (const k of [...orderBy].reverse())
-        rows = [...rows].sort((a, b) =>
-          a[k] < b[k] ? -1 : a[k] > b[k] ? 1 : 0,
-        );
-      const count = rows.length;
-      if (rng) rows = rows.slice(rng[0], rng[1] + 1);
-      else rows = rows.slice(0, Math.min(lim ?? 1000, 1000));
-      return { data: head ? null : rows, count, error: null };
-    };
-    const b: any = {
-      select: (_c?: string, o?: any) => ((head = !!o?.head), b),
-      update: (p: Row) => ((patch = p), b),
-      delete: () => ((del = true), b),
-      lt: (k: string, v: number) => (filters.push((r) => r[k] < v), b),
-      eq: (k: string, v: any) => (filters.push((r) => r[k] === v), b),
-      in: (k: string, v: any[]) => (filters.push((r) => v.includes(r[k])), b),
-      order: (k: string) => (orderBy.push(k), b),
-      range: (f: number, t: number) => ((rng = [f, t]), b),
-      limit: (n: number) => ((lim = n), b),
-      then: (res: any, rej: any) => Promise.resolve(run()).then(res, rej),
-    };
-    return b;
-  }
-  const rpc = async (fn: string, a: any) => {
-    if (fn === "claim_wallet_refresh") {
-      const picked = tables.wallet_refresh_queue
-        .filter(
-          (r) =>
-            r.attempts < a.p_max_attempts && !(r.claimed_until > Date.now()),
-        )
-        .sort((x, y) => (x.card_id < y.card_id ? -1 : 1))
-        .slice(0, a.p_limit);
-      picked.forEach((r) => {
-        r.attempts++;
-        r.claimed_until = Date.now() + a.p_lease_seconds * 1000;
-      });
-      return { data: picked.map((r) => ({ card_id: r.card_id })), error: null };
-    }
-    const recs = tables.wallet_offer_recipients;
-    const max = a.p_max_attempts;
-    const pend = (r: Row) =>
-      r.offer_id === a.p_offer_id &&
-      !r.delivered_at &&
-      (r.attempts < max || r.claimed_until > Date.now());
-    if (fn === "claim_offer_recipients") {
-      rpcs.claim++;
-      const picked = recs
-        .filter(
-          (r) =>
-            r.offer_id === a.p_offer_id &&
-            !r.delivered_at &&
-            r.attempts < max &&
-            !(r.claimed_until > Date.now()),
-        )
-        .sort((x, y) => (x.customer_id < y.customer_id ? -1 : 1))
-        .slice(0, a.p_limit);
-      picked.forEach((r) => {
-        r.attempts++;
-        r.claimed_until = Date.now() + a.p_lease_seconds * 1000;
-      });
-      return { data: picked.map((r) => ({ ...r })), error: null };
-    }
-    rpcs.finish++;
-    if (!recs.some(pend)) {
-      const o = tables.wallet_offers.find((x) => x.id === a.p_offer_id);
-      if (o?.delivery === "pending") o.delivery = "done";
-    }
-    return { data: true, error: null };
-  };
-  return { client: { from, rpc } as any, rpcs, tables };
-}
-
-function seed(n: number, opts: { googleEvery?: number } = {}) {
-  const customers = Array.from(
-    { length: n },
-    (_, i) => `c${String(i).padStart(5, "0")}`,
-  );
-  return {
-    wallet_offers: [
-      {
-        id: "o1",
-        business_id: "b",
-        body: "hi",
-        delivery: "pending",
-        created_at: "1",
-      },
-      {
-        id: "done",
-        business_id: "b",
-        body: "old",
-        delivery: "done",
-        created_at: "0",
-      },
-    ],
-    wallet_offer_recipients: customers.map((c) => ({
-      offer_id: "o1",
-      customer_id: c,
-      delivered_at: null,
-      attempts: 0,
-      claimed_until: null,
-      last_error: null,
-    })),
-    cards: customers.map((c, i) => ({
-      id: `card-${c}`,
-      customer_id: c,
-      business_id: "b",
-      google_object_id:
-        opts.googleEvery && i % opts.googleEvery === 0 ? `g-${c}` : null,
-      updated_at: null,
-    })),
-    apple_registrations: customers.map((c, i) => ({
-      id: String(i).padStart(6, "0"),
-      card_id: `card-${c}`,
-      push_token: `t-${c}`,
-    })),
-  } as Record<string, Row[]>;
-}
 
 const noSleep = async () => {};
 
@@ -291,20 +151,6 @@ describe("drainOfferDeliveries", () => {
   });
 });
 
-function seedRefresh(n: number, google = false) {
-  const s = seed(n);
-  s.cards.forEach((c, i) => {
-    c.google_object_id = google ? `g-${i}` : null;
-  });
-  s.wallet_refresh_queue = s.cards.map((c) => ({
-    card_id: c.id,
-    attempts: 0,
-    claimed_until: null,
-    last_error: null,
-  }));
-  return s;
-}
-
 describe("drainWalletRefresh", () => {
   beforeEach(() => {
     patchLoyaltyObject.mockReset();
@@ -388,5 +234,32 @@ describe("drainWalletRefresh", () => {
     const db = fakeDb(seedRefresh(10));
     const r = await drainWalletRefresh(db.client, { budgetMs: 0 });
     expect(r).toEqual({ refreshed: 0, failed: 0, remaining: 10 });
+  });
+});
+
+describe("batch log line", () => {
+  it("logs one counts-and-ms line per batch with no identifiers", async () => {
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    const db = fakeDb(seed(5, { googleEvery: 1 }));
+    await drainOfferDeliveries(db.client, { budgetMs: 60_000, batchSize: 2 });
+    const rdb = fakeDb(seedRefresh(3, true));
+    await drainWalletRefresh(rdb.client, { budgetMs: 60_000, batchSize: 2 });
+    const lines = info.mock.calls.map((c) => String(c[0]));
+    info.mockRestore();
+    expect(lines).toHaveLength(5); // 3 offer batches (2+2+1) + 2 refresh batches
+    for (const l of lines) {
+      const o = JSON.parse(l);
+      expect(Object.keys(o).sort()).toEqual(
+        ["batch", "delivered", "failed", "ms", "size"].sort(),
+      );
+      expect(l).not.toMatch(/c0000|card-|o1|push-|t-c/);
+    }
+    expect(JSON.parse(lines[0])).toMatchObject({
+      batch: "offers",
+      size: 2,
+      delivered: 2,
+      failed: 0,
+    });
+    expect(JSON.parse(lines[4])).toMatchObject({ batch: "refresh", size: 1 });
   });
 });
