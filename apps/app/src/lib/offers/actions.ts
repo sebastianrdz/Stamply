@@ -1,17 +1,22 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { z } from "zod";
 import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendWalletOffers } from "./send";
+import { appUrl } from "@/lib/urls";
+import { requireEnv } from "@/lib/env";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 
 export interface OfferFormState {
   error?: string;
   sent?: number;
+  /** Broadcast accepted; delivery continues in the background. */
+  queued?: boolean;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -66,8 +71,18 @@ export async function sendOffer(
       return { error: dict.errors.notOptedIn };
     return { error: result.message ?? dict.errors.deliveryFailed };
   }
-  const sent = result.sent;
-
   revalidatePath("/dashboard/broadcast");
-  return { sent };
+  if (result.queued) {
+    // Start delivering now via the cron route (it chains until done); the
+    // secret stays server-side.
+    after(() =>
+      fetch(`${appUrl()}/api/cron/wallet-push`, {
+        headers: {
+          authorization: `Bearer ${requireEnv("CRON_SECRET", "offers")}`,
+        },
+      }).catch((e) => console.error("[offers] kick failed", { businessId, e })),
+    );
+    return { sent: result.recipients, queued: true };
+  }
+  return { sent: result.sent };
 }
