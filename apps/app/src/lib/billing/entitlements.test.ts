@@ -48,7 +48,7 @@ describe("currentCount", () => {
 
 describe("assertWithinLimit", () => {
   it("throws LimitExceededError with resource/plan/limit when over the limit", async () => {
-    const mock = makeSupabaseMock({ customers: { count: 5000 } });
+    const mock = makeSupabaseMock({ customers: { count: 500 } });
     const business = { id: "biz1", plan: "small" as const };
 
     await expect(
@@ -62,9 +62,9 @@ describe("assertWithinLimit", () => {
       const err = e as LimitExceededError;
       expect(err.resource).toBe("customers");
       expect(err.plan).toBe("small");
-      expect(err.limit).toBe(5000);
+      expect(err.limit).toBe(500);
       expect(err.message).toBe(
-        "Your plan allows 5000 customers. Upgrade to add more.",
+        "Your plan allows 500 customers. Upgrade to add more.",
       );
     }
   });

@@ -19,7 +19,7 @@ describe("PLANS", () => {
     expect(PLANS.small.limits).toEqual({
       locations: 1,
       employees: 3,
-      customers: 5000,
+      customers: 500,
       programs: 1,
     });
   });
@@ -28,7 +28,7 @@ describe("PLANS", () => {
     expect(PLANS.medium.limits).toEqual({
       locations: 3,
       employees: 10,
-      customers: 20000,
+      customers: 5000,
       programs: 3,
     });
   });
@@ -37,7 +37,7 @@ describe("PLANS", () => {
     expect(PLANS.big.limits).toEqual({
       locations: 10,
       employees: 50,
-      customers: 50000,
+      customers: 25000,
       programs: 10,
     });
   });
@@ -85,12 +85,12 @@ describe("isWithinLimit", () => {
     expect(isWithinLimit("small", "locations", 1, 1)).toBe(false);
   });
 
-  it("medium.customers boundary: 19999 + 1 === 20000 -> allowed", () => {
-    expect(isWithinLimit("medium", "customers", 19999, 1)).toBe(true);
+  it("medium.customers boundary: 4999 + 1 === 5000 -> allowed", () => {
+    expect(isWithinLimit("medium", "customers", 4999, 1)).toBe(true);
   });
 
-  it("medium.customers boundary: 20000 + 1 === 20001 -> rejected", () => {
-    expect(isWithinLimit("medium", "customers", 20000, 1)).toBe(false);
+  it("medium.customers boundary: 5000 + 1 === 5001 -> rejected", () => {
+    expect(isWithinLimit("medium", "customers", 5000, 1)).toBe(false);
   });
 
   it("null limit (unlimited) is always true regardless of count", () => {
@@ -118,9 +118,9 @@ describe("isWithinLimit", () => {
   });
 
   it("supports additional > 1 (bulk add)", () => {
-    // big.customers limit 50000; 49990 + 11 = 50001 -> rejected
-    expect(isWithinLimit("big", "customers", 49990, 11)).toBe(false);
-    expect(isWithinLimit("big", "customers", 49990, 10)).toBe(true);
+    // big.customers limit 25000; 24990 + 11 = 25001 -> rejected
+    expect(isWithinLimit("big", "customers", 24990, 11)).toBe(false);
+    expect(isWithinLimit("big", "customers", 24990, 10)).toBe(true);
   });
 });
 

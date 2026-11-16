@@ -1,6 +1,6 @@
 # D7: Plan limits review (limits only)
 
-> Status: implemented in one PR (limits revised once after review: Big is 10 / 10 / 50). Prices unchanged. New limits apply immediately; no Stripe or database change (limits live only in `packages/plans/src/index.ts` and are checked when something is added, so existing data is never removed).
+> Status: implemented in one PR (limits revised after review: Big is 10 / 10 / 50 and customers are 500 / 5,000 / 25,000). Prices unchanged. New limits apply immediately; no Stripe or database change (limits live only in `packages/plans/src/index.ts` and are checked when something is added, so existing data is never removed).
 
 ## Goal and rules (confirmed)
 
@@ -21,7 +21,7 @@
 | **Motivecard** | not published | | | | | no pricing or limits on the public site (404 on /precios, /planes, /pricing); only "full access with any of our paid plans" |
 
 Reading it:
-- Neither competitor with public data caps customers on its paid plans (Carrott only on its cheapest tier, at 250). Stamply's old caps (100 / 1,000 / 10,000) were the outlier, and 100 on Small was the biggest conversion risk.
+- Neither competitor with public data caps customers on its paid plans (Carrott only on its cheapest tier, at 250). Stamply's old caps (100 / 1,000 / 10,000) were the outlier, and 100 on Small was the biggest conversion risk. The owner then chose deliberately conservative new caps (500 / 5,000 / 25,000): still well above the old ones, and closer to what the app can serve today (see the scale risks below). Small at 500 is above Carrott Go (250) but far below an uncapped Loyalz Start, so a busy café can still reach it; watch how many trials hit it.
 - Loyalz Grow is exactly 3 locations / 3 programs / 10 managers, which is now Medium's 3 / 3 / 10.
 - Carrott charges per location, so its real price rises with every site; Stamply's flat plans are cheaper for multi-site businesses.
 - Rough price context (assumes ~18 MXN/USD and ~23 MXN/GBP; check current rates): Loyalz Start ≈ $700, Grow ≈ $1,600, Business ≈ $4,500 MXN; Carrott Go/Plus/Pro ≈ $670 / $1,360 / $2,280 MXN **per location**. Stamply: $679 / $1,879 / $3,579.
@@ -30,7 +30,7 @@ Reading it:
 
 | | Small | Medium | Big |
 |---|---|---|---|
-| Customers | 100 → **5,000** | 1,000 → **20,000** | 10,000 → **50,000** |
+| Customers | 100 → **500** | 1,000 → **5,000** | 10,000 → **25,000** |
 | Locations | 1 | 3 | unlimited → **10** |
 | Employees (counts the owner) | 1 → **3** | 5 → **10** | unlimited → **50** |
 | Programs | 1 | 3 | unlimited → **10** |
