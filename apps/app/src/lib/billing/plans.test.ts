@@ -18,8 +18,8 @@ describe("PLANS", () => {
   it("small plan limits", () => {
     expect(PLANS.small.limits).toEqual({
       locations: 1,
-      employees: 1,
-      customers: 100,
+      employees: 3,
+      customers: 500,
       programs: 1,
     });
   });
@@ -27,18 +27,18 @@ describe("PLANS", () => {
   it("medium plan limits", () => {
     expect(PLANS.medium.limits).toEqual({
       locations: 3,
-      employees: 5,
-      customers: 1000,
+      employees: 10,
+      customers: 5000,
       programs: 3,
     });
   });
 
-  it("big plan limits: unlimited locations/employees/programs, capped customers", () => {
+  it("big plan limits", () => {
     expect(PLANS.big.limits).toEqual({
-      locations: null,
-      employees: null,
-      customers: 10000,
-      programs: null,
+      locations: 10,
+      employees: 50,
+      customers: 25000,
+      programs: 10,
     });
   });
 
@@ -85,33 +85,42 @@ describe("isWithinLimit", () => {
     expect(isWithinLimit("small", "locations", 1, 1)).toBe(false);
   });
 
-  it("medium.customers boundary: 999 + 1 === 1000 -> allowed", () => {
-    expect(isWithinLimit("medium", "customers", 999, 1)).toBe(true);
+  it("medium.customers boundary: 4999 + 1 === 5000 -> allowed", () => {
+    expect(isWithinLimit("medium", "customers", 4999, 1)).toBe(true);
   });
 
-  it("medium.customers boundary: 1000 + 1 === 1001 -> rejected", () => {
-    expect(isWithinLimit("medium", "customers", 1000, 1)).toBe(false);
+  it("medium.customers boundary: 5000 + 1 === 5001 -> rejected", () => {
+    expect(isWithinLimit("medium", "customers", 5000, 1)).toBe(false);
   });
 
   it("null limit (unlimited) is always true regardless of count", () => {
-    expect(isWithinLimit("big", "locations", 0, 1)).toBe(true);
-    expect(isWithinLimit("big", "locations", 1_000_000, 1)).toBe(true);
-    expect(isWithinLimit("big", "employees", Number.MAX_SAFE_INTEGER, 5)).toBe(
-      true,
-    );
+    // No shipped plan is unlimited today; keep the code path covered.
+    const { locations, employees } = PLANS.big.limits;
+    PLANS.big.limits.locations = null;
+    PLANS.big.limits.employees = null;
+    try {
+      expect(isWithinLimit("big", "locations", 0, 1)).toBe(true);
+      expect(isWithinLimit("big", "locations", 1_000_000, 1)).toBe(true);
+      expect(
+        isWithinLimit("big", "employees", Number.MAX_SAFE_INTEGER, 5),
+      ).toBe(true);
+    } finally {
+      PLANS.big.limits.locations = locations;
+      PLANS.big.limits.employees = employees;
+    }
   });
 
   it("defaults additional to 1 when omitted", () => {
-    // small.employees limit is 1; count=0 with default additional=1 -> allowed
-    expect(isWithinLimit("small", "employees", 0)).toBe(true);
-    // count=1 with default additional=1 -> 2 > 1 -> rejected
-    expect(isWithinLimit("small", "employees", 1)).toBe(false);
+    // small.employees limit is 3; count=2 with default additional=1 -> allowed
+    expect(isWithinLimit("small", "employees", 2)).toBe(true);
+    // count=3 with default additional=1 -> 4 > 3 -> rejected
+    expect(isWithinLimit("small", "employees", 3)).toBe(false);
   });
 
   it("supports additional > 1 (bulk add)", () => {
-    // big.customers limit 10000; 9990 + 11 = 10001 -> rejected
-    expect(isWithinLimit("big", "customers", 9990, 11)).toBe(false);
-    expect(isWithinLimit("big", "customers", 9990, 10)).toBe(true);
+    // big.customers limit 25000; 24990 + 11 = 25001 -> rejected
+    expect(isWithinLimit("big", "customers", 24990, 11)).toBe(false);
+    expect(isWithinLimit("big", "customers", 24990, 10)).toBe(true);
   });
 });
 
@@ -121,7 +130,13 @@ describe("planLimit", () => {
   });
 
   it("returns null for an unlimited resource", () => {
-    expect(planLimit("big", "programs")).toBeNull();
+    const original = PLANS.big.limits.programs;
+    PLANS.big.limits.programs = null; // no shipped plan is unlimited today
+    try {
+      expect(planLimit("big", "programs")).toBeNull();
+    } finally {
+      PLANS.big.limits.programs = original;
+    }
   });
 
   it("returns zero limits for no plan", () => {

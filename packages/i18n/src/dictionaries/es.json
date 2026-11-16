@@ -1009,8 +1009,8 @@
         "tagline": "Para una sola sucursal que está comenzando.",
         "features": [
           "1 sucursal",
-          "1 empleado",
-          "Hasta 100 clientes",
+          "3 empleados",
+          "Hasta 500 clientes",
           "1 programa de lealtad",
           "Apple & Google Wallet",
           "Todos los tipos de tarjeta incluidos",
@@ -1024,29 +1024,28 @@
         "tagline": "Para negocios en crecimiento con un equipo pequeño.",
         "features": [
           "Hasta 3 sucursales",
-          "5 empleados",
-          "Hasta 1,000 clientes",
+          "10 empleados",
+          "Hasta 5,000 clientes",
           "3 programas de lealtad",
           "Todos los tipos de tarjeta incluidos",
           "Invitaciones a reseñas de Google",
           "Programa de referidos",
-          "Panel de analítica",
-          "Campos de inscripción personalizados"
+          "Actividad del personal y límite diario de sellos"
         ]
       },
       "big": {
         "name": "Grande",
         "tagline": "Para marcas con varias sucursales.",
         "features": [
-          "Sucursales ilimitadas",
-          "10+ empleados",
-          "Hasta 10,000 clientes",
-          "Programas ilimitados",
+          "Hasta 10 sucursales",
+          "50 empleados",
+          "Hasta 25,000 clientes",
+          "10 programas de lealtad",
           "Todos los tipos de tarjeta incluidos",
           "Invitaciones a reseñas de Google",
           "Programa de referidos",
-          "Soporte prioritario",
-          "Acceso a la API"
+          "Actividad del personal y límite diario de sellos",
+          "Soporte prioritario"
         ]
       },
       "mostPopular": "El más popular"
