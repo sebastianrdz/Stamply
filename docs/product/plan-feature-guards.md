@@ -1,6 +1,6 @@
 # Plan: limits recommendations and feature guards by plan
 
-> Status: draft for review, no code written yet. Assumes the D7 limits PR (#63) is merged. Competitor data: public pages of Loyalz Club and Carrott (Motivecard publishes no pricing), checked 2026-11.
+> Status: decisions made (see section 8); guard mechanism not built yet. Limits and copy are in the D7 PR (#63). Competitor data: public pages of Loyalz Club and Carrott (Motivecard publishes no pricing), checked 2026-11.
 
 ## 1. What competitors do differently
 
@@ -19,7 +19,7 @@ Takeaways: nobody caps customers meaningfully, so customers are a poor upgrade l
 |---|---|---|---|
 | Small: 1 location, 1 program, 3 employees, 5,000 customers | as set | **Keep** | Matches Loyalz Start on structure and is more generous on staff (they allow 0 managers). 5,000 customers removes the "wall in week three" without making Medium pointless. |
 | Medium: 3 locations, 3 programs, 10 employees, 20,000 customers | as set | **Keep** | Identical to Loyalz Grow (3 / 3 / 10) at a similar price. |
-| Big: 5 locations, 5 programs, 20 employees, 50,000 customers | as set | **Raise to 10 locations, 10 programs, 50 employees** (customers 50,000 unchanged) | 5 locations is thin for a "multi-location brands" plan and sits below Loyalz Business (10 / 10 / 50) at a lower price; Carrott Pro has 15 staff per location. Because Big was unlimited before, 10 / 10 / 50 also hurts almost nobody who is already on it. Alternative: keep Big unlimited on locations and add per-extra-location pricing later (Carrott's model). |
+| Big: 5 locations, 5 programs, 20 employees, 50,000 customers (as proposed in D7) | 5 / 5 / 20 | **Raise to 10 locations, 10 programs, 50 employees** (customers 50,000 unchanged). **Adopted.** | 5 locations is thin for a "multi-location brands" plan and sits below Loyalz Business (10 / 10 / 50) at a lower price; Carrott Pro has 15 staff per location. Because Big was unlimited before, 10 / 10 / 50 also hurts almost nobody who is already on it. Alternative: keep Big unlimited on locations and add per-extra-location pricing later (Carrott's model). |
 | Customer caps overall | 5k / 20k / 50k | **Treat as soft guardrails**, not a selling point | Competitors don't cap, and the scale work (broadcast queueing, SQL aggregates, pagination) is not done yet; do not advertise numbers the app can't comfortably serve. |
 | Free trial | 14 days | **Consider 30 days** | Carrott offers 30 days with full access. Small, low-risk conversion lever; it is a one-constant change (`TRIAL_DAYS`) plus Stripe's trial setting. |
 
@@ -87,9 +87,11 @@ Mirror the existing limit pattern (`isWithinLimit` / `assertWithinLimit` / `Limi
 - Each background trigger is a no-op when locked and unchanged when allowed.
 - Page-level: the locked state renders for a lower plan (component test).
 
-## 8. Open decisions for the owner
+## 8. Decisions (owner, 2026-11-16)
 
-1. Big limits: 10 / 10 / 50, or stay at 5 / 5 / 20, or unlimited with per-location pricing later.
-2. Decision A: leave all existing features open, grandfather, or gate for everyone.
-3. Remove or build "Custom enrollment fields" and "API access".
-4. Trial length: 14 or 30 days.
+1. **Big limits: 10 locations / 10 programs / 50 employees** (customers 50,000). Applied in #63.
+2. **Existing features stay open on every paid plan** (Decision A, option 1). No gating, no grandfathering needed. The guard mechanism is built so gating a feature later is a one-line change; revisit once there is conversion data.
+3. **Unbuilt features removed** from the plan lists ("Custom enrollment fields", "API access"). Done in #63. They return to the lists, with their guard, only when built.
+4. **Trial stays at 14 days.**
+
+Effect on the PRs in section 6: PR 2 (copy honesty) is already done in #63. PR 5 (per-feature gating decisions) has no work until the owner decides to gate something. What remains is PR 1 (capability map and helpers), PR 3 (guards at the use sites, no behavior change) and PR 4 (UI locked states and the comparison table), mainly to be ready for new features (manager PIN, alerts, custom fields, API, POS) that should ship guarded from day one.
