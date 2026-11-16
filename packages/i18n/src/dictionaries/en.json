@@ -932,6 +932,10 @@
         "line": "{sent} sent · {returned} came back",
         "unknown": "Results not tracked for this offer"
       },
+      "delivery": {
+        "inProgress": "Delivering: {delivered} of {total}",
+        "failed": "{count} could not be delivered"
+      },
       "audienceAll": "All opted-in customers",
       "audienceOne": "One customer",
       "consentNote": "Only customers who opted in to marketing receive offers.",

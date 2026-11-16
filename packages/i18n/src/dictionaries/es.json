@@ -932,6 +932,10 @@
         "line": "{sent} enviados · {returned} volvieron",
         "unknown": "No se registraron resultados de esta oferta"
       },
+      "delivery": {
+        "inProgress": "Entregando: {delivered} de {total}",
+        "failed": "{count} no se pudieron entregar"
+      },
       "audienceAll": "Todos los clientes que aceptaron",
       "audienceOne": "Un cliente",
       "consentNote": "Solo reciben ofertas los clientes que aceptaron recibir marketing.",
