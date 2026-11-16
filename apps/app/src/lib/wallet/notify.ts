@@ -11,6 +11,7 @@ import {
   patchLoyaltyObject,
 } from "@/lib/wallet/google/wallet";
 import type { WalletOffer } from "@/types/database";
+import { fetchAll } from "@/lib/pagination";
 
 type Client = SupabaseClient<Database>;
 
@@ -106,14 +107,18 @@ export async function notifyProgramDesignChanged(
     .update({ updated_at: new Date().toISOString() })
     .eq("program_id", programId);
   if (error) throw error;
-  const { data, error: selError } = await supabase
-    .from("cards")
-    .select(
-      "*, program:programs(*), business:businesses(*), customer:customers(*)",
-    )
-    .eq("program_id", programId);
-  if (selError) throw selError;
-  const cards = (data ?? []) as unknown as CardWithRelations[];
+  // Paginated: PostgREST returns at most 1,000 rows per request, which would
+  // silently skip every pass after the first 1,000.
+  const cards = (await fetchAll((from, to) =>
+    supabase
+      .from("cards")
+      .select(
+        "*, program:programs(*), business:businesses(*), customer:customers(*)",
+      )
+      .eq("program_id", programId)
+      .order("id")
+      .range(from, to),
+  )) as unknown as CardWithRelations[];
   const google = cards.find((c) => c.google_object_id);
   if (google)
     await patchLoyaltyClass(google).catch((e) =>
@@ -146,16 +151,17 @@ async function offerTargets(
     "id, customer_id, google_object_id, customer:customers!inner(marketing_consent)";
   type Row = Omit<OfferTarget, "offer">;
   if (offers.length === 1 && offers[0].customer_id === null) {
-    const { data, error } = await supabase
-      .from("cards")
-      .select(select)
-      .eq("business_id", offers[0].business_id)
-      .eq("customer.marketing_consent", true);
-    if (error) throw error;
-    return ((data ?? []) as unknown as Row[]).map((c) => ({
-      ...c,
-      offer: offers[0],
-    }));
+    // Paginated for the same 1,000-row reason as notifyProgramDesignChanged.
+    const rows = (await fetchAll((from, to) =>
+      supabase
+        .from("cards")
+        .select(select)
+        .eq("business_id", offers[0].business_id)
+        .eq("customer.marketing_consent", true)
+        .order("id")
+        .range(from, to),
+    )) as unknown as Row[];
+    return rows.map((c) => ({ ...c, offer: offers[0] }));
   }
   const byCustomer = new Map(offers.map((o) => [o.customer_id, o]));
   const out: OfferTarget[] = [];
@@ -205,11 +211,16 @@ export async function notifyOffers(
 
   const applePush = (async () => {
     for (const part of chunk(ids, 200)) {
-      const { data } = await supabase
-        .from("apple_registrations")
-        .select("push_token")
-        .in("card_id", part);
-      await pushToDevices((data ?? []).map((r) => r.push_token));
+      // A card can have several devices, so 200 cards may exceed 1,000 tokens.
+      const registrations = await fetchAll((from, to) =>
+        supabase
+          .from("apple_registrations")
+          .select("id, push_token")
+          .in("card_id", part)
+          .order("id")
+          .range(from, to),
+      );
+      await pushToDevices(registrations.map((r) => r.push_token));
     }
   })().catch((e) => console.error("[notify] apple offer push failed", e));
 
