@@ -224,6 +224,19 @@ describe("drainOfferDeliveries", () => {
     expect(addOfferMessage).toHaveBeenCalledTimes(51);
   });
 
+  it("keeps delivering to Google when the Apple push throws", async () => {
+    const db = fakeDb(seed(5, { googleEvery: 1 }));
+    pushToDevices.mockRejectedValueOnce({ code: "NoCredentials" });
+    const r = await drainOfferDeliveries(db.client, {
+      budgetMs: 60_000,
+      sleep: noSleep,
+    });
+    expect(r).toMatchObject({ delivered: 5, failed: 0 });
+    expect(addOfferMessage).toHaveBeenCalledTimes(5);
+    const recs = db.tables.wallet_offer_recipients;
+    expect(recs.every((x) => x.delivered_at && !x.last_error)).toBe(true);
+  });
+
   it("returns cleanly with work remaining when the budget is spent", async () => {
     const db = fakeDb(seed(10));
     const r = await drainOfferDeliveries(db.client, { budgetMs: 0 });

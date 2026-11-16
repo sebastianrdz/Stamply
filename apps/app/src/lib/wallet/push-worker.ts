@@ -137,8 +137,14 @@ async function deliverBatch(
           .order("id")
           .range(from, to),
       );
-      // Apple pushes are idempotent, so a retry after a failure is harmless.
-      await pushToDevices(tokens.map((t) => t.push_token));
+      // Isolated from Google: an APNs outage must not block delivery. Apple
+      // pushes are idempotent and the pass refetches on the next push.
+      await pushToDevices(tokens.map((t) => t.push_token)).catch((e) =>
+        console.error("[push-worker] apple push failed", {
+          offerId: offer.id,
+          error: errorCode(e),
+        }),
+      );
     }
 
     // Customers with nothing for Google (or no card at all) are done now.

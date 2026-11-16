@@ -76,7 +76,7 @@ export async function sendOffer(
     // Start delivering now via the cron route (it chains until done); the
     // secret stays server-side.
     after(() =>
-      fetch(`${appUrl()}/api/cron/wallet-push`, {
+      fetch(`${appUrl()}/api/cron/wallet-push?kick=1`, {
         headers: {
           authorization: `Bearer ${requireEnv("CRON_SECRET", "offers")}`,
         },

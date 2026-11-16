@@ -107,6 +107,14 @@ describe("sendOffer", () => {
     expect(res).toEqual({ sent: 2, queued: true });
     expect(notifyOffersMock).not.toHaveBeenCalled();
     expect(afterMock).toHaveBeenCalledTimes(1);
+    const fetchMock = vi.fn(async () => new Response(null, { status: 202 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await afterMock.mock.calls[0][0]();
+    vi.unstubAllGlobals();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://app.test/api/cron/wallet-push?kick=1",
+      { headers: { authorization: "Bearer secret" } },
+    );
   });
 
   it("sends one offer per selected customer", async () => {
