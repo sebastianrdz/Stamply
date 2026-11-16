@@ -29,11 +29,11 @@ Principle: **the request records the work; a worker does it in small, resumable 
 - Per-customer offers (automations, referral, review) keep delivering synchronously and mark `delivered_at` immediately, so every offer has consistent status.
 - Backfill: offers older than 0029 have no recipient rows and are treated as complete.
 
-### 2.2 Design changes and bulk card refreshes: a "dirty card" marker
+### 2.2 Design changes and bulk card refreshes: a refresh queue
 
-- `cards.wallet_synced_at timestamptz`. A card needs a refresh when `updated_at > wallet_synced_at` (or null).
-- `notifyProgramDesignChanged` stops looping inline: it bumps `updated_at` for the program's cards (one SQL update, uncapped) and kicks the worker.
-- The worker claims dirty cards in batches (same `skip locked` lease pattern via `claim_dirty_cards(p_limit, p_lease_seconds)`), notifies Apple and patches Google (with the strip render) at lower concurrency, then sets `wallet_synced_at = now()`.
+- A `wallet_refresh_queue` table (one row per card still to refresh, with a lease and an attempt count), **not** a flag or timestamp on `cards`: the `cards_updated_at` trigger bumps `updated_at` on every update to a card, so a marker on `cards` would make Apple devices refetch passes that did not change.
+- `request_program_wallet_refresh(program_id)` bumps `updated_at` for the program's cards (so Apple's refetch sees a change) and queues every card in one SQL statement, uncapped. `notifyProgramDesignChanged` calls it and kicks the worker instead of looping inline.
+- The worker claims batches with `claim_wallet_refresh` (same `skip locked` lease contract), notifies Apple and patches Google (with the strip render) at lower concurrency, and deletes the queue row of each card it finished.
 - Single-card changes (a scan stamping one card) keep using `notifyCardUpdated` inline; they are already O(1).
 
 ### 2.3 Running the worker
@@ -56,7 +56,7 @@ Principle: **the request records the work; a worker does it in small, resumable 
 ## 3. PRs (small, in order)
 
 0. **Hotfix, ship before or with #63:** paginate `offerTargets`, the `apple_registrations` lookup and `notifyProgramDesignChanged` with the existing `fetchAll` so nothing is silently cut at 1,000, plus tests for 2,500 targets. No design change; it makes today's inline path correct (slow but complete) until the worker lands.
-1. **Migration `0035`:** recipients ledger columns, `cards.wallet_synced_at`, the two claim functions, indexes. Verified on a throwaway Postgres (concurrent claims do not overlap, lease expiry re-claims, RLS unchanged).
+1. **Migration `0035`** (#67): recipients ledger columns and `wallet_offers.delivery`, the refresh queue table, the claim, status and finish functions, indexes. Verified on a throwaway Postgres (concurrent claims do not overlap, lease expiry re-claims, RLS unchanged).
 2. **Worker core + offers:** `lib/wallet/push-worker.ts` (batch delivery with per-recipient marking and retries), the cron/route, `sendOffer` switched to "record and kick off", tests with fake Apple and Google clients.
 3. **Design refresh through the dirty-card path:** `notifyProgramDesignChanged` becomes mark-and-kick; worker drains dirty cards.
 4. **UI:** delivery progress on the broadcast history, es + en strings.
