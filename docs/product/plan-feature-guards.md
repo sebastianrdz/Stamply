@@ -17,10 +17,10 @@ Takeaways: nobody caps customers meaningfully, so customers are a poor upgrade l
 
 | Limit | Now | Recommendation | Why |
 |---|---|---|---|
-| Small: 1 location, 1 program, 3 employees, 5,000 customers | as set | **Keep** | Matches Loyalz Start on structure and is more generous on staff (they allow 0 managers). 5,000 customers removes the "wall in week three" without making Medium pointless. |
-| Medium: 3 locations, 3 programs, 10 employees, 20,000 customers | as set | **Keep** | Identical to Loyalz Grow (3 / 3 / 10) at a similar price. |
-| Big: 5 locations, 5 programs, 20 employees, 50,000 customers (as proposed in D7) | 5 / 5 / 20 | **Raise to 10 locations, 10 programs, 50 employees** (customers 50,000 unchanged). **Adopted.** | 5 locations is thin for a "multi-location brands" plan and sits below Loyalz Business (10 / 10 / 50) at a lower price; Carrott Pro has 15 staff per location. Because Big was unlimited before, 10 / 10 / 50 also hurts almost nobody who is already on it. Alternative: keep Big unlimited on locations and add per-extra-location pricing later (Carrott's model). |
-| Customer caps overall | 5k / 20k / 50k | **Treat as soft guardrails**, not a selling point | Competitors don't cap, and the scale work (broadcast queueing, SQL aggregates, pagination) is not done yet; do not advertise numbers the app can't comfortably serve. |
+| Small: 1 location, 1 program, 3 employees, 500 customers | as set | **Keep** | Matches Loyalz Start on structure and is more generous on staff (they allow 0 managers). 500 customers is 5x the old cap and above Carrott Go (250); a busy café can still reach it, so watch how many trials hit the cap. |
+| Medium: 3 locations, 3 programs, 10 employees, 5,000 customers | as set | **Keep** | Identical to Loyalz Grow (3 / 3 / 10) at a similar price. |
+| Big: 5 locations, 5 programs, 20 employees (as first proposed in D7) | 5 / 5 / 20 | **Raise to 10 locations, 10 programs, 50 employees** (customers 25,000). **Adopted.** | 5 locations is thin for a "multi-location brands" plan and sits below Loyalz Business (10 / 10 / 50) at a lower price; Carrott Pro has 15 staff per location. Because Big was unlimited before, 10 / 10 / 50 also hurts almost nobody who is already on it. Alternative: keep Big unlimited on locations and add per-extra-location pricing later (Carrott's model). |
+| Customer caps overall | 500 / 5k / 25k (owner-chosen, after the first proposal of 5k / 20k / 50k) | **Treat as soft guardrails**, not a selling point | Competitors don't cap, and the scale work (broadcast queueing, SQL aggregates, pagination) is not done yet; do not advertise numbers the app can't comfortably serve. |
 | Free trial | 14 days | **Consider 30 days** | Carrott offers 30 days with full access. Small, low-risk conversion lever; it is a one-constant change (`TRIAL_DAYS`) plus Stripe's trial setting. |
 
 ## 3. Plan benefits audit (what we advertise vs what exists)
@@ -89,7 +89,7 @@ Mirror the existing limit pattern (`isWithinLimit` / `assertWithinLimit` / `Limi
 
 ## 8. Decisions (owner, 2026-11-16)
 
-1. **Big limits: 10 locations / 10 programs / 50 employees** (customers 50,000). Applied in #63.
+1. **Big limits: 10 locations / 10 programs / 50 employees**, and customer caps **500 / 5,000 / 25,000** (Small / Medium / Big). Applied in #63.
 2. **Existing features stay open on every paid plan** (Decision A, option 1). No gating, no grandfathering needed. The guard mechanism is built so gating a feature later is a one-line change; revisit once there is conversion data.
 3. **Unbuilt features removed** from the plan lists ("Custom enrollment fields", "API access"). Done in #63. They return to the lists, with their guard, only when built.
 4. **Trial stays at 14 days.**
