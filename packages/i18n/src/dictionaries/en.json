@@ -1030,23 +1030,22 @@
           "All card types included",
           "Google review invites",
           "Referral program",
-          "Analytics dashboard",
-          "Custom enrollment fields"
+          "Staff activity and daily stamp limits"
         ]
       },
       "big": {
         "name": "Big",
         "tagline": "For multi-location brands.",
         "features": [
-          "Up to 5 locations",
-          "20 employees",
+          "Up to 10 locations",
+          "50 employees",
           "Up to 50,000 customers",
-          "5 loyalty programs",
+          "10 loyalty programs",
           "All card types included",
           "Google review invites",
           "Referral program",
-          "Priority support",
-          "API access"
+          "Staff activity and daily stamp limits",
+          "Priority support"
         ]
       },
       "mostPopular": "Most popular"

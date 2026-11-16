@@ -35,10 +35,10 @@ describe("PLANS", () => {
 
   it("big plan limits", () => {
     expect(PLANS.big.limits).toEqual({
-      locations: 5,
-      employees: 20,
+      locations: 10,
+      employees: 50,
       customers: 50000,
-      programs: 5,
+      programs: 10,
     });
   });
 

@@ -1030,23 +1030,22 @@
           "Todos los tipos de tarjeta incluidos",
           "Invitaciones a reseñas de Google",
           "Programa de referidos",
-          "Panel de analítica",
-          "Campos de inscripción personalizados"
+          "Actividad del personal y límite diario de sellos"
         ]
       },
       "big": {
         "name": "Grande",
         "tagline": "Para marcas con varias sucursales.",
         "features": [
-          "Hasta 5 sucursales",
-          "20 empleados",
+          "Hasta 10 sucursales",
+          "50 empleados",
           "Hasta 50,000 clientes",
-          "5 programas de lealtad",
+          "10 programas de lealtad",
           "Todos los tipos de tarjeta incluidos",
           "Invitaciones a reseñas de Google",
           "Programa de referidos",
-          "Soporte prioritario",
-          "Acceso a la API"
+          "Actividad del personal y límite diario de sellos",
+          "Soporte prioritario"
         ]
       },
       "mostPopular": "El más popular"

@@ -1,12 +1,12 @@
 # D7: Plan limits review (limits only)
 
-> Status: implemented in one PR. Prices unchanged. New limits apply immediately; no Stripe or database change (limits live only in `packages/plans/src/index.ts` and are checked when something is added, so existing data is never removed).
+> Status: implemented in one PR (limits revised once after review: Big is 10 / 10 / 50). Prices unchanged. New limits apply immediately; no Stripe or database change (limits live only in `packages/plans/src/index.ts` and are checked when something is added, so existing data is never removed).
 
 ## Goal and rules (confirmed)
 
 - Goal: **more paying signups** (a Small trial should not hit a wall in the first weeks).
 - Levers: **limits only**. No price changes, no new tier, no add-ons.
-- Original rule was "only raise limits, never lower them". The owner then explicitly chose to cap Big at 5 locations / 5 programs / 20 employees "for everyone", which **lowers Big** (it was unlimited on those three). See "Big" below.
+- Original rule was "only raise limits, never lower them". Big was unlimited on locations, programs and employees, so any cap lowers it. The owner first chose 5 / 5 / 20, then, after the competitor comparison (`plan-feature-guards.md`), settled on **10 locations / 10 programs / 50 employees**, matching Loyalz Business. See "Big" below.
 
 ## Competitor benchmark (public pages, checked 2026-11)
 
@@ -31,19 +31,21 @@ Reading it:
 | | Small | Medium | Big |
 |---|---|---|---|
 | Customers | 100 → **5,000** | 1,000 → **20,000** | 10,000 → **50,000** |
-| Locations | 1 | 3 | unlimited → **5** |
-| Employees (counts the owner) | 1 → **3** | 5 → **10** | unlimited → **20** |
-| Programs | 1 | 3 | unlimited → **5** |
+| Locations | 1 | 3 | unlimited → **10** |
+| Employees (counts the owner) | 1 → **3** | 5 → **10** | unlimited → **50** |
+| Programs | 1 | 3 | unlimited → **10** |
+
+Also in this change (copy honesty): "Custom enrollment fields" (Medium) and "API access" (Big) are removed from the feature lists because neither is built, and the Medium "Analytics dashboard" line (every plan has the dashboard now) becomes "Staff activity and daily stamp limits", also listed on Big. The free trial stays at 14 days.
 
 Changed in: `packages/plans/src/index.ts` (limits and feature lines), `packages/i18n/src/dictionaries/{es,en}.json` (pricing and billing feature lists), and the limit tests (`plans.test.ts`, `entitlements.test.ts`). `null` (unlimited) is still supported by the limit code; no shipped plan uses it now, so the tests set it temporarily.
 
 ## Big is now lower than before
 
-Big used to be unlimited on locations, programs and employees. Capping it at 5 / 5 / 20 also puts it **below Loyalz Business** (10 / 10 / 50). It was a deliberate choice, with these consequences:
+Big used to be unlimited on locations, programs and employees. Capping it at 10 / 10 / 50 puts it level with Loyalz Business (10 / 10 / 50) at a lower price. It is still a deliberate cut, with these consequences:
 
-- Limits are checked only when adding (`assertWithinLimit`): a Big account that already has more than 5 locations, 5 programs or 20 team members keeps everything it has but cannot add more, and its team page badge reads over the limit (for example "22 / 20 members").
-- Before shipping, check whether any Big account is above those numbers (a count of locations, programs and memberships per Big business). If one is, contact them or raise the cap.
-- The marketing and pricing pages now say "Up to 5 locations" / "5 loyalty programs" / "20 employees" for Big.
+- Limits are checked only when adding (`assertWithinLimit`): a Big account that already has more than 5 locations, 5 programs or 20 team members keeps everything it has but cannot add more, and its team page badge reads over the limit (for example "55 / 50 members").
+- Before shipping, check whether any Big account is above 10 locations, 10 programs or 50 members (a count per Big business). If one is, contact them or raise the cap.
+- The marketing and pricing pages now say "Up to 10 locations" / "10 loyalty programs" / "50 employees" for Big.
 
 ## Risks and follow-ups (not in this change)
 
