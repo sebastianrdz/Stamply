@@ -925,11 +925,16 @@
       "sendSelected": "Send to {count} selected",
       "sending": "Sending...",
       "sentToast": "Offer sent to {count} passes",
+      "queuedToast": "Sending to {count} customers, this can take a few minutes",
       "historyTitle": "Sent offers",
       "historyEmpty": "No offers sent yet.",
       "stats": {
         "line": "{sent} sent · {returned} came back",
         "unknown": "Results not tracked for this offer"
+      },
+      "delivery": {
+        "inProgress": "Delivering: {delivered} of {total}",
+        "failed": "{count} could not be delivered"
       },
       "audienceAll": "All opted-in customers",
       "audienceOne": "One customer",

@@ -1,1 +1,6 @@
-{ "crons": [{ "path": "/api/cron/automations", "schedule": "0 13 * * *" }] }
+{
+  "crons": [
+    { "path": "/api/cron/automations", "schedule": "0 13 * * *" },
+    { "path": "/api/cron/wallet-push", "schedule": "0 5 * * *" }
+  ]
+}

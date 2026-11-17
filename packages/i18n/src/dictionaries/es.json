@@ -925,11 +925,16 @@
       "sendSelected": "Enviar a {count} seleccionados",
       "sending": "Enviando...",
       "sentToast": "Oferta enviada a {count} tarjetas",
+      "queuedToast": "Enviando a {count} clientes, puede tardar unos minutos",
       "historyTitle": "Ofertas enviadas",
       "historyEmpty": "Aún no has enviado ofertas.",
       "stats": {
         "line": "{sent} enviados · {returned} volvieron",
         "unknown": "No se registraron resultados de esta oferta"
+      },
+      "delivery": {
+        "inProgress": "Entregando: {delivered} de {total}",
+        "failed": "{count} no se pudieron entregar"
       },
       "audienceAll": "Todos los clientes que aceptaron",
       "audienceOne": "Un cliente",

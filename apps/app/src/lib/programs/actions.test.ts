@@ -32,6 +32,15 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: (...args: unknown[]) => createClientMock(...args),
 }));
 
+const notifyDesignMock = vi.fn(async (..._args: unknown[]) => undefined);
+const adminClient = { admin: true };
+vi.mock("@/lib/supabase/admin", () => ({
+  createAdminClient: () => adminClient,
+}));
+vi.mock("@/lib/wallet/notify", () => ({
+  notifyProgramDesignChanged: (...a: unknown[]) => notifyDesignMock(...a),
+}));
+
 const assertWithinLimitMock = vi.fn(async (..._args: unknown[]) => undefined);
 vi.mock("@/lib/billing/entitlements", async (importOriginal) => {
   const actual =
@@ -175,12 +184,39 @@ describe("updateProgram", () => {
     expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/cards");
     expect(revalidatePathMock).toHaveBeenCalledWith("/dashboard/cards/prog-1");
     expect(redirect).toHaveBeenCalledWith("/dashboard/cards/prog-1?updated=1");
+    // Admin client (the queue RPC is service-role only), never the session one.
+    expect(notifyDesignMock).toHaveBeenCalledWith(adminClient, "prog-1");
     expect(captureServerEventMock).toHaveBeenCalledWith({
       distinctId: "user-1",
       event: "program_updated",
       properties: { program_id: "prog-1", program_type: "points", goal: 100 },
       groups: { business: "biz-1" },
     });
+  });
+
+  it("still saves and redirects when queueing the wallet refresh throws", async () => {
+    requireRoleMock.mockResolvedValue(ctx("owner"));
+    createClientMock.mockResolvedValue(
+      makeSupabaseMock({
+        programs: [
+          { data: { type: "points" }, error: null },
+          { data: null, error: null },
+        ],
+      }),
+    );
+    notifyDesignMock.mockRejectedValueOnce(new Error("rpc down"));
+    await expect(
+      updateProgram(
+        "prog-1",
+        {},
+        form({
+          name: "Coffee lovers",
+          type: "points",
+          goal: "100",
+          reward_description: "Free drink",
+        }),
+      ),
+    ).rejects.toThrow("NEXT_REDIRECT:/dashboard/cards/prog-1?updated=1");
   });
 
   it("flow=onboarding-design: saves the edit then sends the owner to the plan screen", async () => {

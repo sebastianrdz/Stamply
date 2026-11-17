@@ -28,7 +28,11 @@ export function OfferForm({
   useEffect(() => {
     if (prevPending.current && !pending && state.sent !== undefined) {
       formRef.current?.reset();
-      toast.success(interpolate(dict.sentToast, { count: state.sent }));
+      toast.success(
+        interpolate(state.queued ? dict.queuedToast : dict.sentToast, {
+          count: state.sent,
+        }),
+      );
       onSent?.();
     }
     prevPending.current = pending;

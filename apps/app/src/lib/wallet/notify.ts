@@ -10,6 +10,7 @@ import {
   patchLoyaltyClass,
   patchLoyaltyObject,
 } from "@/lib/wallet/google/wallet";
+import { kickWalletPush } from "@/lib/wallet/kick";
 import type { WalletOffer } from "@/types/database";
 import { fetchAll } from "@/lib/pagination";
 
@@ -91,41 +92,33 @@ export async function notifyCardUpdatedForBirthday(
 }
 
 /**
- * A program's design changed: bump `updated_at` on its cards (so Apple's
- * refetch sees a change), patch the Google class once, then notify every card
- * in batches of 20 (same bounded concurrency as notifyOffers).
- *
- * shortcut: inline in the server action; move to a queue past a few thousand
- * cards per program (function timeout).
+ * A program's design changed: patch the Google class once (best-effort), then
+ * queue every card for a refresh (bumps `updated_at` in SQL). The push worker
+ * does the per-card Apple/Google work. `supabase` must be a service-role
+ * client (the RPC is not callable by sessions); callers authorize first.
  */
 export async function notifyProgramDesignChanged(
   supabase: Client,
   programId: string,
 ): Promise<void> {
-  const { error } = await supabase
+  const { data: card } = await supabase
     .from("cards")
-    .update({ updated_at: new Date().toISOString() })
-    .eq("program_id", programId);
-  if (error) throw error;
-  // Paginated: PostgREST returns at most 1,000 rows per request, which would
-  // silently skip every pass after the first 1,000.
-  const cards = (await fetchAll((from, to) =>
-    supabase
-      .from("cards")
-      .select(
-        "*, program:programs(*), business:businesses(*), customer:customers(*)",
-      )
-      .eq("program_id", programId)
-      .order("id")
-      .range(from, to),
-  )) as unknown as CardWithRelations[];
-  const google = cards.find((c) => c.google_object_id);
-  if (google)
-    await patchLoyaltyClass(google).catch((e) =>
+    .select(
+      "*, program:programs(*), business:businesses(*), customer:customers(*)",
+    )
+    .eq("program_id", programId)
+    .not("google_object_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  if (card)
+    await patchLoyaltyClass(card as unknown as CardWithRelations).catch((e) =>
       console.error("[notify] google class patch failed", e),
     );
-  for (const part of chunk(cards, 20))
-    await Promise.all(part.map((c) => notifyCardUpdated(supabase, c)));
+  const { error } = await supabase.rpc("request_program_wallet_refresh", {
+    p_program_id: programId,
+  });
+  if (error) throw error;
+  kickWalletPush();
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
