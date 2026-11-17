@@ -2,6 +2,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+const afterMock = vi.fn();
+vi.mock("next/server", () => ({ after: (fn: () => unknown) => afterMock(fn) }));
+vi.mock("@/lib/env", () => ({ requireEnv: () => "secret" }));
+vi.mock("@/lib/urls", () => ({ appUrl: () => "https://app.test" }));
 
 const requireRoleMock = vi.fn();
 vi.mock("@/lib/auth/session", () => ({
@@ -68,6 +72,7 @@ beforeEach(() => {
   });
   rateLimitMock.mockResolvedValue(true);
   notifyOffersMock.mockClear();
+  afterMock.mockClear();
   eligible = [{ id: UUID_A }, { id: UUID_B }];
 });
 
@@ -97,19 +102,26 @@ describe("sendOffer", () => {
     expect(notifyOffersMock).not.toHaveBeenCalled();
   });
 
-  it("sends a single broadcast offer when no customers are selected", async () => {
+  it("queues a broadcast to everyone without delivering inline", async () => {
     const res = await sendOffer({}, form("2x1 coffee"));
-    expect(res).toEqual({ sent: 1 });
-    const offers = notifyOffersMock.mock.calls[0][1] as {
-      customer_id: unknown;
-    }[];
-    expect(offers).toHaveLength(1);
-    expect(offers[0].customer_id).toBeNull();
+    expect(res).toEqual({ sent: 2, queued: true });
+    expect(notifyOffersMock).not.toHaveBeenCalled();
+    expect(afterMock).toHaveBeenCalledTimes(1);
+    const fetchMock = vi.fn(async () => new Response(null, { status: 202 }));
+    vi.stubGlobal("fetch", fetchMock);
+    await afterMock.mock.calls[0][0]();
+    vi.unstubAllGlobals();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://app.test/api/cron/wallet-push?kick=1",
+      { headers: { authorization: "Bearer secret" } },
+    );
   });
 
   it("sends one offer per selected customer", async () => {
     const res = await sendOffer({}, form("2x1 coffee", [UUID_A, UUID_B]));
     expect(res).toEqual({ sent: 2 });
+    expect(afterMock).not.toHaveBeenCalled();
+    expect(notifyOffersMock).toHaveBeenCalledTimes(1);
   });
 
   it("errors when nobody has opted in", async () => {

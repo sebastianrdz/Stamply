@@ -10,7 +10,9 @@ import {
   patchLoyaltyClass,
   patchLoyaltyObject,
 } from "@/lib/wallet/google/wallet";
+import { kickWalletPush } from "@/lib/wallet/kick";
 import type { WalletOffer } from "@/types/database";
+import { fetchAll } from "@/lib/pagination";
 
 type Client = SupabaseClient<Database>;
 
@@ -90,37 +92,33 @@ export async function notifyCardUpdatedForBirthday(
 }
 
 /**
- * A program's design changed: bump `updated_at` on its cards (so Apple's
- * refetch sees a change), patch the Google class once, then notify every card
- * in batches of 20 (same bounded concurrency as notifyOffers).
- *
- * shortcut: inline in the server action; move to a queue past a few thousand
- * cards per program (function timeout).
+ * A program's design changed: patch the Google class once (best-effort), then
+ * queue every card for a refresh (bumps `updated_at` in SQL). The push worker
+ * does the per-card Apple/Google work. `supabase` must be a service-role
+ * client (the RPC is not callable by sessions); callers authorize first.
  */
 export async function notifyProgramDesignChanged(
   supabase: Client,
   programId: string,
 ): Promise<void> {
-  const { error } = await supabase
-    .from("cards")
-    .update({ updated_at: new Date().toISOString() })
-    .eq("program_id", programId);
-  if (error) throw error;
-  const { data, error: selError } = await supabase
+  const { data: card } = await supabase
     .from("cards")
     .select(
       "*, program:programs(*), business:businesses(*), customer:customers(*)",
     )
-    .eq("program_id", programId);
-  if (selError) throw selError;
-  const cards = (data ?? []) as unknown as CardWithRelations[];
-  const google = cards.find((c) => c.google_object_id);
-  if (google)
-    await patchLoyaltyClass(google).catch((e) =>
+    .eq("program_id", programId)
+    .not("google_object_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  if (card)
+    await patchLoyaltyClass(card as unknown as CardWithRelations).catch((e) =>
       console.error("[notify] google class patch failed", e),
     );
-  for (const part of chunk(cards, 20))
-    await Promise.all(part.map((c) => notifyCardUpdated(supabase, c)));
+  const { error } = await supabase.rpc("request_program_wallet_refresh", {
+    p_program_id: programId,
+  });
+  if (error) throw error;
+  kickWalletPush();
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -146,16 +144,17 @@ async function offerTargets(
     "id, customer_id, google_object_id, customer:customers!inner(marketing_consent)";
   type Row = Omit<OfferTarget, "offer">;
   if (offers.length === 1 && offers[0].customer_id === null) {
-    const { data, error } = await supabase
-      .from("cards")
-      .select(select)
-      .eq("business_id", offers[0].business_id)
-      .eq("customer.marketing_consent", true);
-    if (error) throw error;
-    return ((data ?? []) as unknown as Row[]).map((c) => ({
-      ...c,
-      offer: offers[0],
-    }));
+    // Paginated for the same 1,000-row reason as notifyProgramDesignChanged.
+    const rows = (await fetchAll((from, to) =>
+      supabase
+        .from("cards")
+        .select(select)
+        .eq("business_id", offers[0].business_id)
+        .eq("customer.marketing_consent", true)
+        .order("id")
+        .range(from, to),
+    )) as unknown as Row[];
+    return rows.map((c) => ({ ...c, offer: offers[0] }));
   }
   const byCustomer = new Map(offers.map((o) => [o.customer_id, o]));
   const out: OfferTarget[] = [];
@@ -205,11 +204,16 @@ export async function notifyOffers(
 
   const applePush = (async () => {
     for (const part of chunk(ids, 200)) {
-      const { data } = await supabase
-        .from("apple_registrations")
-        .select("push_token")
-        .in("card_id", part);
-      await pushToDevices((data ?? []).map((r) => r.push_token));
+      // A card can have several devices, so 200 cards may exceed 1,000 tokens.
+      const registrations = await fetchAll((from, to) =>
+        supabase
+          .from("apple_registrations")
+          .select("id, push_token")
+          .in("card_id", part)
+          .order("id")
+          .range(from, to),
+      );
+      await pushToDevices(registrations.map((r) => r.push_token));
     }
   })().catch((e) => console.error("[notify] apple offer push failed", e));
 

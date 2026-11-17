@@ -6,12 +6,15 @@ import { requireRole } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { rateLimit } from "@/lib/rate-limit";
 import { sendWalletOffers } from "./send";
+import { kickWalletPush } from "@/lib/wallet/kick";
 import { getLocale } from "@stamply/i18n/locale";
 import { getDictionary } from "@stamply/i18n/dictionaries";
 
 export interface OfferFormState {
   error?: string;
   sent?: number;
+  /** Broadcast accepted; delivery continues in the background. */
+  queued?: boolean;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -66,8 +69,10 @@ export async function sendOffer(
       return { error: dict.errors.notOptedIn };
     return { error: result.message ?? dict.errors.deliveryFailed };
   }
-  const sent = result.sent;
-
   revalidatePath("/dashboard/broadcast");
-  return { sent };
+  if (result.queued) {
+    kickWalletPush();
+    return { sent: result.recipients, queued: true };
+  }
+  return { sent: result.sent };
 }

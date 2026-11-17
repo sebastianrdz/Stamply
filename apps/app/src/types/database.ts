@@ -287,6 +287,8 @@ export type WalletOffer = Timestamped & {
   automation_id?: string | null;
   /** Migration 0034: "referral" = system message to a referrer, not an owner broadcast. */
   kind?: "offer" | "referral";
+  /** Migration 0035: "pending" while the push worker still has recipients to deliver. */
+  delivery?: "pending" | "done";
   created_by: string | null;
 };
 
@@ -295,6 +297,22 @@ export type WalletOfferRecipient = {
   customer_id: string;
   business_id: string;
   sent_at: string;
+  /** Migration 0035: delivery ledger. null = not delivered yet. */
+  delivered_at: string | null;
+  attempts: number;
+  claimed_until: string | null;
+  last_error: string | null;
+};
+
+/** Migration 0035: one row per card still waiting for a program-wide pass refresh. */
+export type WalletRefreshQueueRow = {
+  card_id: string;
+  business_id: string;
+  program_id: string;
+  requested_at: string;
+  claimed_until: string | null;
+  attempts: number;
+  last_error: string | null;
 };
 
 export type MonthlySummary = {
@@ -469,9 +487,16 @@ export interface Database {
       >;
       wallet_offers: TableDef<
         WalletOffer,
-        "id" | "created_at" | "customer_id" | "created_by" | "kind"
+        "id" | "created_at" | "customer_id" | "created_by" | "kind" | "delivery"
       >;
-      wallet_offer_recipients: TableDef<WalletOfferRecipient, never>;
+      wallet_offer_recipients: TableDef<
+        WalletOfferRecipient,
+        "delivered_at" | "attempts" | "claimed_until" | "last_error"
+      >;
+      wallet_refresh_queue: TableDef<
+        WalletRefreshQueueRow,
+        "requested_at" | "claimed_until" | "attempts" | "last_error"
+      >;
       monthly_summaries: TableDef<MonthlySummary, "sent_at">;
       review_clicks: TableDef<ReviewClick, "id" | "clicked_at">;
       stamp_limit_overrides: TableDef<StampLimitOverride, "id" | "created_at">;
@@ -482,7 +507,13 @@ export interface Database {
       stripe_webhook_events: TableDef<StripeWebhookEvent, "created_at">;
       reward_definitions: TableDef<
         RewardDefinition,
-        "id" | "created_at" | "updated_at" | "active" | "config" | "message" | "reward_description"
+        | "id"
+        | "created_at"
+        | "updated_at"
+        | "active"
+        | "config"
+        | "message"
+        | "reward_description"
       >;
       automation_runs: TableDef<AutomationRun, "id" | "sent_at">;
       standalone_reward_grants: TableDef<
@@ -572,6 +603,39 @@ export interface Database {
         Args: { p_business_id: string };
         Returns: { customer_id: string; last_visit: string }[];
       };
+      claim_offer_recipients: {
+        Args: {
+          p_offer_id: string;
+          p_limit: number;
+          p_lease_seconds: number;
+          p_max_attempts?: number;
+        };
+        Returns: { offer_id: string; customer_id: string }[];
+      };
+      offer_delivery_status: {
+        Args: { p_offer_id: string; p_max_attempts?: number };
+        Returns: { delivered: number; pending: number; failed: number }[];
+      };
+      finish_offer_delivery: {
+        Args: { p_offer_id: string; p_max_attempts?: number };
+        Returns: boolean;
+      };
+      request_program_wallet_refresh: {
+        Args: { p_program_id: string };
+        Returns: number;
+      };
+      claim_wallet_refresh: {
+        Args: {
+          p_limit: number;
+          p_lease_seconds: number;
+          p_max_attempts?: number;
+        };
+        Returns: { card_id: string }[];
+      };
+      wallet_refresh_status: {
+        Args: { p_program_id: string; p_max_attempts?: number };
+        Returns: { pending: number; failed: number }[];
+      };
       pay_referral: {
         Args: {
           p_referral_id: string;
@@ -587,7 +651,12 @@ export interface Database {
         Returns: number;
       };
       employee_activity: {
-        Args: { p_business_id: string; p_from: string; p_to: string; p_tz: string };
+        Args: {
+          p_business_id: string;
+          p_from: string;
+          p_to: string;
+          p_tz: string;
+        };
         Returns: EmployeeActivityRow[];
       };
       review_clicks_summary: {

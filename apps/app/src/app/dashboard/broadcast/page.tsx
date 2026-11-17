@@ -7,7 +7,9 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@stamply/ui/card";
 import { Badge } from "@stamply/ui/badge";
 import { getAttribution } from "@/lib/attribution";
+import { getDeliveryProgress } from "@/lib/offers/delivery";
 import { interpolate } from "@stamply/i18n/format";
+import { AutoRefresh } from "./auto-refresh";
 import { OfferForm } from "./offer-form";
 import type { WalletOffer } from "@/types/database";
 
@@ -31,11 +33,16 @@ export default async function OffersPage() {
     .order("created_at", { ascending: false })
     .limit(50);
   const offers = (data ?? []) as WalletOffer[];
-  const { byOffer } = await getAttribution(supabase, membership.business);
+  const [{ byOffer }, progress] = await Promise.all([
+    getAttribution(supabase, membership.business),
+    getDeliveryProgress(supabase, offers),
+  ]);
+  const delivering = offers.some((o) => o.delivery === "pending");
 
   return (
     <>
       <PageHeader title={dict.title} description={dict.description} />
+      <AutoRefresh active={delivering} />
 
       <Card className="mb-6">
         <CardHeader>
@@ -64,9 +71,27 @@ export default async function OffersPage() {
                 <div className="min-w-0">
                   <p className="break-words">{o.body}</p>
                   <p className="text-muted-foreground text-sm">
-                    {byOffer.get(o.id)?.sent
-                      ? interpolate(dict.stats.line, { ...byOffer.get(o.id)! })
-                      : dict.stats.unknown}
+                    {o.delivery === "pending"
+                      ? interpolate(dict.delivery.inProgress, {
+                          delivered: progress.get(o.id)?.delivered ?? 0,
+                          total:
+                            (progress.get(o.id)?.delivered ?? 0) +
+                            (progress.get(o.id)?.pending ?? 0) +
+                            (progress.get(o.id)?.failed ?? 0),
+                        })
+                      : byOffer.get(o.id)?.sent
+                        ? interpolate(dict.stats.line, {
+                            ...byOffer.get(o.id)!,
+                          })
+                        : dict.stats.unknown}
+                    {progress.get(o.id)?.failed ? (
+                      <span className="text-destructive">
+                        {" · "}
+                        {interpolate(dict.delivery.failed, {
+                          count: progress.get(o.id)!.failed,
+                        })}
+                      </span>
+                    ) : null}
                     {" · "}
                     {new Intl.DateTimeFormat(locale, {
                       dateStyle: "medium",

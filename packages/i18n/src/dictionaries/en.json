@@ -925,11 +925,16 @@
       "sendSelected": "Send to {count} selected",
       "sending": "Sending...",
       "sentToast": "Offer sent to {count} passes",
+      "queuedToast": "Sending to {count} customers, this can take a few minutes",
       "historyTitle": "Sent offers",
       "historyEmpty": "No offers sent yet.",
       "stats": {
         "line": "{sent} sent · {returned} came back",
         "unknown": "Results not tracked for this offer"
+      },
+      "delivery": {
+        "inProgress": "Delivering: {delivered} of {total}",
+        "failed": "{count} could not be delivered"
       },
       "audienceAll": "All opted-in customers",
       "audienceOne": "One customer",
@@ -1009,8 +1014,8 @@
         "tagline": "For a single location getting started.",
         "features": [
           "1 location",
-          "1 employee",
-          "Up to 100 customers",
+          "3 employees",
+          "Up to 500 customers",
           "1 loyalty program",
           "Apple & Google Wallet",
           "All card types included",
@@ -1024,29 +1029,28 @@
         "tagline": "For growing businesses with a small team.",
         "features": [
           "Up to 3 locations",
-          "5 employees",
-          "Up to 1,000 customers",
+          "10 employees",
+          "Up to 5,000 customers",
           "3 loyalty programs",
           "All card types included",
           "Google review invites",
           "Referral program",
-          "Analytics dashboard",
-          "Custom enrollment fields"
+          "Staff activity and daily stamp limits"
         ]
       },
       "big": {
         "name": "Big",
         "tagline": "For multi-location brands.",
         "features": [
-          "Unlimited locations",
-          "10+ employees",
-          "Up to 10,000 customers",
-          "Unlimited programs",
+          "Up to 10 locations",
+          "50 employees",
+          "Up to 25,000 customers",
+          "10 loyalty programs",
           "All card types included",
           "Google review invites",
           "Referral program",
-          "Priority support",
-          "API access"
+          "Staff activity and daily stamp limits",
+          "Priority support"
         ]
       },
       "mostPopular": "Most popular"

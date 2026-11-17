@@ -5,7 +5,9 @@ import { notifyOffers } from "@/lib/wallet/notify";
 import type { Database, WalletOffer } from "@/types/database";
 
 export type SendOffersResult =
-  | { ok: true; sent: number }
+  | { ok: true; sent: number; queued: false }
+  /** Broadcast to everyone: recorded, delivered later by the push worker. */
+  | { ok: true; queued: true; recipients: number }
   | {
       ok: false;
       reason: "lookup" | "noRecipients" | "notOptedIn" | "insert";
@@ -15,8 +17,8 @@ export type SendOffersResult =
 /**
  * The one place the broadcast rule lives: only `marketing_consent` customers
  * of the business are ever messaged. No `customerIds` = one offer for every
- * opted-in customer; otherwise one offer per chosen customer (all must be
- * opted in). Inserts the wallet_offers rows and pushes them. Needs a
+ * opted-in customer (queued: the push worker delivers it); otherwise one offer per chosen customer (all must be
+ * opted in). Inserts the wallet_offers rows; per-customer offers are pushed inline. Needs a
  * service-role client (wallet_offers has no insert policy). Throws if the
  * wallet notify fails (rows are already stored, like before).
  */
@@ -74,6 +76,7 @@ export async function sendWalletOffers(
             body,
             created_by: createdBy,
             automation_id: automationId,
+            delivery: "pending" as const,
           },
         ];
   const { data: offers, error } = await admin
@@ -82,6 +85,7 @@ export async function sendWalletOffers(
     .select("*");
   if (error) return { ok: false, reason: "insert", message: error.message };
 
+  if (!customerIds.length) return { ok: true, queued: true, recipients: count };
   const sent = await notifyOffers(admin, offers as WalletOffer[]);
-  return { ok: true, sent };
+  return { ok: true, sent, queued: false };
 }
