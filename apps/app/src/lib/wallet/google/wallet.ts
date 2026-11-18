@@ -275,6 +275,10 @@ export async function patchLoyaltyClass(
     url: `${BASE}/loyaltyClass/${classId(card.program.id)}`,
     method: "PATCH",
     data: {
+      // Google rejects a PATCH to an approved class ("Invalid review status
+      // APPROVED. Use UNDER_REVIEW instead"): edits must be resubmitted for
+      // review. Until Google approves it, passes keep the previous look.
+      reviewStatus: "UNDER_REVIEW",
       hexBackgroundColor: design.primary_color,
       // Explicit null clears a removed image (JSON merge-patch semantics);
       // omitting the key would leave the old one on the class.
