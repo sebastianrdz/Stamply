@@ -330,6 +330,8 @@ describe("patchLoyaltyClass", () => {
     });
     await patchLoyaltyClass(withImages);
     expect(requestMock.mock.calls[0][0].data).toEqual({
+      // Google refuses to patch an approved class unless it is resubmitted.
+      reviewStatus: "UNDER_REVIEW",
       hexBackgroundColor: "#112233",
       programLogo: { sourceUri: { uri: "https://cdn.example/l.png" } },
       heroImage: { sourceUri: { uri: "https://cdn.example/b.png" } },
