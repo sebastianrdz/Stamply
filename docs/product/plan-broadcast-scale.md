@@ -1,6 +1,6 @@
 # Plan: broadcast and wallet-push scale fix
 
-> Status: draft for review, no code written yet. Triggered by the D7 limits (customers 500 / 5,000 / 25,000): code written for a few hundred passes will break well before the new caps.
+> Status: ✅ shipped as PRs #66 to #72 (migration 0035); measurements in `broadcast-scale-load-check.md`. Triggered by the D7 limits (customers 500 / 5,000 / 25,000): code written for a few hundred passes will break well before the new caps.
 
 ## 1. What breaks today (findings)
 

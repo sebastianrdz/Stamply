@@ -1,6 +1,6 @@
 # Plan: D5 Staff controls (v1: per-employee report + daily stamp limit)
 
-> Status: draft for review, no code written yet. Each PR below is reviewed before the next starts. New migration is `0032` (D6 uses `0031`; renumber only if D6 is not merged first).
+> Status: ✅ v1 shipped (report + daily limit; PRs #47 to #49, migration 0032). Manager PIN and anomaly alerts (the "Later" section) are not built: see `roadmap-future-integrations.md`.
 
 ## Context
 

@@ -1,6 +1,6 @@
 # Plan: D6 Google Reviews prompt
 
-> Status: approved, no code written yet. Each PR below is reviewed before the next starts. New migration is `0031` (latest is `0030_monthly_summaries.sql`).
+> Status: ✅ shipped (PRs #43 to #46, migration 0031; Google class review fix #75). Not yet verified on real phones: link tappability in Apple and Google wallet messages.
 
 ## Context
 

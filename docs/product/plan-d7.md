@@ -1,6 +1,6 @@
 # D7: Plan limits review (limits only)
 
-> Status: implemented in one PR (limits revised after review: Big is 10 / 10 / 50 and customers are 500 / 5,000 / 25,000). Prices unchanged. New limits apply immediately; no Stripe or database change (limits live only in `packages/plans/src/index.ts` and are checked when something is added, so existing data is never removed).
+> Status: ✅ shipped (PR #63; limits revised after review: Big is 10 / 10 / 50 and customers are 500 / 5,000 / 25,000). Prices unchanged. New limits apply immediately; no Stripe or database change (limits live only in `packages/plans/src/index.ts` and are checked when something is added, so existing data is never removed).
 
 ## Goal and rules (confirmed)
 
