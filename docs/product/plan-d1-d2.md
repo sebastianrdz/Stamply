@@ -1,6 +1,6 @@
 # Plan: D1 ROI dashboard + D2 automation & offer attribution
 
-> Status: approved, no code written yet. Each PR below is reviewed before the next starts.
+> Status: ✅ shipped (PRs #36 to #40, migrations 0029 and 0030). Kept as the record of the decisions.
 
 ## Context
 

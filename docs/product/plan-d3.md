@@ -1,6 +1,6 @@
 # Plan: D3 Referral program ("Invite a friend")
 
-> Status: draft for review, no code written yet. Each PR below is reviewed before the next starts. New migration is `0033` (D5 used `0032`).
+> Status: ✅ shipped (PRs #53 to #58 plus fixes #60 and #62; migrations 0033 and 0034). Kept as the record of the decisions. Deviations: the payout is one atomic `pay_referral` function, the referrer message is a system wallet message (`wallet_offers.kind = referral`), and the optional "invited by a friend" banner was not built.
 
 ## Context
 

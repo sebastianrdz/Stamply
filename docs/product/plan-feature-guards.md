@@ -1,6 +1,6 @@
 # Plan: limits recommendations and feature guards by plan
 
-> Status: decisions made (see section 8); guard mechanism not built yet. Limits and copy are in the D7 PR (#63). Competitor data: public pages of Loyalz Club and Carrott (Motivecard publishes no pricing), checked 2026-11.
+> Status: decisions made (see section 8), applied in D7; **the guard mechanism is not built** (see `roadmap-future-integrations.md`). Limits and copy are in the D7 PR (#63). Competitor data: public pages of Loyalz Club and Carrott (Motivecard publishes no pricing), checked 2026-11.
 
 ## 1. What competitors do differently
 
